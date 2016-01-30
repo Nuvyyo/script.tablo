@@ -71,10 +71,13 @@ class TabloApi(Endpoint):
     def __init__(self):
         Endpoint.__init__(self)
         self.device = None
-        self.devices = []
+        self.devices = None
 
     def discover(self):
         self.devices = discovery.Devices()
+
+    def foundTablos(self):
+        return bool(self.devices and self.devices.tablos)
 
     def selectDevice(self, selection):
         if isinstance(selection, int):
