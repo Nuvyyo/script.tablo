@@ -44,11 +44,11 @@ class Endpoint(object):
         )
 
     @requestHandler
-    def post(self, **kwargs):
+    def post(self, *args, **kwargs):
         return requests.post(
             'http://{0}/{1}'.format(self.device.address(), '/'.join(self.segments)),
             headers={'User-Agent': USER_AGENT},
-            data=json.dumps(kwargs)
+            data=json.dumps(args and args[0] or kwargs)
         )
 
     @requestHandler
@@ -88,6 +88,12 @@ class TabloApi(Endpoint):
             if selection == d.ID:
                 self.device = d
                 break
+
+    def deviceSelected(self):
+        return bool(self.device)
+
+    def images(self, ID):
+        return 'http://{0}/images/{1}'.format(self.device.address(), ID)
 
 
 API = TabloApi()
