@@ -3,6 +3,8 @@ import sys
 import binascii
 import json
 import threading
+import Queue
+
 import time
 import datetime
 import xbmc
@@ -112,20 +114,48 @@ def sortTitle(title):
     return title.startswith('The ') and title[4:] or title
 
 
-def busyDialog(msg='LOADING'):
-    def methodWrap(func):
-        def inner(*args, **kwargs):
-            try:
-                setGlobalProperty('busy', msg)
-                return func(*args, **kwargs)
-            finally:
-                setGlobalProperty('busy', '')
-        return inner
-    return methodWrap
+def durationToText(seconds):
+    """
+    Converts seconds to a short user friendly string
+    Example: 143 -> 2m 23s
+    """
+    days = int(seconds/86400)
+    if days:
+        return '{0} day{1}'.format(days, days > 1 and 's' or '')
+    left = seconds % 86400
+    hours = int(left/3600)
+    if hours:
+        return '{0} hour{1}'.format(hours, hours > 1 and 's' or '')
+    left = left % 3600
+    mins = int(left/60)
+    if mins:
+        return '{0} minute{1}'.format(mins, mins > 1 and 's' or '')
+    secs = int(left % 60)
+    if secs:
+        return '{0} second{1}'.format(secs, secs > 1 and 's' or '')
+    return '0 seconds'
 
 
-def withBusyDialog(method, msg, *args, **kwargs):
-    return busyDialog(msg or 'LOADING')(method)(*args, **kwargs)
+def busyDialog(func):
+    def inner(*args, **kwargs):
+        w = None
+        try:
+            print 'x'
+            w = xbmcgui.WindowXMLDialog('script-tablo-busy.xml', ADDON.getAddonInfo('path'), 'Main')
+            w.show()
+            print 'y'
+            return func(*args, **kwargs)
+            print 'z'
+        finally:
+            if w:
+                w.close()
+            del w
+            print 'f'
+    return inner
+
+
+def withBusyDialog(method, *args, **kwargs):
+    return busyDialog(method)(*args, **kwargs)
 
 
 class TextBox:

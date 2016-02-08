@@ -1,0 +1,394 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<window>
+    <defaultcontrol>100</defaultcontrol>
+    <coordinates>
+        <system>1</system>
+        <posx>0</posx>
+        <posy>0</posy>
+    </coordinates>
+    <controls>
+        <control type="image">
+            <posx>0</posx>
+            <posy>0</posy>
+            <width>1280</width>
+            <height>720</height>
+            <texture fallback="placeholders/placeholder_background_hd.jpg">$INFO[Window.Property(background)]</texture>
+            <aspectratio aligny="top">scale</aspectratio>
+            <colordiffuse>8AFFFFFF</colordiffuse>
+        </control>
+        <control type="image">
+            <visible>ControlGroup(200).HasFocus(0)</visible>
+            <animation effect="fade" start="0" end="100" time="200">Visible</animation>
+            <animation effect="fade" start="100" end="0" time="200">Hidden</animation>
+            <posx>0</posx>
+            <posy>0</posy>
+            <width>1280</width>
+            <height>720</height>
+            <texture>script-tablo-white_square.png</texture>
+            <colordiffuse>D70E1218</colordiffuse>
+        </control>
+
+        <control type="group">
+            <animation effect="slide" start="0,0" end="0,-720" time="200" condition="ControlGroup(200).HasFocus(0)">Conditional</animation>
+            <posx>0</posx>
+            <posy>0</posy>
+            <control type="group" id="100">
+                <defaultcontrol>400</defaultcontrol>
+                <posx>80</posx>
+                <posy>280</posy>
+                <control type="image">
+                    <posx>-26</posx>
+                    <posy>-26</posy>
+                    <width>1172</width>
+                    <height>412</height>
+                    <texture border="30">shadows/high_bold.png</texture>
+                </control>
+                <control type="image">
+                    <posx>0</posx>
+                    <posy>0</posy>
+                    <width>1120</width>
+                    <height>360</height>
+                    <texture>script-tablo-white_square.png</texture>
+                    <colordiffuse>FF102C3D</colordiffuse>
+                </control>
+                <control type="image">
+                    <posx>0</posx>
+                    <posy>0</posy>
+                    <width>270</width>
+                    <height>360</height>
+                    <texture>script-tablo-white_square.png</texture>
+                    <colordiffuse>FF101924</colordiffuse>
+                </control>
+                <control type="image">
+                    <posx>0</posx>
+                    <posy>0</posy>
+                    <width>270</width>
+                    <height>360</height>
+                    <texture>$INFO[Window.Property(thumb)]</texture>
+                </control>
+                <control type="label">
+                    <left>290</left>
+                    <top>30</top>
+                    <width>810</width>
+                    <height>50</height>
+                    <font>WeatherTemp</font>
+                    <textcolor>FFEBEBEB</textcolor>
+                    <align>left</align>
+                    <aligny>center</aligny>
+                    <label>$INFO[Window.Property(title)]</label>
+                </control>
+                <control type="label">
+                    <left>290</left>
+                    <top>100</top>
+                    <width>810</width>
+                    <height>30</height>
+                    <font>font16</font>
+                    <textcolor>FFEBEBEB</textcolor>
+                    <align>left</align>
+                    <aligny>center</aligny>
+                    <label>$INFO[Window.Property(info)]</label>
+                </control>
+                <control type="textbox">
+                    <left>290</left>
+                    <top>140</top>
+                    <width>810</width>
+                    <height>110</height>
+                    <font>font14</font>
+                    <textcolor>FFEBEBEB</textcolor>
+                    <label>$INFO[Window.Property(plot)]</label>
+                </control>
+
+                <control type="group">
+                    <posx>390</posx>
+                    <posy>270</posy>
+                    <control type="button" id="400">
+                        <posx>0</posx>
+                        <posy>0</posy>
+                        <width>280</width>
+                        <height>60</height>
+                        <onright>401</onright>
+                        <ondown>200</ondown>
+                        <font>font30</font>
+                        <textcolor>FFFFFFFF</textcolor>
+                        <focusedcolor>FFFFFFFF</focusedcolor>
+                        <align>center</align>
+                        <aligny>center</aligny>
+                        <texturefocus colordiffuse="52FFFFFF" border="8">highlights/highlight_focused.png</texturefocus>
+                        <texturenofocus>-</texturenofocus>
+                        <textoffsetx>0</textoffsetx>
+                        <textoffsety>0</textoffsety>
+                        <label></label>
+                        <onclick>SetFocus(200)</onclick>
+                    </control>
+                    <control type="label">
+                        <visible>Control.HasFocus(400)</visible>
+                        <posx>0</posx>
+                        <posy>0</posy>
+                        <width>280</width>
+                        <height>60</height>
+                        <font>font30</font>
+                        <textcolor>FFFFFFFF</textcolor>
+                        <align>center</align>
+                        <aligny>center</aligny>
+                        <label>[B]Episodes[/B]</label>
+                    </control>
+                    <control type="label">
+                        <visible>!Control.HasFocus(400)</visible>
+                        <posx>0</posx>
+                        <posy>0</posy>
+                        <width>280</width>
+                        <height>60</height>
+                        <font>font30</font>
+                        <textcolor>FFFFFFFF</textcolor>
+                        <align>center</align>
+                        <aligny>center</aligny>
+                        <label>Episodes</label>
+                    </control>
+                </control>
+
+                <control type="group">
+                    <posx>700</posx>
+                    <posy>270</posy>
+                    <control type="button" id="401">
+                        <posx>0</posx>
+                        <posy>0</posy>
+                        <width>280</width>
+                        <height>60</height>
+                        <onleft>400</onleft>
+                        <ondown>200</ondown>
+                        <font>font30</font>
+                        <textcolor>FFFFFFFF</textcolor>
+                        <focusedcolor>FFFFFFFF</focusedcolor>
+                        <align>center</align>
+                        <aligny>center</aligny>
+                        <texturefocus colordiffuse="52FFFFFF" border="8">highlights/highlight_focused.png</texturefocus>
+                        <texturenofocus>-</texturenofocus>
+                        <textoffsetx>0</textoffsetx>
+                        <textoffsety>0</textoffsety>
+                        <label></label>
+                    </control>
+                    <control type="label">
+                        <visible>Control.HasFocus(401)</visible>
+                        <posx>0</posx>
+                        <posy>0</posy>
+                        <width>280</width>
+                        <height>60</height>
+                        <font>font30</font>
+                        <textcolor>FFFFFFFF</textcolor>
+                        <align>center</align>
+                        <aligny>center</aligny>
+                        <label>[B]Schedule...[/B]</label>
+                    </control>
+                    <control type="label">
+                        <visible>!Control.HasFocus(401)</visible>
+                        <posx>0</posx>
+                        <posy>0</posy>
+                        <width>280</width>
+                        <height>60</height>
+                        <font>font30</font>
+                        <textcolor>FFFFFFFF</textcolor>
+                        <align>center</align>
+                        <aligny>center</aligny>
+                        <label>Schedule...</label>
+                    </control>
+                </control>
+            </control>
+
+            <control type="group" id="200">
+                <defaultcontrol>300</defaultcontrol>
+                <posx>0</posx>
+                <posy>720</posy>
+                <control type="list" id="300">
+                    <posx>54</posx>
+                    <posy>0</posy>
+                    <width>1172</width>
+                    <height>720</height>
+                    <scrolltime>200</scrolltime>
+                    <orientation>vertical</orientation>
+                    <onup>100</onup>
+                    <ondown>200</ondown>
+                    <itemlayout height="90">
+                        <control type="group">
+                            <posx>26</posx>
+                            <posy>0</posy>
+                            <control type="group">
+                                <visible>!IsEmpty(ListItem.Property(header))</visible>
+                                <posx>10</posx>
+                                <posy>10</posy>
+                                <control type="label">
+                                    <left>0</left>
+                                    <top>0</top>
+                                    <width>1100</width>
+                                    <height>80</height>
+                                    <font>font_MainMenu</font>
+                                    <textcolor>FFEBEBEB</textcolor>
+                                    <align>left</align>
+                                    <aligny>center</aligny>
+                                    <label>$INFO[ListItem.Label]</label>
+                                </control>
+                            </control>
+                            <control type="group">
+                                <visible>IsEmpty(ListItem.Property(header))</visible>
+                                <posx>10</posx>
+                                <posy>10</posy>
+                                <control type="image">
+                                    <posx>0</posx>
+                                    <posy>0</posy>
+                                    <width>1100</width>
+                                    <height>80</height>
+                                    <texture>script-tablo-white_square.png</texture>
+                                    <colordiffuse>FF102C3D</colordiffuse>
+                                </control>
+
+                                <control type="label">
+                                    <visible>IsEmpty(ListItem.Property(airing))</visible>
+                                    <left>20</left>
+                                    <top>0</top>
+                                    <width>60</width>
+                                    <height>80</height>
+                                    <font>font14</font>
+                                    <textcolor>FFFFFFFF</textcolor>
+                                    <align>right</align>
+                                    <aligny>center</aligny>
+                                    <label>[B]$INFO[ListItem.Property(number)][/B]</label>
+                                </control>
+                                <control type="image">
+                                    <visible>!IsEmpty(ListItem.Property(airing))</visible>
+                                    <posx>59</posx>
+                                    <posy>29</posy>
+                                    <width>21</width>
+                                    <height>22</height>
+                                    <texture>indicators/guide_airing_cell_now_playing_indicator_hd.png</texture>
+                                </control>
+
+                                <control type="label">
+                                    <left>100</left>
+                                    <top>0</top>
+                                    <width>700</width>
+                                    <height>80</height>
+                                    <font>font16</font>
+                                    <textcolor>C8EBEBEB</textcolor>
+                                    <align>left</align>
+                                    <aligny>center</aligny>
+                                    <label>$INFO[ListItem.Label]</label>
+                                </control>
+                                <control type="label">
+                                    <left>820</left>
+                                    <top>0</top>
+                                    <width>260</width>
+                                    <height>80</height>
+                                    <font>font14</font>
+                                    <textcolor>C8EBEBEB</textcolor>
+                                    <align>right</align>
+                                    <aligny>center</aligny>
+                                    <label>$INFO[ListItem.Label2]</label>
+                                </control>
+                                <control type="image">
+                                    <posx>1070</posx>
+                                    <posy>0</posy>
+                                    <width>30</width>
+                                    <height>30</height>
+                                    <texture>$INFO[ListItem.Property(badge)]</texture>
+                                </control>
+                            </control>
+                        </control>
+                    </itemlayout>
+
+                    <focusedlayout height="90">
+                        <control type="group">
+                            <posx>26</posx>
+                            <posy>0</posy>
+                            <control type="group">
+                                <visible>!IsEmpty(ListItem.Property(header))</visible>
+                                <posx>10</posx>
+                                <posy>10</posy>
+                                <control type="label">
+                                    <left>0</left>
+                                    <top>0</top>
+                                    <width>1100</width>
+                                    <height>80</height>
+                                    <font>font_MainMenu</font>
+                                    <textcolor>FFEBEBEB</textcolor>
+                                    <align>left</align>
+                                    <aligny>center</aligny>
+                                    <label>$INFO[ListItem.Label]</label>
+                                </control>
+                            </control>
+                            <control type="group">
+                                <posx>0</posx>
+                                <posy>5</posy>
+                                <visible>IsEmpty(ListItem.Property(header))</visible>
+                                <control type="image">
+                                    <posx>-26</posx>
+                                    <posy>-26</posy>
+                                    <width>1172</width>
+                                    <height>142</height>
+                                    <texture border="30">shadows/high_bold.png</texture>
+                                </control>
+                                <control type="image">
+                                    <posx>0</posx>
+                                    <posy>0</posy>
+                                    <width>1120</width>
+                                    <height>90</height>
+                                    <texture>script-tablo-white_square.png</texture>
+                                    <colordiffuse>FFEBEBEB</colordiffuse>
+                                </control>
+
+                                <control type="label">
+                                    <visible>IsEmpty(ListItem.Property(airing))</visible>
+                                    <left>20</left>
+                                    <top>0</top>
+                                    <width>60</width>
+                                    <height>90</height>
+                                    <font>font14</font>
+                                    <textcolor>FF000000</textcolor>
+                                    <align>right</align>
+                                    <aligny>center</aligny>
+                                    <label>[B]$INFO[ListItem.Property(number)][/B]</label>
+                                </control>
+                                <control type="image">
+                                    <visible>!IsEmpty(ListItem.Property(airing))</visible>
+                                    <posx>59</posx>
+                                    <posy>34</posy>
+                                    <width>21</width>
+                                    <height>22</height>
+                                    <texture>indicators/guide_airing_cell_now_playing_indicator_hd.png</texture>
+                                </control>
+
+                                <control type="label">
+                                    <left>100</left>
+                                    <top>0</top>
+                                    <width>720</width>
+                                    <height>90</height>
+                                    <font>font30</font>
+                                    <textcolor>FF000000</textcolor>
+                                    <align>left</align>
+                                    <aligny>center</aligny>
+                                    <label>$INFO[ListItem.Label]</label>
+                                </control>
+                                <control type="label">
+                                    <left>840</left>
+                                    <top>0</top>
+                                    <width>260</width>
+                                    <height>90</height>
+                                    <font>font14</font>
+                                    <textcolor>FF000000</textcolor>
+                                    <align>right</align>
+                                    <aligny>center</aligny>
+                                    <label>$INFO[ListItem.Label2]</label>
+                                </control>
+                                <control type="image">
+                                    <posx>1090</posx>
+                                    <posy>0</posy>
+                                    <width>30</width>
+                                    <height>30</height>
+                                    <texture>$INFO[ListItem.Property(badge)]</texture>
+                                </control>
+                            </control>
+                        </control>
+                    </focusedlayout>
+                </control>
+            </control>
+        </control>
+    </controls>
+</window>

@@ -1,6 +1,7 @@
 import tablo
 import windows
 import util
+import backgroundthread
 
 
 def start():
@@ -21,4 +22,7 @@ def start():
             break
 
     del bw
+
+    backgroundthread.BGThreader.shutdown()
+
     util.LOG('END')

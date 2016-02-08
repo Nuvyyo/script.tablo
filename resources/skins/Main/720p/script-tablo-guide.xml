@@ -26,8 +26,15 @@
                 <posy>0</posy>
                 <width>1280</width>
                 <height>720</height>
-                <texture>$INFO[Container(301).ListItem.Property(background)]</texture>
-                <aspectratio>scale</aspectratio>
+                <texture fallback="placeholders/placeholder_background_hd.jpg">$INFO[Container(301).ListItem.Property(background)]</texture>
+                <aspectratio aligny="top">scale</aspectratio>
+            </control>
+            <control type="image">
+                <posx>290</posx>
+                <posy>0</posy>
+                <width>1280</width>
+                <height>720</height>
+                <texture>script-tablo-white_square.png</texture>
                 <colordiffuse>D70E1218</colordiffuse>
             </control>
 
@@ -57,7 +64,7 @@
                             <width>250</width>
                             <height>50</height>
                             <font>font30</font>
-                            <textcolor>FFFFFFFF</textcolor>
+                            <textcolor>C8EBEBEB</textcolor>
                             <align>left</align>
                             <aligny>center</aligny>
                             <label>$INFO[ListItem.Label]</label>
@@ -73,7 +80,7 @@
                                 <width>250</width>
                                 <height>50</height>
                                 <font>font30</font>
-                                <textcolor>FFFFFFFF</textcolor>
+                                <textcolor>FFEBEBEB</textcolor>
                                 <align>left</align>
                                 <aligny>center</aligny>
                                 <label>[B]$INFO[ListItem.Label][/B]</label>
@@ -87,7 +94,7 @@
                                 <width>250</width>
                                 <height>50</height>
                                 <font>font30</font>
-                                <textcolor>FFFFFFFF</textcolor>
+                                <textcolor>FFEBEBEB</textcolor>
                                 <align>left</align>
                                 <aligny>center</aligny>
                                 <label>$INFO[ListItem.Label]</label>
@@ -130,7 +137,7 @@
                             <width>180</width>
                             <height>246</height>
                             <texture>script-tablo-white_square.png</texture>
-                            <colordiffuse>FF102C3D</colordiffuse>
+                            <colordiffuse>FF101924</colordiffuse>
                         </control>
                         <control type="textbox">
                             <left>10</left>
@@ -152,7 +159,7 @@
                         </control>
                     </itemlayout>
 
-                    <focusedlayout height="70">
+                    <focusedlayout width="200" height="266">
                         <control type="image">
                             <posx>0</posx>
                             <posy>0</posy>
@@ -166,7 +173,7 @@
                             <width>190</width>
                             <height>256</height>
                             <texture>script-tablo-white_square.png</texture>
-                            <colordiffuse>FF102C3D</colordiffuse>
+                            <colordiffuse>FF101924</colordiffuse>
                         </control>
                         <control type="textbox">
                             <left>10</left>
@@ -229,8 +236,9 @@
                         </itemlayout>
                         <focusedlayout height="30">
                             <control type="group">
-                                <visible>!Control.HasFocus(400)</visible>
+                                <visible>!Control.HasFocus(400) | IsEmpty(ListItem.Property(has.contents))</visible>
                                 <control type="image">
+                                    <visible>!IsEmpty(ListItem.Property(has.contents))</visible>
                                     <posx>10</posx>
                                     <posy>3</posy>
                                     <width>20</width>
@@ -265,7 +273,7 @@
                                 </control>
                             </control>
                             <control type="group">
-                                <visible>Control.HasFocus(400)</visible>
+                                <visible>Control.HasFocus(400) + !IsEmpty(ListItem.Property(has.contents))</visible>
                                 <control type="image">
                                     <posx>10</posx>
                                     <posy>3</posy>
@@ -314,5 +322,20 @@
             <texture>script-tablo-white_square.png</texture>
             <colordiffuse>FF2F8EC0</colordiffuse>
         </control>
+
+        <control type="label">
+            <animation effect="slide" start="0,0" end="0,-200" time="200" condition="!IsEmpty(Container(301).ListItem.Property(after.firstrow))">Conditional</animation>
+            <description>Time</description>
+            <right>30</right>
+            <top>30</top>
+            <width>400</width>
+            <height>50</height>
+            <font>font16</font>
+            <textcolor>FFEBEBEB</textcolor>
+            <align>right</align>
+            <aligny>top</aligny>
+            <label>$INFO[System.Time]</label>
+        </control>
+
     </controls>
 </window>

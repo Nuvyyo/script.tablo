@@ -1,84 +1,32 @@
 import xbmc
 import xbmcgui
-import threading
 import kodigui
+import base
+import actiondialog
 
 from lib import util
+from lib import backgroundthread
 from lib import tablo
 
 WM = None
 
 
-class Show:
-    type = None
+class ShowsTask(backgroundthread.Task):
+    def setup(self, paths, callback):
+        self.paths = paths
+        self.callback = callback
 
-    def __init__(self, data):
-        self.data = None
-        self._thumb = ''
-        self._background = ''
-        self.path = data['path']
-        self.processData(data)
+    def run(self):
+        shows = {}
+        ct = 0
 
-    @classmethod
-    def newFromData(self, data):
-        if 'series' in data:
-            return Series(data)
-        elif 'movie' in data:
-            return Movie(data)
-        elif 'sport' in data:
-            return Sport(data)
-        elif 'program' in data:
-            return Program(data)
-
-    def processData(self, data):
-        pass
-
-    @property
-    def thumb(self):
-        if not self._thumb:
-            try:
-                self._thumb = self.data.get('thumbnail_image') and tablo.API.images(self.data['thumbnail_image']['image_id']) or ''
-            except:
-                print self.data['thumbnail_image']
-        return self._thumb
-
-    @property
-    def background(self):
-        if not self._background:
-            self._background = self.data.get('background_image') and tablo.API.images(self.data['background_image']['image_id']) or ''
-        return self._background
-
-    @property
-    def title(self):
-        return self.data['title']
-
-
-class Series(Show):
-    type = 'SERIES'
-
-    def processData(self, data):
-        self.data = data['series']
-
-
-class Movie(Show):
-    type = 'MOVIE'
-
-    def processData(self, data):
-        self.data = data['movie']
-
-
-class Sport(Show):
-    type = 'SPORT'
-
-    def processData(self, data):
-        self.data = data['sport']
-
-
-class Program(Show):
-    type = 'PROGRAM'
-
-    def processData(self, data):
-        self.data = data['program']
+        shows = tablo.API.batch.post(self.paths)
+        ct += len(shows)
+        util.DEBUG_LOG('Retrieved {0} shows'.format(ct))
+        for path, show in shows.items():
+            if self.isCanceled():
+                return
+            self.callback(tablo.Show.newFromData(show))
 
 
 class GuideWindow(kodigui.BaseWindow):
@@ -94,10 +42,17 @@ class GuideWindow(kodigui.BaseWindow):
         ('SPORTS', 'Sports')
     )
 
+    MENU_GROUP_ID = 100
+    MENU_LIST_ID = 200
+    SHOW_PANEL_ID = 301
+    KEY_LIST_ID = 400
+
     def onFirstInit(self):
-        self.typeList = kodigui.ManagedControlList(self, 200, 3)
-        self.showList = kodigui.ManagedControlList(self, 301, 11)
-        self.keysList = kodigui.ManagedControlList(self, 400, 10)
+        self._showingDialog = False
+
+        self.typeList = kodigui.ManagedControlList(self, self.MENU_LIST_ID, 3)
+        self.showList = kodigui.ManagedControlList(self, self.SHOW_PANEL_ID, 11)
+        self.keysList = kodigui.ManagedControlList(self, self.KEY_LIST_ID, 10)
         self.keys = {}
         self.lastKey = None
         self.lastSelectedKey = None
@@ -105,14 +60,16 @@ class GuideWindow(kodigui.BaseWindow):
 
         self.setFilter()
 
-        self._showDataThread = None
-        self._showDataStopFlag = False
+        self._tasks = []
 
         self.fillTypeList()
 
         self.onReInit()
 
     def onReInit(self):
+        if self._showingDialog:
+            return
+
         self.fillShows()
 
     def onAction(self, action):
@@ -120,11 +77,11 @@ class GuideWindow(kodigui.BaseWindow):
             self.updateKey(action)
 
             if action == xbmcgui.ACTION_NAV_BACK:
-                if xbmc.getCondVisibility('ControlGroup(100).HasFocus(0)'):
+                if xbmc.getCondVisibility('ControlGroup({0}).HasFocus(0)'.format(self.MENU_GROUP_ID)):
                     WM.showMenu()
                     return
                 else:
-                    self.setFocusId(100)
+                    self.setFocusId(self.MENU_GROUP_ID)
                     return
             elif action == xbmcgui.ACTION_PREVIOUS_MENU:
                 WM.finish()
@@ -135,28 +92,48 @@ class GuideWindow(kodigui.BaseWindow):
         kodigui.BaseWindow.onAction(self, action)
 
     def onClick(self, controlID):
-        if controlID == 200:
+        if controlID == self.MENU_LIST_ID:
             item = self.typeList.getSelectedItem()
             if item:
                 self.setFilter(item.dataSource)
                 self.fillShows()
+        elif controlID == self.SHOW_PANEL_ID:
+            self.showClicked()
 
     def onFocus(self, controlID):
         if controlID == 50:
-            self.setFocusId(100)
+            self.setFocusId(self.MENU_GROUP_ID)
             WM.showMenu()
             return
 
     def doClose(self):
         kodigui.BaseWindow.doClose(self)
-        self.stopShowDataThread()
+        self.cancelTasks()
+
+    @base.dialogFunction
+    def showClicked(self):
+        item = self.showList.getSelectedItem()
+        if not item:
+            return
+
+        show = item.dataSource.get('show')
+        if not show:
+            return
+
+        if not show:
+            self.getShowData([item.dataSource['path']])
+            while not show and backgroundthread.BGThreader.working() and not xbmc.abortRequested:
+                xbmc.sleep(100)
+                show = item.dataSource.get('show')
+
+        GuideShowWindow.open(show=show)
 
     def setFilter(self, filter=None):
         self.filter = filter
         util.setGlobalProperty('guide.filter', [t[1] for t in self.types if t[0] == filter][0])
 
     def updateKey(self, action=None):
-        if self.getFocusId() == 301:
+        if self.getFocusId() == self.SHOW_PANEL_ID:
             item = self.showList.getSelectedItem()
             if not item:
                 return
@@ -167,25 +144,33 @@ class GuideWindow(kodigui.BaseWindow):
             self.lastKey = key
 
             self.keysList.selectItem(self.keys[key])
-        elif self.getFocusId() == 400:
+        elif self.getFocusId() == self.KEY_LIST_ID:
+            if action == xbmcgui.ACTION_PAGE_DOWN or action == xbmcgui.ACTION_PAGE_UP:
+                if self.lastSelectedKey:
+                    self.keysList.selectItem(self.keys[self.lastSelectedKey])
+                return
+
             item = self.keysList.getSelectedItem()
+
             if not item:
                 return
 
             if not item.getProperty('has.contents'):
                 pos = item.pos()
-                if action == xbmcgui.ACTION_MOVE_DOWN:
-                    for i, item in enumerate(self.keysList):
-                        if i > pos and item.getProperty('has.contents'):
+
+                if action == xbmcgui.ACTION_MOVE_DOWN or action == xbmcgui.ACTION_PAGE_DOWN:
+                    for i in range(pos + 1, len(self.keysList)):
+                        item = self.keysList[i]
+                        if item.getProperty('has.contents'):
                             self.keysList.selectItem(item.pos())
                             break
                     else:
                         self.keysList.selectItem(self.keys[self.lastSelectedKey])
                         return
-                elif action == xbmcgui.ACTION_MOVE_UP:
-                    for i in range(pos, -1, -1):
+                elif action == xbmcgui.ACTION_MOVE_UP or action == xbmcgui.ACTION_PAGE_UP:
+                    for i in range(pos - 1, -1, -1):
                         item = self.keysList[i]
-                        if i < pos and item.getProperty('has.contents'):
+                        if item.getProperty('has.contents'):
                             self.keysList.selectItem(item.pos())
                             break
                     else:
@@ -213,35 +198,22 @@ class GuideWindow(kodigui.BaseWindow):
 
         self.setFocusId(200)
 
-    def stopShowDataThread(self):
-        if not self._showDataThread or not self._showDataThread.isAlive():
-            return
-
-        util.DEBUG_LOG('Stopping data thread...')
-        self._showDataStopFlag = True
-        self._showDataThread.join()
-        self._showDataStopFlag = False
-        util.DEBUG_LOG('Data thread stopped')
+    def cancelTasks(self):
+        for t in self._tasks:
+            t.cancel()
+        self._tasks = []
 
     def getShowData(self, paths):
-        self.stopShowDataThread()
+        self.cancelTasks()
 
-        self._showDataThread = threading.Thread(target=self._getShowData, args=(paths,))
-        self._showDataThread.start()
-
-    def _getShowData(self, paths):
-        shows = {}
-        ct = 0
-        while paths and not (self._showDataStopFlag or xbmc.abortRequested):
+        while paths:
             current50 = paths[:50]
             paths = paths[50:]
-            shows = tablo.API.batch.post(current50)
-            ct += len(shows)
-            util.DEBUG_LOG('Retrieved {0} shows'.format(ct))
-            for path, show in shows.items():
-                if self._showDataStopFlag or xbmc.abortRequested:
-                    return
-                self.updateShowItem(Show.newFromData(show))
+            t = ShowsTask()
+            self._tasks.append(t)
+            t.setup(current50, self.updateShowItem)
+
+        backgroundthread.BGThreader.addTasks(self._tasks)
 
     def updateShowItem(self, show):
         item = self.showItems[show.path]
@@ -253,7 +225,7 @@ class GuideWindow(kodigui.BaseWindow):
         item.setProperty('key', key)
 
     def fillShows(self):
-        self.stopShowDataThread()
+        self.cancelTasks()
 
         self.showList.reset()
         self.keysList.reset()
@@ -298,3 +270,265 @@ class GuideWindow(kodigui.BaseWindow):
         self.showList.addItems(items)
 
         self.getShowData(paths)
+
+
+class AiringsTask(backgroundthread.Task):
+    def setup(self, paths, callback, airing_type):
+        self.paths = paths
+        self.callback = callback
+        self.airingType = airing_type
+
+    def run(self):
+        episodes = tablo.API.batch.post(self.paths)
+        util.DEBUG_LOG('Retrieved {0} episodes'.format(len(episodes)))
+        for path, episode in episodes.items():
+            if self.isCanceled():
+                return
+            self.callback(tablo.Airing(episode, self.airingType))
+
+
+class GuideShowWindow(kodigui.BaseWindow):
+    name = 'GUIDE'
+    xmlFile = 'script-tablo-show.xml'
+    path = util.ADDON.getAddonInfo('path')
+    theme = 'Main'
+
+    EPISODES_BUTTON_ID = 400
+    SCHEDULE_BUTTON_ID = 401
+    EPISODES_LIST_ID = 300
+
+    def __init__(self, *args, **kwargs):
+        kodigui.BaseWindow.__init__(self, *args, **kwargs)
+        self.show = kwargs.get('show')
+
+    def onFirstInit(self):
+        self._tasks = []
+        self.episodeItems = {}
+
+        self.setProperty('thumb', self.show.thumb)
+        self.setProperty('background', self.show.background)
+        self.setProperty('title', self.show.title)
+        self.setProperty('plot', self.show.plot or self.show.description)
+
+        self.episodesList = kodigui.ManagedControlList(self, self.EPISODES_LIST_ID, 20)
+
+        self.fillEpisodes()
+
+    def onClick(self, controlID):
+        if controlID == self.EPISODES_LIST_ID:
+            self.episodesListClicked()
+
+    def onAction(self, action):
+        controlID = self.getFocusId()
+
+        try:
+            if action == xbmcgui.ACTION_NAV_BACK or action == xbmcgui.ACTION_PREVIOUS_MENU:
+                self.doClose()
+                return
+            elif controlID == self.EPISODES_LIST_ID:
+                self.updateEpisodeSelection(action)
+            elif action == xbmcgui.ACTION_PAGE_DOWN:
+                if xbmc.getCondVisibility('ControlGroup(100).HasFocus(0)'):
+                    xbmc.executebuiltin('Action(down)')
+        except:
+            util.ERROR()
+
+        kodigui.BaseWindow.onAction(self, action)
+
+    def doClose(self):
+        kodigui.BaseWindow.doClose(self)
+        self.cancelTasks()
+
+    def episodesListClicked(self):
+        item = self.episodesList.getSelectedItem()
+        if not item:
+            return
+
+        episode = item.dataSource.get('episode')
+        if not episode:
+            return
+
+        info = 'Channel {0} {1} on {2} from {3} to {4}'.format(
+            episode.displayChannel(),
+            episode.network,
+            episode.displayDay(),
+            episode.displayTimeStart(),
+            episode.displayTimeEnd()
+        )
+
+        kwargs = {
+            'number': episode.number,
+            'background': self.show.background,
+            'callback': self.actionDialogCallback,
+            'obj': episode
+        }
+
+        if episode.scheduled:
+            kwargs['button1'] = ('unschedule', "Don't Record Episode")
+            kwargs['title_indicator'] = 'indicators/rec_pill_hd.png'
+        elif episode.airingNow():
+            kwargs['button1'] = ('watch', 'Watch')
+            kwargs['button2'] = ('record', 'Record Episode')
+        else:
+            kwargs['button1'] = ('record', 'Record Episode')
+
+        secs = episode.secondsToStart()
+
+        if secs < 1:
+            start = 'Started {0} ago'.format(util.durationToText(secs*-1))
+        else:
+            start = 'Starts in {0}'.format(util.durationToText(secs))
+
+        actiondialog.openDialog(
+            episode.title or self.show.title,
+            info, episode.description,
+            start,
+            **kwargs
+        )
+
+        self.updateIndicators()
+
+    def actionDialogCallback(self, obj, action):
+        if not action:
+            return
+
+        episode = obj
+
+        buttons = {}
+
+        if action == 'watch':
+            xbmc.Player().play(episode.watch().url)
+        elif action == 'record':
+            episode.schedule()
+        elif action == 'unschedule':
+            episode.schedule(False)
+
+        if episode.scheduled:
+            buttons['button1'] = ('unschedule', "Don't Record Episode")
+            buttons['title_indicator'] = 'indicators/rec_pill_hd.png'
+        elif episode.airingNow():
+            buttons['button1'] = ('watch', 'Watch')
+            buttons['button2'] = ('record', 'Record Episode')
+        else:
+            buttons['button1'] = ('record', 'Record Episode')
+
+        return buttons
+
+    def updateEpisodeSelection(self, action=None):
+        item = self.episodesList.getSelectedItem()
+        if not item:
+            return
+
+        if item.getProperty('header'):
+            pos = item.pos()
+            if action == xbmcgui.ACTION_MOVE_UP or action == xbmcgui.ACTION_PAGE_UP:
+                if pos < 2:
+                    self.episodesList.selectItem(0)
+                    self.setFocusId(self.EPISODES_BUTTON_ID)
+                    return
+
+                for i in range(pos-1, 2, -1):
+                    nextItem = self.episodesList.getListItem(i)
+                    if not nextItem.getProperty('header'):
+                        self.episodesList.selectItem(nextItem.pos())
+                        return
+            else:  # action == xbmcgui.ACTION_MOVE_DOWN or action == xbmcgui.ACTION_PAGE_DOWN:
+                for i in range(pos+1, self.episodesList.size()):
+                    nextItem = self.episodesList.getListItem(i)
+                    if not nextItem.getProperty('header'):
+                        self.episodesList.selectItem(nextItem.pos())
+                        return
+
+    def cancelTasks(self):
+        for t in self._tasks:
+            t.cancel()
+        self._tasks = []
+
+    def getEpisodeData(self, paths):
+        self.cancelTasks()
+
+        while paths:
+            current50 = paths[:50]
+            paths = paths[50:]
+            t = AiringsTask()
+            self._tasks.append(t)
+            t.setup(current50, self.updateEpisodeItem, self.show.airingType)
+
+        backgroundthread.BGThreader.addTasks(self._tasks)
+
+    def updateItemIndicators(self, item):
+        episode = item.dataSource['episode']
+        if not episode:
+            return
+        item.setProperty('badge', episode.scheduled and 'livetv/livetv_badge_scheduled_hd.png' or '')
+
+    def updateIndicators(self):
+        for item in self.episodesList:
+            self.updateItemIndicators(item)
+
+    def updateEpisodeItem(self, episode):
+        item = self.episodeItems[episode.path]
+        item.dataSource['episode'] = episode
+
+        if episode.type == 'schedule':
+            label = self.show.title
+        else:
+            label = episode.title
+
+        if not label:
+            label = 'Ch. {0} {1} at {2} - {3}'.format(
+                episode.displayChannel(),
+                episode.network,
+                episode.displayTimeStart(),
+                episode.displayTimeEnd()
+            )
+
+        item.setLabel(label)
+        item.setLabel2(episode.displayDay())
+        item.setProperty('number', str(episode.number or ''))
+        item.setProperty('airing', episode.airingNow() and '1' or '')
+
+        self.updateItemIndicators(item)
+
+    @util.busyDialog
+    def fillEpisodes(self):
+        self.episodeItems = {}
+        airings = []
+
+        if isinstance(self.show, tablo.Series):
+            seasons = self.show.seasons()
+            seasonsData = tablo.API.batch.post(seasons)
+
+            for seasonPath in seasons:
+                season = seasonsData[seasonPath]
+
+                number = season['season']['number']
+                title = number and 'Season {0}'.format(number) or 'Other Seasons'
+
+                item = kodigui.ManagedListItem('', data_source={'path': None, 'episode': None})
+                item.setProperty('header', '1')
+                self.episodesList.addItem(item)
+                item = kodigui.ManagedListItem(title, data_source={'path': None, 'episode': None})
+                item.setProperty('header', '1')
+                self.episodesList.addItem(item)
+
+                seasonEps = tablo.API(seasonPath).episodes.get()
+                airings += seasonEps
+
+                for p in seasonEps:
+                    item = kodigui.ManagedListItem('', data_source={'path': p, 'episode': None})
+                    self.episodeItems[p] = item
+                    self.episodesList.addItem(item)
+        else:
+            airings = self.show.airings()
+
+            item = kodigui.ManagedListItem('', data_source={'path': None, 'episode': None})
+            item.setProperty('header', '1')
+            self.episodesList.addItem(item)
+
+            for p in airings:
+                item = kodigui.ManagedListItem('', data_source={'path': p, 'episode': None})
+                self.episodeItems[p] = item
+                self.episodesList.addItem(item)
+
+        self.getEpisodeData(airings)
