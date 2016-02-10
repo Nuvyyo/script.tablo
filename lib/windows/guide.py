@@ -117,14 +117,15 @@ class GuideWindow(kodigui.BaseWindow):
             return
 
         show = item.dataSource.get('show')
-        if not show:
-            return
 
         if not show:
-            self.getShowData([item.dataSource['path']])
+            self.getSingleShowData(item.dataSource['path'])
             while not show and backgroundthread.BGThreader.working() and not xbmc.abortRequested:
                 xbmc.sleep(100)
                 show = item.dataSource.get('show')
+
+        if self.closing():
+            return
 
         GuideShowWindow.open(show=show)
 
@@ -203,6 +204,11 @@ class GuideWindow(kodigui.BaseWindow):
             t.cancel()
         self._tasks = []
 
+    def getSingleShowData(self, path):
+        t = ShowsTask()
+        t.setup([path], self.updateShowItem)
+        backgroundthread.BGThreader.addTasks([t])
+
     def getShowData(self, paths):
         self.cancelTasks()
 
@@ -279,12 +285,12 @@ class AiringsTask(backgroundthread.Task):
         self.airingType = airing_type
 
     def run(self):
-        episodes = tablo.API.batch.post(self.paths)
-        util.DEBUG_LOG('Retrieved {0} episodes'.format(len(episodes)))
-        for path, episode in episodes.items():
+        airings = tablo.API.batch.post(self.paths)
+        util.DEBUG_LOG('Retrieved {0} airings'.format(len(airings)))
+        for path, airing in airings.items():
             if self.isCanceled():
                 return
-            self.callback(tablo.Airing(episode, self.airingType))
+            self.callback(tablo.Airing(airing, self.airingType))
 
 
 class GuideShowWindow(kodigui.BaseWindow):
@@ -293,30 +299,39 @@ class GuideShowWindow(kodigui.BaseWindow):
     path = util.ADDON.getAddonInfo('path')
     theme = 'Main'
 
-    EPISODES_BUTTON_ID = 400
+    AIRINGS_BUTTON_ID = 400
     SCHEDULE_BUTTON_ID = 401
-    EPISODES_LIST_ID = 300
+    AIRINGS_LIST_ID = 300
+
+    SCHEDULE_BUTTON_TOP_ID = 501
+    SCHEDULE_BUTTON_BOT_ID = 502
 
     def __init__(self, *args, **kwargs):
         kodigui.BaseWindow.__init__(self, *args, **kwargs)
         self.show = kwargs.get('show')
+        self.scheduleButtonActions = {}
 
     def onFirstInit(self):
         self._tasks = []
-        self.episodeItems = {}
+        self.airingItems = {}
 
         self.setProperty('thumb', self.show.thumb)
         self.setProperty('background', self.show.background)
         self.setProperty('title', self.show.title)
         self.setProperty('plot', self.show.plot or self.show.description)
+        self.setProperty('airing.label', util.LOCALIZED_AIRING_TYPES_PLURAL[self.show.type])
+        self.setProperty('is.movie', self.show.type == 'MOVIE' and '1' or '')
 
-        self.episodesList = kodigui.ManagedControlList(self, self.EPISODES_LIST_ID, 20)
+        self.airingsList = kodigui.ManagedControlList(self, self.AIRINGS_LIST_ID, 20)
 
-        self.fillEpisodes()
+        self.setupScheduleDialog()
+        self.fillAirings()
 
     def onClick(self, controlID):
-        if controlID == self.EPISODES_LIST_ID:
-            self.episodesListClicked()
+        if controlID == self.AIRINGS_LIST_ID:
+            self.airingsListClicked()
+        elif self.SCHEDULE_BUTTON_TOP_ID <= controlID <= self.SCHEDULE_BUTTON_BOT_ID:
+            self.scheduleButtonClicked(controlID)
 
     def onAction(self, action):
         controlID = self.getFocusId()
@@ -325,8 +340,8 @@ class GuideShowWindow(kodigui.BaseWindow):
             if action == xbmcgui.ACTION_NAV_BACK or action == xbmcgui.ACTION_PREVIOUS_MENU:
                 self.doClose()
                 return
-            elif controlID == self.EPISODES_LIST_ID:
-                self.updateEpisodeSelection(action)
+            elif controlID == self.AIRINGS_LIST_ID:
+                self.updateAiringSelection(action)
             elif action == xbmcgui.ACTION_PAGE_DOWN:
                 if xbmc.getCondVisibility('ControlGroup(100).HasFocus(0)'):
                     xbmc.executebuiltin('Action(down)')
@@ -339,40 +354,51 @@ class GuideShowWindow(kodigui.BaseWindow):
         kodigui.BaseWindow.doClose(self)
         self.cancelTasks()
 
-    def episodesListClicked(self):
-        item = self.episodesList.getSelectedItem()
+    def scheduleButtonClicked(self, controlID):
+        action = self.scheduleButtonActions.get(controlID)
+        if not action:
+            return
+
+        self.show.schedule(action)
+
+        self.setupScheduleDialog()
+
+    def airingsListClicked(self):
+        item = self.airingsList.getSelectedItem()
         if not item:
             return
 
-        episode = item.dataSource.get('episode')
-        if not episode:
-            return
+        airing = item.dataSource.get('airing')
+
+        while not airing and backgroundthread.BGThreader.working() and not xbmc.abortRequested:
+            xbmc.sleep(100)
+            airing = item.dataSource.get('airing')
 
         info = 'Channel {0} {1} on {2} from {3} to {4}'.format(
-            episode.displayChannel(),
-            episode.network,
-            episode.displayDay(),
-            episode.displayTimeStart(),
-            episode.displayTimeEnd()
+            airing.displayChannel(),
+            airing.network,
+            airing.displayDay(),
+            airing.displayTimeStart(),
+            airing.displayTimeEnd()
         )
 
         kwargs = {
-            'number': episode.number,
+            'number': airing.number,
             'background': self.show.background,
             'callback': self.actionDialogCallback,
-            'obj': episode
+            'obj': airing
         }
 
-        if episode.scheduled:
-            kwargs['button1'] = ('unschedule', "Don't Record Episode")
+        if airing.scheduled:
+            kwargs['button1'] = ('unschedule', "Don't Record {0}".format(util.LOCALIZED_AIRING_TYPES[self.show.type]))
             kwargs['title_indicator'] = 'indicators/rec_pill_hd.png'
-        elif episode.airingNow():
+        elif airing.airingNow():
             kwargs['button1'] = ('watch', 'Watch')
-            kwargs['button2'] = ('record', 'Record Episode')
+            kwargs['button2'] = ('record', 'Record {0}'.format(util.LOCALIZED_AIRING_TYPES[self.show.type]))
         else:
-            kwargs['button1'] = ('record', 'Record Episode')
+            kwargs['button1'] = ('record', 'Record {0}'.format(util.LOCALIZED_AIRING_TYPES[self.show.type]))
 
-        secs = episode.secondsToStart()
+        secs = airing.secondsToStart()
 
         if secs < 1:
             start = 'Started {0} ago'.format(util.durationToText(secs*-1))
@@ -380,8 +406,8 @@ class GuideShowWindow(kodigui.BaseWindow):
             start = 'Starts in {0}'.format(util.durationToText(secs))
 
         actiondialog.openDialog(
-            episode.title or self.show.title,
-            info, episode.description,
+            airing.title or self.show.title,
+            info, airing.description,
             start,
             **kwargs
         )
@@ -389,33 +415,48 @@ class GuideShowWindow(kodigui.BaseWindow):
         self.updateIndicators()
 
     def actionDialogCallback(self, obj, action):
-        if not action:
-            return
+        airing = obj
+        changes = {}
 
-        episode = obj
+        if action:
+            if action == 'watch':
+                xbmc.Player().play(airing.watch().url)
+            elif action == 'record':
+                airing.schedule()
+            elif action == 'unschedule':
+                airing.schedule(False)
 
-        buttons = {}
-
-        if action == 'watch':
-            xbmc.Player().play(episode.watch().url)
-        elif action == 'record':
-            episode.schedule()
-        elif action == 'unschedule':
-            episode.schedule(False)
-
-        if episode.scheduled:
-            buttons['button1'] = ('unschedule', "Don't Record Episode")
-            buttons['title_indicator'] = 'indicators/rec_pill_hd.png'
-        elif episode.airingNow():
-            buttons['button1'] = ('watch', 'Watch')
-            buttons['button2'] = ('record', 'Record Episode')
+        if airing.ended():
+            secs = airing.secondsSinceEnd()
+            changes['start'] = 'Ended {0} ago'.format(util.durationToText(secs))
         else:
-            buttons['button1'] = ('record', 'Record Episode')
+            if airing.airingNow():
+                changes['button1'] = ('watch', 'Watch')
+                if airing.scheduled:
+                    changes['button2'] = ('unschedule', "Don't Record {0}".format(util.LOCALIZED_AIRING_TYPES[self.show.type]))
+                    changes['title_indicator'] = 'indicators/rec_pill_hd.png'
+                else:
+                    changes['button2'] = ('record', 'Record {0}'.format(util.LOCALIZED_AIRING_TYPES[self.show.type]))
+            else:
+                if airing.scheduled:
+                    changes['button1'] = ('unschedule', "Don't Record {0}".format(util.LOCALIZED_AIRING_TYPES[self.show.type]))
+                    changes['title_indicator'] = 'indicators/rec_pill_hd.png'
+                else:
+                    changes['button1'] = ('record', 'Record {0}'.format(util.LOCALIZED_AIRING_TYPES[self.show.type]))
 
-        return buttons
+            secs = airing.secondsToStart()
 
-    def updateEpisodeSelection(self, action=None):
-        item = self.episodesList.getSelectedItem()
+            if secs < 1:
+                start = 'Started {0} ago'.format(util.durationToText(secs*-1))
+            else:
+                start = 'Starts in {0}'.format(util.durationToText(secs))
+
+            changes['start'] = start
+
+        return changes
+
+    def updateAiringSelection(self, action=None):
+        item = self.airingsList.getSelectedItem()
         if not item:
             return
 
@@ -423,20 +464,20 @@ class GuideShowWindow(kodigui.BaseWindow):
             pos = item.pos()
             if action == xbmcgui.ACTION_MOVE_UP or action == xbmcgui.ACTION_PAGE_UP:
                 if pos < 2:
-                    self.episodesList.selectItem(0)
-                    self.setFocusId(self.EPISODES_BUTTON_ID)
+                    self.airingsList.selectItem(0)
+                    self.setFocusId(self.AIRINGS_BUTTON_ID)
                     return
 
                 for i in range(pos-1, 2, -1):
-                    nextItem = self.episodesList.getListItem(i)
+                    nextItem = self.airingsList.getListItem(i)
                     if not nextItem.getProperty('header'):
-                        self.episodesList.selectItem(nextItem.pos())
+                        self.airingsList.selectItem(nextItem.pos())
                         return
             else:  # action == xbmcgui.ACTION_MOVE_DOWN or action == xbmcgui.ACTION_PAGE_DOWN:
-                for i in range(pos+1, self.episodesList.size()):
-                    nextItem = self.episodesList.getListItem(i)
+                for i in range(pos+1, self.airingsList.size()):
+                    nextItem = self.airingsList.getListItem(i)
                     if not nextItem.getProperty('header'):
-                        self.episodesList.selectItem(nextItem.pos())
+                        self.airingsList.selectItem(nextItem.pos())
                         return
 
     def cancelTasks(self):
@@ -444,7 +485,7 @@ class GuideShowWindow(kodigui.BaseWindow):
             t.cancel()
         self._tasks = []
 
-    def getEpisodeData(self, paths):
+    def getAiringData(self, paths):
         self.cancelTasks()
 
         while paths:
@@ -452,47 +493,76 @@ class GuideShowWindow(kodigui.BaseWindow):
             paths = paths[50:]
             t = AiringsTask()
             self._tasks.append(t)
-            t.setup(current50, self.updateEpisodeItem, self.show.airingType)
+            t.setup(current50, self.updateAiringItem, self.show.airingType)
 
         backgroundthread.BGThreader.addTasks(self._tasks)
 
     def updateItemIndicators(self, item):
-        episode = item.dataSource['episode']
-        if not episode:
+        airing = item.dataSource['airing']
+        if not airing:
             return
-        item.setProperty('badge', episode.scheduled and 'livetv/livetv_badge_scheduled_hd.png' or '')
+        item.setProperty('badge', airing.scheduled and 'livetv/livetv_badge_scheduled_hd.png' or '')
 
     def updateIndicators(self):
-        for item in self.episodesList:
+        for item in self.airingsList:
             self.updateItemIndicators(item)
 
-    def updateEpisodeItem(self, episode):
-        item = self.episodeItems[episode.path]
-        item.dataSource['episode'] = episode
+    def updateAiringItem(self, airing):
+        item = self.airingItems[airing.path]
+        item.dataSource['airing'] = airing
 
-        if episode.type == 'schedule':
+        if airing.type == 'schedule':
             label = self.show.title
         else:
-            label = episode.title
+            label = airing.title
 
         if not label:
             label = 'Ch. {0} {1} at {2} - {3}'.format(
-                episode.displayChannel(),
-                episode.network,
-                episode.displayTimeStart(),
-                episode.displayTimeEnd()
+                airing.displayChannel(),
+                airing.network,
+                airing.displayTimeStart(),
+                airing.displayTimeEnd()
             )
 
         item.setLabel(label)
-        item.setLabel2(episode.displayDay())
-        item.setProperty('number', str(episode.number or ''))
-        item.setProperty('airing', episode.airingNow() and '1' or '')
+        item.setLabel2(airing.displayDay())
+        item.setProperty('number', str(airing.number or ''))
+        item.setProperty('airing', airing.airingNow() and '1' or '')
 
         self.updateItemIndicators(item)
 
+    def setupScheduleDialog(self):
+        self.setProperty(
+            'schedule.message', 'Automatically schedule {0} for this {1}?'.format(
+                util.LOCALIZED_AIRING_TYPES_PLURAL[self.show.type].lower(),
+                util.LOCALIZED_SHOW_TYPES[self.show.type].lower(),
+            )
+        )
+
+        self.scheduleButtonActions = {}
+
+        if self.show.scheduleRule == 'all':
+            self.scheduleButtonActions[self.SCHEDULE_BUTTON_TOP_ID] = 'none'
+            self.scheduleButtonActions[self.SCHEDULE_BUTTON_BOT_ID] = 'new'
+            self.setProperty('schedule.top', 'Unschedule Show')
+            self.setProperty('schedule.bottom', 'Record New')
+            self.setProperty('title.indicator', 'indicators/rec_all_pill_hd.png')
+        elif self.show.scheduleRule == 'new':
+            self.scheduleButtonActions[self.SCHEDULE_BUTTON_TOP_ID] = 'none'
+            self.scheduleButtonActions[self.SCHEDULE_BUTTON_BOT_ID] = 'all'
+            self.setProperty('schedule.top', 'Unschedule Show')
+            self.setProperty('schedule.bottom', 'Record All')
+            self.setProperty('title.indicator', 'indicators/rec_new_pill_hd.png')
+        else:
+            self.scheduleButtonActions[self.SCHEDULE_BUTTON_TOP_ID] = 'all'
+            self.scheduleButtonActions[self.SCHEDULE_BUTTON_BOT_ID] = 'new'
+            self.setProperty('schedule.top', 'Record All')
+            self.setProperty('schedule.bottom', 'Record New')
+            self.setProperty('title.indicator', '')
+
     @util.busyDialog
-    def fillEpisodes(self):
-        self.episodeItems = {}
+    def fillAirings(self):
+        self.airingItems = {}
         airings = []
 
         if isinstance(self.show, tablo.Series):
@@ -505,30 +575,30 @@ class GuideShowWindow(kodigui.BaseWindow):
                 number = season['season']['number']
                 title = number and 'Season {0}'.format(number) or 'Other Seasons'
 
-                item = kodigui.ManagedListItem('', data_source={'path': None, 'episode': None})
+                item = kodigui.ManagedListItem('', data_source={'path': None, 'airing': None})
                 item.setProperty('header', '1')
-                self.episodesList.addItem(item)
-                item = kodigui.ManagedListItem(title, data_source={'path': None, 'episode': None})
+                self.airingsList.addItem(item)
+                item = kodigui.ManagedListItem(title, data_source={'path': None, 'airing': None})
                 item.setProperty('header', '1')
-                self.episodesList.addItem(item)
+                self.airingsList.addItem(item)
 
                 seasonEps = tablo.API(seasonPath).episodes.get()
                 airings += seasonEps
 
                 for p in seasonEps:
-                    item = kodigui.ManagedListItem('', data_source={'path': p, 'episode': None})
-                    self.episodeItems[p] = item
-                    self.episodesList.addItem(item)
+                    item = kodigui.ManagedListItem('', data_source={'path': p, 'airing': None})
+                    self.airingItems[p] = item
+                    self.airingsList.addItem(item)
         else:
             airings = self.show.airings()
 
-            item = kodigui.ManagedListItem('', data_source={'path': None, 'episode': None})
+            item = kodigui.ManagedListItem('', data_source={'path': None, 'airing': None})
             item.setProperty('header', '1')
-            self.episodesList.addItem(item)
+            self.airingsList.addItem(item)
 
             for p in airings:
-                item = kodigui.ManagedListItem('', data_source={'path': p, 'episode': None})
-                self.episodeItems[p] = item
-                self.episodesList.addItem(item)
+                item = kodigui.ManagedListItem('', data_source={'path': p, 'airing': None})
+                self.airingItems[p] = item
+                self.airingsList.addItem(item)
 
-        self.getEpisodeData(airings)
+        self.getAiringData(airings)

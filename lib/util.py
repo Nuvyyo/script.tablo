@@ -3,7 +3,6 @@ import sys
 import binascii
 import json
 import threading
-import Queue
 
 import time
 import datetime
@@ -16,6 +15,27 @@ DEBUG = True
 ADDON = xbmcaddon.Addon()
 
 T = ADDON.getLocalizedString
+
+LOCALIZED_SHOW_TYPES = {  # TODO: Actually localize these :)
+    'SERIES': 'Series',
+    'MOVIE': 'Movie',
+    'SPORT': 'Sport',
+    'PROGRAM': 'Program',
+}
+
+LOCALIZED_AIRING_TYPES = {  # TODO: Actually localize these :)
+    'SERIES': 'Episode',
+    'MOVIE': 'Movie',
+    'SPORT': 'Event',
+    'PROGRAM': 'Program',
+}
+
+LOCALIZED_AIRING_TYPES_PLURAL = {  # TODO: Actually localize these :)
+    'SERIES': 'Episodes',
+    'MOVIE': 'Airings',
+    'SPORT': 'Events',
+    'PROGRAM': 'Programs',
+}
 
 
 def LOG(msg):
@@ -140,17 +160,13 @@ def busyDialog(func):
     def inner(*args, **kwargs):
         w = None
         try:
-            print 'x'
             w = xbmcgui.WindowXMLDialog('script-tablo-busy.xml', ADDON.getAddonInfo('path'), 'Main')
             w.show()
-            print 'y'
             return func(*args, **kwargs)
-            print 'z'
         finally:
             if w:
                 w.close()
             del w
-            print 'f'
     return inner
 
 
@@ -186,6 +202,9 @@ def timeInDayLocalSeconds():
     return int(time.time() - sod)
 
 
+CRON = None
+
+
 class CronReceiver():
     def tick(self): pass
 
@@ -202,6 +221,10 @@ class Cron(threading.Thread):
         self.interval = interval
         self._lastHalfHour = self._getHalfHour()
         self._receivers = []
+
+        global CRON
+
+        CRON = self
 
     def __enter__(self):
         self.start()

@@ -126,8 +126,14 @@ class Airing(object):
     def secondsToStart(self):
         return compat.timedelta_total_seconds(self.datetime - now())
 
+    def secondsSinceEnd(self):
+        return compat.timedelta_total_seconds(now() - self.datetimeEnd)
+
     def airingNow(self):
         return self.datetime <= now() < self.datetimeEnd
+
+    def ended(self):
+        return self.datetimeEnd < now()
 
     @property
     def network(self):
@@ -146,6 +152,8 @@ class Show(object):
         self._thumb = ''
         self._background = ''
         self.path = data['path']
+        self.scheduleRule = data.get('schedule_rule')
+        self.showCounts = data.get('show_counts')
         self.processData(data)
 
     def __getattr__(self, name):
@@ -179,6 +187,10 @@ class Show(object):
         if not self._background:
             self._background = self.data.get('background_image') and API.images(self.data['background_image']['image_id']) or ''
         return self._background
+
+    def schedule(self, rule='none'):
+        data = API(self.path).patch(schedule=rule)
+        self.scheduleRule = data.get('schedule_rule')
 
 
 class Series(Show):

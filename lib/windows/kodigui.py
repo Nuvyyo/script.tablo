@@ -40,6 +40,9 @@ class BaseFunctions:
     def mouseYTrans(self, val):
         return int((val / self.getHeight()) * self.height)
 
+    def closing(self):
+        return self._closing
+
 
 class BaseWindow(xbmcgui.WindowXML, BaseFunctions):
     def __init__(self, *args, **kwargs):

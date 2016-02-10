@@ -5,24 +5,25 @@ import backgroundthread
 
 
 def start():
-    util.LOG('START')
+    util.LOG('[- START -----------------------]')
     util.setGlobalProperty('guide.filter', '')
 
-    bw = windows.BackgroundWindow.create()
-    while True:
-        w = windows.ConnectWindow.open()
+    with util.Cron(interval=5):
+        bw = windows.BackgroundWindow.create()
+        while True:
+            w = windows.ConnectWindow.open()
 
-        if w.exit or not tablo.API.deviceSelected():
-            return
+            if w.exit or not tablo.API.deviceSelected():
+                return
 
-        del w
+            del w
 
-        windows.WM.start()
-        if windows.WM.exit:
-            break
+            windows.WM.start()
+            if windows.WM.exit:
+                break
 
-    del bw
+        del bw
 
-    backgroundthread.BGThreader.shutdown()
+        backgroundthread.BGThreader.shutdown()
 
-    util.LOG('END')
+    util.LOG('[- END -------------------------]')

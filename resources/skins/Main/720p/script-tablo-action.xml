@@ -43,12 +43,14 @@
                 </control>
 
                 <control type="grouplist">
+                    <visible>!IsEmpty(Window.Property(title.indicator))</visible>
                     <left>20</left>
                     <top>20</top>
                     <height>100</height>
                     <width>1080</width>
                     <orientation>horizontal</orientation>
                     <itemgap>20</itemgap>
+                    <usecontrolcoords>true</usecontrolcoords>
                     <control type="label">
                         <visible>!IsEmpty(Window.Property(number))</visible>
                         <width min="30" max="100">auto</width>
@@ -60,7 +62,7 @@
                         <label>[B]$INFO[Window.Property(number)][/B]</label>
                     </control>
                     <control type="label">
-                        <width min="870" max="1080">auto</width>
+                        <width min="200" max="877">auto</width>
                         <height>100</height>
                         <font>WeatherTemp</font>
                         <textcolor>FFFFFFFF</textcolor>
@@ -69,11 +71,39 @@
                         <label>$INFO[Window.Property(title)]</label>
                     </control>
                     <control type="image">
-                        <visible>!IsEmpty(Window.Property(title.indicator))</visible>
                         <posy>35</posy>
                         <width>63</width>
                         <height>29</height>
                         <texture>$INFO[Window.Property(title.indicator)]</texture>
+                    </control>
+                </control>
+                <control type="grouplist">
+                    <visible>IsEmpty(Window.Property(title.indicator))</visible>
+                    <left>20</left>
+                    <top>20</top>
+                    <height>100</height>
+                    <width>1080</width>
+                    <orientation>horizontal</orientation>
+                    <itemgap>20</itemgap>
+                    <usecontrolcoords>true</usecontrolcoords>
+                    <control type="label">
+                        <visible>!IsEmpty(Window.Property(number))</visible>
+                        <width min="30" max="100">auto</width>
+                        <height>100</height>
+                        <font>font_MainMenu</font>
+                        <textcolor>FFFFFFFF</textcolor>
+                        <align>left</align>
+                        <aligny>center</aligny>
+                        <label>[B]$INFO[Window.Property(number)][/B]</label>
+                    </control>
+                    <control type="label">
+                        <width min="200" max="1080">auto</width>
+                        <height>100</height>
+                        <font>WeatherTemp</font>
+                        <textcolor>FFFFFFFF</textcolor>
+                        <align>left</align>
+                        <aligny>center</aligny>
+                        <label>$INFO[Window.Property(title)]</label>
                     </control>
                 </control>
 
@@ -110,7 +140,8 @@
                 </control>
 
                 <control type="group">
-                    <animation effect="slide" start="0,0" end="180,0" time="1" condition="IsEmpty(Window.Property(button2))">Conditional</animation>
+                    <visible>!IsEmpty(Window.Property(button1))</visible>
+                    <animation effect="slide" start="0,0" end="180,0" condition="IsEmpty(Window.Property(button2))">Conditional</animation>
                     <posx>210</posx>
                     <posy>390</posy>
                     <control type="button" id="400">
