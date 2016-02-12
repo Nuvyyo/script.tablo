@@ -16,6 +16,10 @@ class BaseFunctions:
     def __init__(self):
         self.isOpen = True
 
+    def onWindowFocus(self):
+        # Not automatically called. Can be used by an external window manager
+        pass
+
     @classmethod
     def open(cls, **kwargs):
         window = cls(cls.xmlFile, cls.path, cls.theme, cls.res, **kwargs)

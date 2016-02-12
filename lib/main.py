@@ -7,6 +7,7 @@ import backgroundthread
 def start():
     util.LOG('[- START -----------------------]')
     util.setGlobalProperty('guide.filter', '')
+    util.setGlobalProperty('section', '')
 
     with util.Cron(interval=5):
         bw = windows.BackgroundWindow.create()

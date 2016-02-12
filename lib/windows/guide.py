@@ -44,8 +44,13 @@ class GuideWindow(kodigui.BaseWindow):
 
     MENU_GROUP_ID = 100
     MENU_LIST_ID = 200
+    SHOW_GROUP_ID = 300
     SHOW_PANEL_ID = 301
     KEY_LIST_ID = 400
+
+    view = 'guide'
+    state = None
+    section = 'Guide'
 
     def onFirstInit(self):
         self._showingDialog = False
@@ -58,7 +63,7 @@ class GuideWindow(kodigui.BaseWindow):
         self.lastSelectedKey = None
         self.showItems = {}
 
-        self.setFilter()
+        self.setFilter(None)
 
         self._tasks = []
 
@@ -67,17 +72,22 @@ class GuideWindow(kodigui.BaseWindow):
         self.onReInit()
 
     def onReInit(self):
-        if self._showingDialog:
-            return
+        if not self._showingDialog:
+            self.fillShows()
 
-        self.fillShows()
+        self.setFilter()
+        self.onWindowFocus()
+
+    def onWindowFocus(self):
+        if self.getProperty('hide.menu'):
+            self.setFocusId(self.SHOW_GROUP_ID)
 
     def onAction(self, action):
         try:
             self.updateKey(action)
 
             if action == xbmcgui.ACTION_NAV_BACK:
-                if xbmc.getCondVisibility('ControlGroup({0}).HasFocus(0)'.format(self.MENU_GROUP_ID)):
+                if xbmc.getCondVisibility('ControlGroup({0}).HasFocus(0)'.format(self.MENU_GROUP_ID)) or self.getProperty('hide.menu'):
                     WM.showMenu()
                     return
                 else:
@@ -129,9 +139,14 @@ class GuideWindow(kodigui.BaseWindow):
 
         GuideShowWindow.open(show=show)
 
-    def setFilter(self, filter=None):
-        self.filter = filter
-        util.setGlobalProperty('guide.filter', [t[1] for t in self.types if t[0] == filter][0])
+    def setFilter(self, filter_=False):
+        if filter_ is False:
+            filter_ = self.filter
+        else:
+            self.filter = filter_
+
+        util.setGlobalProperty('section', self.section)
+        util.setGlobalProperty('guide.filter', [t[1] for t in self.types if t[0] == filter_][0])
 
     def updateKey(self, action=None):
         if self.getFocusId() == self.SHOW_PANEL_ID:
@@ -238,14 +253,18 @@ class GuideWindow(kodigui.BaseWindow):
 
         self.showItems = {}
 
+        args = {}
+        if self.state:
+            args = {'state': self.state}
+
         if self.filter == 'SERIES':
-            keys = tablo.API.views.guide.series.get()
+            keys = tablo.API.views(self.view).series.get(**args)
         elif self.filter == 'MOVIES':
-            keys = tablo.API.views.guide.movies.get()
+            keys = tablo.API.views(self.view).movies.get(**args)
         elif self.filter == 'SPORTS':
-            keys = tablo.API.views.guide.sports.get()
+            keys = tablo.API.views(self.view).sports.get(**args)
         else:
-            keys = tablo.API.views.guide.shows.get()
+            keys = tablo.API.views(self.view).shows.get(**args)
 
         paths = []
 
@@ -299,12 +318,16 @@ class GuideShowWindow(kodigui.BaseWindow):
     path = util.ADDON.getAddonInfo('path')
     theme = 'Main'
 
+    SHOW_BUTTONS_GROUP_ID = 100
     AIRINGS_BUTTON_ID = 400
     SCHEDULE_BUTTON_ID = 401
     AIRINGS_LIST_ID = 300
 
+    SCHEDULE_GROUP_ID = 500
     SCHEDULE_BUTTON_TOP_ID = 501
     SCHEDULE_BUTTON_BOT_ID = 502
+
+    sectionAction = 'Schedule...'
 
     def __init__(self, *args, **kwargs):
         kodigui.BaseWindow.__init__(self, *args, **kwargs)
@@ -320,6 +343,7 @@ class GuideShowWindow(kodigui.BaseWindow):
         self.setProperty('title', self.show.title)
         self.setProperty('plot', self.show.plot or self.show.description)
         self.setProperty('airing.label', util.LOCALIZED_AIRING_TYPES_PLURAL[self.show.type])
+        self.setProperty('section.action', self.sectionAction)
         self.setProperty('is.movie', self.show.type == 'MOVIE' and '1' or '')
 
         self.airingsList = kodigui.ManagedControlList(self, self.AIRINGS_LIST_ID, 20)
@@ -338,7 +362,10 @@ class GuideShowWindow(kodigui.BaseWindow):
 
         try:
             if action == xbmcgui.ACTION_NAV_BACK or action == xbmcgui.ACTION_PREVIOUS_MENU:
-                self.doClose()
+                if xbmc.getCondVisibility('ControlGroup({0}).HasFocus(0)'.format(self.SCHEDULE_GROUP_ID)):
+                    self.setFocusId(self.SHOW_BUTTONS_GROUP_ID)
+                else:
+                    self.doClose()
                 return
             elif controlID == self.AIRINGS_LIST_ID:
                 self.updateAiringSelection(action)

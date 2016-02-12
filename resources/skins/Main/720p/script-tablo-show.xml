@@ -209,7 +209,7 @@
                         <textcolor>FFFFFFFF</textcolor>
                         <align>center</align>
                         <aligny>center</aligny>
-                        <label>[B]Schedule...[/B]</label>
+                        <label>[B]$INFO[Window.Property(section.action)][/B]</label>
                     </control>
                     <control type="label">
                         <visible>!Control.HasFocus(401)</visible>
@@ -221,7 +221,7 @@
                         <textcolor>FFFFFFFF</textcolor>
                         <align>center</align>
                         <aligny>center</aligny>
-                        <label>Schedule...</label>
+                        <label>$INFO[Window.Property(section.action)]</label>
                     </control>
                 </control>
             </control>

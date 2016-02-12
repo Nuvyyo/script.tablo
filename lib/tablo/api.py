@@ -256,9 +256,8 @@ class Endpoint(object):
         e.device = self.device
         return e
 
-    def __call__(self, __method='GET', **kwargs):
-        if __method.isdigit() or __method.startswith('/'):
-            return self.__getattr__(__method.lstrip('/'))
+    def __call__(self, method):
+        return self.__getattr__(method.lstrip('/'))
 
     @requestHandler
     def get(self, **kwargs):
