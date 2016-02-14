@@ -13,17 +13,25 @@
             <posy>0</posy>
             <control type="image">
                 <posx>0</posx>
-                <posy>360</posy>
+                <posy>380</posy>
                 <width>1250</width>
-                <height>360</height>
+                <height>340</height>
                 <texture>script-tablo-white_square.png</texture>
                 <colordiffuse>FF888888</colordiffuse>
             </control>
+            <control type="image">
+                <posx>0</posx>
+                <posy>380</posy>
+                <width>180</width>
+                <height>340</height>
+                <texture>script-tablo-white_square.png</texture>
+                <colordiffuse>FF000000</colordiffuse>
+            </control>
             <control type="group" id="45">
                 <posx>0</posx>
-                <posy>360</posy>
+                <posy>380</posy>
                 <width>1250</width>
-                <height>360</height>
+                <height>340</height>
                 <itemgap>0</itemgap>
                 <orientation>vertical</orientation>
                 <usecontrolcoords>false</usecontrolcoords>
@@ -36,7 +44,7 @@
                 <posx>-30</posx>
                 <posy>0</posy>
                 <width>1280</width>
-                <height>320</height>
+                <height>340</height>
                 <texture>script-tablo-white_square.png</texture>
                 <colordiffuse>FF000000</colordiffuse>
             </control>
@@ -44,7 +52,7 @@
                 <posx>-30</posx>
                 <posy>0</posy>
                 <width>1280</width>
-                <height>320</height>
+                <height>340</height>
                 <texture fallback="placeholders/placeholder_background_hd.jpg">$INFO[Window.Property(background)]</texture>
                 <aspectratio aligny="top">scale</aspectratio>
                 <colordiffuse>FF8A8A8A</colordiffuse>
@@ -52,7 +60,7 @@
             </control>
             <control type="group">
                 <posx>0</posx>
-                <posy>320</posy>
+                <posy>340</posy>
                 <control type="image">
                     <posx>0</posx>
                     <posy>0</posy>

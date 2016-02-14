@@ -5,3 +5,4 @@ Finish recordings
 Add Device view and disconnect option
 Fix keys list when scrolling past bottom of screen
 Fix aspect on selected guide posters
+Fix grid nav focus loss

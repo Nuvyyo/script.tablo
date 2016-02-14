@@ -15,6 +15,8 @@ class LiveTVWindow(kodigui.BaseWindow):
     path = util.ADDON.getAddonInfo('path')
     theme = 'Main'
 
+    GRID_GROUP_ID = 45
+
     @classmethod
     def generate(cls):
         paths = tablo.API.guide.channels.get()
@@ -31,8 +33,12 @@ class LiveTVWindow(kodigui.BaseWindow):
     def onFirstInit(self):
         self.offsetHalfHour = 0
         self.baseY = self.getControl(45).getY()
-        self.rows = len(self.gen.paths)
+        self.rowCount = len(self.gen.paths)
+        self.rows = []
         self.channels = {}
+        self.upDownDatetime = None
+
+        self.gridGroup = self.getControl(self.GRID_GROUP_ID)
 
         self.fillChannels()
 
@@ -40,10 +46,15 @@ class LiveTVWindow(kodigui.BaseWindow):
         try:
             controlID = self.getFocusId()
             if action == xbmcgui.ACTION_MOVE_LEFT:
+                self.setUpDownDatetime(controlID)
+
                 if controlID in self.chanLabelButtons:
                     return self.guideLeft()
-            elif action == xbmcgui.ACTION_MOVE_RIGHT and self.selectionIsOffscreen() or 100 <= controlID <= self.gen.maxEnd:
-                return self.guideRight()
+            elif action == xbmcgui.ACTION_MOVE_RIGHT:
+                self.setUpDownDatetime(controlID)
+
+                if self.selectionIsOffscreen() or 100 <= controlID <= self.gen.maxEnd:
+                    return self.guideRight()
             elif action == xbmcgui.ACTION_MOVE_DOWN:
                 if controlID > self.gen.maxEnd:
                     return self.guideNavDown()
@@ -61,10 +72,21 @@ class LiveTVWindow(kodigui.BaseWindow):
 
         kodigui.BaseWindow.onAction(self, action)
 
+    def setUpDownDatetime(self, controlID=None):
+        controlID = controlID or self.getFocusId()
+        selected = self.slotButtons.get(controlID)
+        self.upDownDatetime = selected and selected.datetime or None
+        if not self.upDownDatetime:
+            return
+
+        currentStartHalfHour = self.getStartHalfHour() + tablo.compat.datetime.timedelta(minutes=self.offsetHalfHour*30)
+        if self.upDownDatetime < currentStartHalfHour:
+            self.upDownDatetime = currentStartHalfHour
+
     def guideRight(self):
         self.offsetHalfHour += 1
-        if self.offsetHalfHour > 44:
-            self.offsetHalfHour = 44
+        if self.offsetHalfHour > 45:
+            self.offsetHalfHour = 45
             self.setFocusId(self.lastFocus)
             return
 
@@ -79,6 +101,7 @@ class LiveTVWindow(kodigui.BaseWindow):
             while xbmc.getCondVisibility('Control.IsVisible({0})'.format(controlID)) and controlID not in self.offButtons:
                 controlID += 1
             controlID -= 1
+
         self.lastFocus = controlID
         self.setFocusId(controlID)
         return
@@ -87,41 +110,56 @@ class LiveTVWindow(kodigui.BaseWindow):
         if self.offsetHalfHour == 0:
             WM.showMenu()
             return
+
         self.offsetHalfHour -= 1
         self.fillChannels()
 
         controlID = self.getFocusId()+1
+
         self.lastFocus = controlID
         self.setFocusId(controlID)
 
     def guideNavDown(self):
         row = self.getRow()
-        if row == self.rows - 1:
+        if row == self.rowCount - 1:
             return
 
-        new = self.lastFocus + 8
-        self.lastFocus = new
-        self.setFocusId(new)
+        if not self.upDownDatetime:
+            self.setUpDownDatetime()
 
-        if self.getRow() > self.topRow + 4:
-            control = self.getControl(45)
+        row += 1
+
+        for ID, airing in self.rows[row]:
+            if airing.airingNow(self.upDownDatetime):
+                self.lastFocus = ID
+                self.setFocusId(ID)
+                break
+        else:
+            return
+
+        if row > self.topRow + 5:
             self.topRow += 1
-            control.setPosition(control.getX(), self.baseY - self.topRow * 52)
+            self.gridGroup.setPosition(self.gridGroup.getX(), self.baseY - self.topRow * 52)
 
     def guideNavUp(self):
-        new = self.lastFocus - 8
-        if new <= self.gen.maxEnd:
-            print 'uhoh'
-            print self.lastFocus
+        row = self.getRow()
+        if row == 0:
             return
 
-        while not xbmc.getCondVisibility('Control.IsVisible({0})'.format(new)):
-            new -= 1
+        if not self.upDownDatetime:
+            self.setUpDownDatetime()
 
-        self.lastFocus = new
-        self.setFocusId(new)
+        row -= 1
 
-        if self.getRow() < self.topRow + 1:
+        for ID, airing in self.rows[row]:
+            if airing.airingNow(self.upDownDatetime):
+                self.lastFocus = ID
+                self.setFocusId(ID)
+                break
+        else:
+            return
+
+        if row < self.topRow + 1:
             if self.topRow > 0:
                 control = self.getControl(45)
                 self.topRow -= 1
@@ -141,20 +179,31 @@ class LiveTVWindow(kodigui.BaseWindow):
         if controlID > self.gen.maxEnd:
             self.lastFocus = controlID
 
-        airing = self.slotButtons.get(controlID)
+        airing = self.getSelectedAiring()
         if airing:
+            print '{0} - {1} ({2})'.format(airing.datetime, airing.datetimeEnd, self.upDownDatetime)
             self.setProperty('background', airing.background)
 
     def onWindowFocus(self):
         if self.getFocusId() in self.chanLabelButtons:
-            self.setFocusId(self.getFocusId() + 1)
+            self.setFocusId(self.getFocusId() + 1)  # Grid button to the left ot the last selected label
+        else:
+            self.setFocusId(self.gen.maxEnd + 3)  # Upper left grid button
+
+    def getSelectedAiring(self):
+        return self.slotButtons.get(self.getFocusId())
 
     def selectionIsOffscreen(self):
         return self.getFocusId() in self.offButtons
 
+    def getStartHalfHour(self):
+        n = tablo.api.now()
+        return n - tablo.compat.datetime.timedelta(minutes=n.minute % 30, seconds=n.second, microseconds=n.microsecond)
+
     def fillChannels(self):
         self.slotButtons = {}
         self.offButtons = {}
+        self.rows = []
 
         if not self.channels:
             self.chanLabelButtons = {}
@@ -169,9 +218,8 @@ class LiveTVWindow(kodigui.BaseWindow):
                     '{0} [B]{1}-{2}[/B]'.format(channel.get('call_sign', ''), channel.get('major', ''), channel.get('minor', ''))
                 )
 
-        n = tablo.api.now()
-        halfhour = n - tablo.compat.datetime.timedelta(minutes=n.minute % 30, seconds=n.second, microseconds=n.microsecond)
-        cutoff = halfhour + tablo.compat.datetime.timedelta(hours=23, minutes=30)
+        halfhour = self.getStartHalfHour()
+        cutoff = halfhour + tablo.compat.datetime.timedelta(hours=24)
 
         halfhour += tablo.compat.datetime.timedelta(minutes=self.offsetHalfHour*30)
 
@@ -198,6 +246,8 @@ class LiveTVWindow(kodigui.BaseWindow):
             else:
                 continue
 
+            row = []
+
             for slot, i in enumerate(range(start, start+6)):
                 try:
                     airing = tablo.Airing(data[i])
@@ -213,14 +263,17 @@ class LiveTVWindow(kodigui.BaseWindow):
                     self.slotButtons[ID] = None
                     continue
 
+                row.append((ID, airing))
+
                 self.slotButtons[ID] = airing
                 control = self.getControl(ID)
                 if airing.airingNow(halfhour):
                     duration = airing.secondsToEnd(start=halfhour)
                 else:
                     duration = airing.duration
-                    if airing.datetimeEnd > cutoff:
-                        duration -= tablo.compat.timedelta_total_seconds(airing.datetimeEnd - cutoff)
+
+                if airing.datetimeEnd > cutoff:
+                    duration -= tablo.compat.timedelta_total_seconds(airing.datetimeEnd - cutoff)
 
                 width = int((duration/1800.0)*self.gen.HALF_HOUR_WIDTH)
                 save = width
@@ -237,6 +290,8 @@ class LiveTVWindow(kodigui.BaseWindow):
                 totalwidth += save
                 control.setWidth(width)
                 control.setLabel(airing.title)
+
+            self.rows.append(row)
 
 
 class EPGXMLGenerator(object):
@@ -277,7 +332,7 @@ class EPGXMLGenerator(object):
                         <aligny>center</aligny>
                         <texturefocus colordiffuse="FFE8E8E8" border="2">script-tablo-epg_slot.png</texturefocus>
                         <texturenofocus colordiffuse="FF101924" border="2">script-tablo-epg_slot.png</texturenofocus>
-                        <textoffsetx>8</textoffsetx>
+                        <textoffsetx>16</textoffsetx>
                         <textoffsety>0</textoffsety>
                         <label></label>
                         <scroll>false</scroll>
