@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <window>
-    <defaultcontrol>100</defaultcontrol>
+    <defaultcontrol>50</defaultcontrol>
     <coordinates>
         <system>1</system>
         <posx>0</posx>
@@ -8,22 +8,106 @@
     </coordinates>
     <controls>
         <control type="group">
-            <animation effect="slide" start="-290,0" end="0,0" time="200" condition="!IsEmpty(Window(10000).Property(script.tablo.menu.visible))">Conditional</animation>
-            <posx>290</posx>
+            <animation effect="slide" start="0,0" end="-290,0" time="200" condition="IsEmpty(Window(10000).Property(script.tablo.menu.visible))">Conditional</animation>
+            <posx>320</posx>
             <posy>0</posy>
-            <control type="button" id="100">
+            <control type="image">
                 <posx>0</posx>
-                <posy>510</posy>
-                <width>1280</width>
-                <height>60</height>
-                <font>font30</font>
-                <textcolor>FFEBEBEB</textcolor>
-                <align>center</align>
-                <aligny>center</aligny>
-                <label>[B]LIVE TV[/B]</label>
+                <posy>360</posy>
+                <width>1250</width>
+                <height>360</height>
+                <texture>script-tablo-white_square.png</texture>
+                <colordiffuse>FF888888</colordiffuse>
+            </control>
+            <control type="group" id="45">
+                <posx>0</posx>
+                <posy>360</posy>
+                <width>1250</width>
+                <height>360</height>
+                <itemgap>0</itemgap>
+                <orientation>vertical</orientation>
+                <usecontrolcoords>false</usecontrolcoords>
+                <visible>true</visible>
+                <!-- START GENERATED CONTENT -->
+<!-- GENERATED CONTENT -->
+                <!-- END GENERATED CONTENT   -->
             </control>
             <control type="image">
-                <posx>-290</posx>
+                <posx>-30</posx>
+                <posy>0</posy>
+                <width>1280</width>
+                <height>320</height>
+                <texture>script-tablo-white_square.png</texture>
+                <colordiffuse>FF000000</colordiffuse>
+            </control>
+            <control type="image">
+                <posx>-30</posx>
+                <posy>0</posy>
+                <width>1280</width>
+                <height>320</height>
+                <texture fallback="placeholders/placeholder_background_hd.jpg">$INFO[Window.Property(background)]</texture>
+                <aspectratio aligny="top">scale</aspectratio>
+                <colordiffuse>FF8A8A8A</colordiffuse>
+                <fadetime>500</fadetime>
+            </control>
+            <control type="group">
+                <posx>0</posx>
+                <posy>320</posy>
+                <control type="image">
+                    <posx>0</posx>
+                    <posy>0</posy>
+                    <width>1250</width>
+                    <height>40</height>
+                    <texture>script-tablo-white_square.png</texture>
+                    <colordiffuse>FF000000</colordiffuse>
+                </control>
+                <control type="label" id="40">
+                    <posx>185</posx>
+                    <posy>0</posy>
+                    <width>320</width>
+                    <height>40</height>
+                    <font>font13</font>
+                    <textcolor>FFE8E8E8</textcolor>
+                    <align>left</align>
+                    <aligny>center</aligny>
+                    <label></label>
+                </control>
+                <control type="label" id="41">
+                    <posx>505</posx>
+                    <posy>0</posy>
+                    <width>320</width>
+                    <height>40</height>
+                    <font>font13</font>
+                    <textcolor>FFE8E8E8</textcolor>
+                    <align>left</align>
+                    <aligny>center</aligny>
+                    <label></label>
+                </control>
+                <control type="label" id="42">
+                    <posx>825</posx>
+                    <posy>0</posy>
+                    <width>320</width>
+                    <height>40</height>
+                    <font>font13</font>
+                    <textcolor>FFE8E8E8</textcolor>
+                    <align>left</align>
+                    <aligny>center</aligny>
+                    <label></label>
+                </control>
+                <control type="label" id="43">
+                    <posx>1145</posx>
+                    <posy>0</posy>
+                    <width>320</width>
+                    <height>40</height>
+                    <font>font13</font>
+                    <textcolor>FFE8E8E8</textcolor>
+                    <align>left</align>
+                    <aligny>center</aligny>
+                    <label></label>
+                </control>
+            </control>
+            <control type="image">
+                <posx>-320</posx>
                 <posy>0</posy>
                 <width>320</width>
                 <height>720</height>

@@ -47,9 +47,12 @@ class BackgroundThreader:
             while not self.aborted():
                 self._task = self._queue.get_nowait()
                 self._runTask(self._task)
+                self._queue.task_done()
                 self._task = None
         except Queue.Empty:
-            pass
+            util.DEBUG_LOG('Background queue: Empty')
+
+        self._queue = Queue.LifoQueue()
 
         util.DEBUG_LOG('Background queue: Finished')
 

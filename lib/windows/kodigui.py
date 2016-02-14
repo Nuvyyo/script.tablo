@@ -47,6 +47,10 @@ class BaseFunctions:
     def closing(self):
         return self._closing
 
+    @classmethod
+    def generate(self):
+        pass
+
 
 class BaseWindow(xbmcgui.WindowXML, BaseFunctions):
     def __init__(self, *args, **kwargs):
@@ -85,6 +89,10 @@ class BaseWindow(xbmcgui.WindowXML, BaseFunctions):
         self.isOpen = False
         self.close()
 
+    def show(self):
+        self._closing = False
+        xbmcgui.WindowXML.show(self)
+
     def onClosed(self): pass
 
 
@@ -121,6 +129,10 @@ class BaseDialog(xbmcgui.WindowXMLDialog, BaseFunctions):
     def doClose(self):
         self._closing = True
         self.close()
+
+    def show(self):
+        self._closing = False
+        xbmcgui.WindowXMLDialog.show(self)
 
     def onClosed(self): pass
 

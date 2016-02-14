@@ -15,6 +15,7 @@
             <texture fallback="placeholders/placeholder_background_hd.jpg">$INFO[Window.Property(background)]</texture>
             <aspectratio aligny="top">scale</aspectratio>
             <colordiffuse>8AFFFFFF</colordiffuse>
+            <fadetime>500</fadetime>
         </control>
         <control type="image">
             <visible>ControlGroup(200).HasFocus(0)</visible>

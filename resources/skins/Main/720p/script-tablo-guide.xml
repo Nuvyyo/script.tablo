@@ -37,6 +37,7 @@
                 <height>720</height>
                 <texture fallback="placeholders/placeholder_background_hd.jpg">$INFO[Container(301).ListItem.Property(background)]</texture>
                 <aspectratio aligny="top">scale</aspectratio>
+                <fadetime>500</fadetime>
             </control>
             <control type="image">
                 <posx>290</posx>

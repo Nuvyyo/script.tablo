@@ -19,6 +19,10 @@ def now():
     return compat.datetime.datetime.now(API.timezone)
 
 
+def UTC():
+    return pytz.timezone('UTC')
+
+
 def requestHandler(f):
     def wrapper(*args, **kwargs):
         r = f(*args, **kwargs)
@@ -64,19 +68,45 @@ class Watch(object):
 
 
 class Airing(object):
-    def __init__(self, data, type_):
+    def __init__(self, data, type_=None):
         self.path = data.get('path')
         self.scheduleData = data.get('schedule')
         self.data = data
         self.type = type_
+        self._background = None
         self._datetime = False
         self._datetimeEnd = None
+        self.setType(type_)
+
+    def setType(self, type_):
+        if type_:
+            self.type = type_
+            return
+
+        if 'series' in self.data:
+            self.type = 'series'
+        elif 'movie' in self.data:
+            self.type = 'movie'
+        elif 'sport' in self.data:
+            self.type = 'sport'
+        elif 'program' in self.data:
+            self.type = 'program'
 
     def __getattr__(self, name):
         return self.data[self.type].get(name)
 
     def watch(self):
         return Watch(self.data['airing_details']['channel']['path'])
+
+    @property
+    def background(self):
+        if not self._background:
+            self._background = self.background_image and API.images(self.background_image['image_id']) or ''
+        return self._background
+
+    @property
+    def duration(self):
+        return self.data['airing_details']['duration']
 
     @property
     def scheduled(self):
@@ -93,7 +123,7 @@ class Airing(object):
     def datetimeEnd(self):
         if self._datetimeEnd is None:
             if self.datetime:
-                self._datetimeEnd = self.datetime + compat.datetime.timedelta(seconds=self.data['airing_details']['duration'])
+                self._datetimeEnd = self.datetime + compat.datetime.timedelta(seconds=self.duration)
             else:
                 self._datetimeEnd = 0
 
@@ -123,14 +153,19 @@ class Airing(object):
             self.data['airing_details']['channel']['channel']['minor']
         )
 
+    def secondsToEnd(self, start=None):
+        start = start or now()
+        return compat.timedelta_total_seconds(self.datetimeEnd - start)
+
     def secondsToStart(self):
         return compat.timedelta_total_seconds(self.datetime - now())
 
     def secondsSinceEnd(self):
         return compat.timedelta_total_seconds(now() - self.datetimeEnd)
 
-    def airingNow(self):
-        return self.datetime <= now() < self.datetimeEnd
+    def airingNow(self, ref=None):
+        ref = ref or now()
+        return self.datetime <= ref < self.datetimeEnd
 
     def ended(self):
         return self.datetimeEnd < now()
@@ -257,7 +292,7 @@ class Endpoint(object):
         return e
 
     def __call__(self, method):
-        return self.__getattr__(method.lstrip('/'))
+        return self.__getattr__(str(method).lstrip('/'))
 
     @requestHandler
     def get(self, **kwargs):

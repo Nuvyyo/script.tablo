@@ -29,7 +29,7 @@ class WindowManager(xbmc.Monitor):
         if window.name in self.windows:
             self.windows[window.name].show()
         else:
-            self.current = window.create()
+            self.current = window.generate() or window.create()
             self.windows[window.name] = self.current
 
     def showMenu(self):

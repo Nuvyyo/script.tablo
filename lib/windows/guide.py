@@ -21,11 +21,15 @@ class ShowsTask(backgroundthread.Task):
         ct = 0
 
         shows = tablo.API.batch.post(self.paths)
+        if self.isCanceled():
+            return
+
         ct += len(shows)
         util.DEBUG_LOG('Retrieved {0} shows'.format(ct))
         for path, show in shows.items():
             if self.isCanceled():
                 return
+
             self.callback(tablo.Show.newFromData(show))
 
 
@@ -133,10 +137,8 @@ class GuideWindow(kodigui.BaseWindow):
             while not show and backgroundthread.BGThreader.working() and not xbmc.abortRequested:
                 xbmc.sleep(100)
                 show = item.dataSource.get('show')
-
         if self.closing():
             return
-
         GuideShowWindow.open(show=show)
 
     def setFilter(self, filter_=False):
@@ -215,12 +217,17 @@ class GuideWindow(kodigui.BaseWindow):
         self.setFocusId(200)
 
     def cancelTasks(self):
+        if not self._tasks:
+            return
+
+        util.DEBUG_LOG('Canceling {0} tasks ({1})'.format(len(self._tasks), self.name))
         for t in self._tasks:
             t.cancel()
         self._tasks = []
 
     def getSingleShowData(self, path):
         t = ShowsTask()
+        self._tasks.append(t)
         t.setup([path], self.updateShowItem)
         backgroundthread.BGThreader.addTasks([t])
 
@@ -305,10 +312,14 @@ class AiringsTask(backgroundthread.Task):
 
     def run(self):
         airings = tablo.API.batch.post(self.paths)
+        if self.isCanceled():
+            return
+
         util.DEBUG_LOG('Retrieved {0} airings'.format(len(airings)))
         for path, airing in airings.items():
             if self.isCanceled():
                 return
+
             self.callback(tablo.Airing(airing, self.airingType))
 
 
@@ -508,6 +519,10 @@ class GuideShowWindow(kodigui.BaseWindow):
                         return
 
     def cancelTasks(self):
+        if not self._tasks:
+            return
+
+        util.DEBUG_LOG('Canceling {0} show tasks'.format(len(self._tasks)))
         for t in self._tasks:
             t.cancel()
         self._tasks = []
