@@ -15,6 +15,7 @@ Series = api.Series
 Movie = api.Movie
 Sport = api.Sport
 Program = api.Program
+GridAiring = api.GridAiring
 
 
 def setUserAgent(agent):

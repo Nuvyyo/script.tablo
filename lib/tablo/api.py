@@ -27,7 +27,17 @@ def requestHandler(f):
     def wrapper(*args, **kwargs):
         r = f(*args, **kwargs)
         if not r.ok:
-            raise APIError('{0}: {1}'.format(r.status_code, '/' + r.url.split('://', 1)[-1].split('/', 1)[-1]))
+            e = APIError('{0}: {1}'.format(r.status_code, '/' + r.url.split('://', 1)[-1].split('/', 1)[-1]))
+            try:
+                edata = r.json()
+                if isinstance(edata, dict):
+                    e.message = edata.get('error', edata)
+                else:
+                    e.message = edata
+            except:
+                pass
+            raise e
+
         return r.json()
 
     return wrapper
@@ -47,10 +57,19 @@ def processDate(date):
 
 class Watch(object):
     def __init__(self, path):
-        data = API(path).watch.post(no_fast_startup=True)
+        try:
+            data = API(path).watch.post()
+            self.error = None
+        except APIError, e:
+            self.error = e.message.get('description', 'Unknown')
+
         self.url = ''
         self.width = 0
         self.height = 0
+
+        if self.error:
+            return
+
         self.sd = data.get('bif_url_sd')
         self.hd = data.get('bif_url_hd')
         self.expires = data.get('playlist_url')
@@ -76,21 +95,11 @@ class Airing(object):
         self._background = None
         self._datetime = False
         self._datetimeEnd = None
+        self.gridAiring = None
         self.setType(type_)
 
     def setType(self, type_):
-        if type_:
-            self.type = type_
-            return
-
-        if 'series' in self.data:
-            self.type = 'series'
-        elif 'movie' in self.data:
-            self.type = 'movie'
-        elif 'sport' in self.data:
-            self.type = 'sport'
-        elif 'program' in self.data:
-            self.type = 'program'
+        self.type = type_
 
     def __getattr__(self, name):
         return self.data[self.type].get(name)
@@ -177,6 +186,29 @@ class Airing(object):
     def schedule(self, on=True):
         airing = API(self.path).patch(scheduled=on)
         self.scheduleData = airing.get('schedule')
+
+
+class GridAiring(Airing):
+    def setType(self, type_):
+        if 'series' in self.data:
+            self.type = 'series'
+        elif 'movie' in self.data:
+            self.type = 'movie'
+        elif 'sport' in self.data:
+            self.type = 'sport'
+        elif 'program' in self.data:
+            self.type = 'program'
+
+    def getAiringData(self):
+        data = API(self.path).get()
+        if 'episode' in data:
+            self.gridAiring = Airing(data, 'episode')
+        elif 'schedule' in data:
+            self.gridAiring = Airing(data, 'schedule')
+        elif 'event' in data:
+            self.gridAiring = Airing(data, 'event')
+        elif 'airing' in data:
+            self.gridAiring = Airing(data, 'airing')
 
 
 class Show(object):

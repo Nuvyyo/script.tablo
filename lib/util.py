@@ -10,6 +10,8 @@ import xbmc
 import xbmcgui
 import xbmcaddon
 
+import verlib
+
 DEBUG = True
 
 ADDON = xbmcaddon.Addon()
@@ -103,6 +105,10 @@ def _processSettingForWrite(value):
     elif isinstance(value, bool):
         value = value and 'true' or 'false'
     return str(value)
+
+
+def Version(ver_string):
+    return verlib.NormalizedVersion(verlib.suggest_normalized_version(ver_string))
 
 
 def setGlobalProperty(key, val):

@@ -458,7 +458,12 @@ class GuideShowWindow(kodigui.BaseWindow):
 
         if action:
             if action == 'watch':
-                xbmc.Player().play(airing.watch().url)
+                watch = airing.gridAiring.watch()
+                if watch.error:
+                    xbmcgui.Dialog().ok('Failed', 'Failed to play channel:', ' ', str(watch.error))
+                else:
+                    xbmc.Player().play(watch.url)
+                    return None
             elif action == 'record':
                 airing.schedule()
             elif action == 'unschedule':

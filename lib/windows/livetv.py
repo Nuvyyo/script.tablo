@@ -2,17 +2,21 @@ import os
 import xbmc
 import xbmcgui
 import kodigui
+import actiondialog
+import skin
 from lib import util
 
 from lib import tablo
 
 WM = None
 
+SKIN_PATH = skin.init()
+
 
 class LiveTVWindow(kodigui.BaseWindow):
     name = 'LIVETV'
     xmlFile = 'script-tablo-livetv-generated.xml'
-    path = util.ADDON.getAddonInfo('path')
+    path = SKIN_PATH
     theme = 'Main'
 
     GRID_GROUP_ID = 45
@@ -25,6 +29,7 @@ class LiveTVWindow(kodigui.BaseWindow):
         new.slotButtons = {}
         new.offButtons = {}
         new.chanLabelButtons = {}
+        new.chanData = []
         new.lastFocus = 100
         new.topRow = 0
         new.gen = gen
@@ -91,33 +96,19 @@ class LiveTVWindow(kodigui.BaseWindow):
             return
 
         self.fillChannels()
-        controlID = self.getFocusId()
-        if controlID <= self.gen.maxEnd:
-            controlID = self.lastFocus
-        if not xbmc.getCondVisibility('Control.IsVisible({0})'.format(controlID)) or controlID in self.offButtons:
-            while not xbmc.getCondVisibility('Control.IsVisible({0})'.format(controlID)) or controlID in self.offButtons:
-                controlID -= 1
-        else:
-            while xbmc.getCondVisibility('Control.IsVisible({0})'.format(controlID)) and controlID not in self.offButtons:
-                controlID += 1
-            controlID -= 1
 
-        self.lastFocus = controlID
-        self.setFocusId(controlID)
-        return
+        self.selectLastInRow()
 
     def guideLeft(self):
         if self.offsetHalfHour == 0:
+            self.setFocusId(self.lastFocus)
             WM.showMenu()
             return
 
         self.offsetHalfHour -= 1
         self.fillChannels()
 
-        controlID = self.getFocusId()+1
-
-        self.lastFocus = controlID
-        self.setFocusId(controlID)
+        self.selectFirstInRow()
 
     def guideNavDown(self):
         row = self.getRow()
@@ -173,7 +164,7 @@ class LiveTVWindow(kodigui.BaseWindow):
     def onClick(self, controlID):
         airing = self.slotButtons.get(controlID)
         if airing:
-            print '{0} {1} {2}'.format(controlID, repr(airing.title), self.getControl(controlID).getWidth())
+            self.airingClicked(airing)
 
     def onFocus(self, controlID):
         if controlID > self.gen.maxEnd:
@@ -181,14 +172,43 @@ class LiveTVWindow(kodigui.BaseWindow):
 
         airing = self.getSelectedAiring()
         if airing:
-            print '{0} - {1} ({2})'.format(airing.datetime, airing.datetimeEnd, self.upDownDatetime)
+            # print '{0} - {1} ({2})'.format(airing.datetime, airing.datetimeEnd, self.upDownDatetime)
             self.setProperty('background', airing.background)
 
     def onWindowFocus(self):
-        if self.getFocusId() in self.chanLabelButtons:
-            self.setFocusId(self.getFocusId() + 1)  # Grid button to the left ot the last selected label
-        else:
+        if not self.selectFirstInRow():
             self.setFocusId(self.gen.maxEnd + 3)  # Upper left grid button
+
+    def selectFirstInRow(self, row=None):
+        row = row or self.getRow()
+        if row < 0 or row >= len(self.rows):
+            return False
+
+        controlID = self.rows[row][0][0]
+
+        self.lastFocus = controlID
+        self.setFocusId(controlID)
+
+        self.setFocusId(controlID)
+        return True
+
+    def selectLastInRow(self, row=None):
+        row = row or self.getRow(self.lastFocus)
+        if row < 0 or row >= len(self.rows):
+            return False
+
+        for i in range(len(self.rows[row])-1, -1, -1):
+            controlID = self.rows[row][i][0]
+            if xbmc.getCondVisibility('Control.IsVisible({0})'.format(controlID)):
+                break
+        else:
+            controlID = self.rows[row][0][0]  # Shouldn't happen
+
+        self.lastFocus = controlID
+        self.setFocusId(controlID)
+
+        self.setFocusId(controlID)
+        return True
 
     def getSelectedAiring(self):
         return self.slotButtons.get(self.getFocusId())
@@ -214,6 +234,7 @@ class LiveTVWindow(kodigui.BaseWindow):
                 genData = self.gen.channels[path]
                 ID = genData['label']
                 self.chanLabelButtons[ID] = True
+                self.chanData.append(channel)
                 self.getControl(ID).setLabel(
                     '{0} [B]{1}-{2}[/B]'.format(channel.get('call_sign', ''), channel.get('major', ''), channel.get('minor', ''))
                 )
@@ -239,7 +260,7 @@ class LiveTVWindow(kodigui.BaseWindow):
             totalwidth = 0
             start = 0
             while True:
-                airing = tablo.Airing(data[start])
+                airing = tablo.GridAiring(data[start])
                 if airing.airingNow(halfhour):
                     break
                 start += 1
@@ -250,7 +271,7 @@ class LiveTVWindow(kodigui.BaseWindow):
 
             for slot, i in enumerate(range(start, start+6)):
                 try:
-                    airing = tablo.Airing(data[i])
+                    airing = tablo.GridAiring(data[i])
                 except IndexError:
                     airing = None
 
@@ -293,17 +314,109 @@ class LiveTVWindow(kodigui.BaseWindow):
 
             self.rows.append(row)
 
+    def airingClicked(self, airing):
+        # while not airing and backgroundthread.BGThreader.working() and not xbmc.abortRequested:
+        #     xbmc.sleep(100)
+        #     airing = item.dataSource.get('airing')
+        airing.getAiringData()
+
+        info = 'Channel {0} {1} on {2} from {3} to {4}'.format(
+            airing.gridAiring.displayChannel(),
+            airing.gridAiring.network,
+            airing.gridAiring.displayDay(),
+            airing.gridAiring.displayTimeStart(),
+            airing.gridAiring.displayTimeEnd()
+        )
+
+        kwargs = {
+            'number': airing.gridAiring.number,
+            'background': airing.background,
+            'callback': self.actionDialogCallback,
+            'obj': airing
+        }
+
+        if airing.gridAiring.scheduled:
+            kwargs['button1'] = ('unschedule', "Don't Record {0}".format(util.LOCALIZED_AIRING_TYPES[airing.type.upper()]))
+            kwargs['title_indicator'] = 'indicators/rec_pill_hd.png'
+        elif airing.gridAiring.airingNow():
+            kwargs['button1'] = ('watch', 'Watch')
+            kwargs['button2'] = ('record', 'Record {0}'.format(util.LOCALIZED_AIRING_TYPES[airing.type.upper()]))
+        else:
+            kwargs['button1'] = ('record', 'Record {0}'.format(util.LOCALIZED_AIRING_TYPES[airing.type.upper()]))
+
+        secs = airing.gridAiring.secondsToStart()
+
+        if secs < 1:
+            start = 'Started {0} ago'.format(util.durationToText(secs*-1))
+        else:
+            start = 'Starts in {0}'.format(util.durationToText(secs))
+
+        actiondialog.openDialog(
+            airing.gridAiring.title,
+            info, airing.gridAiring.description,
+            start,
+            **kwargs
+        )
+
+        # self.updateIndicators()
+
+    def actionDialogCallback(self, obj, action):
+        airing = obj
+        changes = {}
+
+        if action:
+            if action == 'watch':
+                watch = airing.gridAiring.watch()
+                if watch.error:
+                    xbmcgui.Dialog().ok('Failed', 'Failed to play channel:', ' ', str(watch.error))
+                else:
+                    xbmc.Player().play(watch.url)
+                    return None
+            elif action == 'record':
+                airing.gridAiring.schedule()
+            elif action == 'unschedule':
+                airing.gridAiring.schedule(False)
+
+        if airing.gridAiring.ended():
+            secs = airing.gridAiring.secondsSinceEnd()
+            changes['start'] = 'Ended {0} ago'.format(util.durationToText(secs))
+        else:
+            if airing.gridAiring.airingNow():
+                changes['button1'] = ('watch', 'Watch')
+                if airing.gridAiring.scheduled:
+                    changes['button2'] = ('unschedule', "Don't Record {0}".format(util.LOCALIZED_AIRING_TYPES[airing.type.upper()]))
+                    changes['title_indicator'] = 'indicators/rec_pill_hd.png'
+                else:
+                    changes['button2'] = ('record', 'Record {0}'.format(util.LOCALIZED_AIRING_TYPES[airing.type.upper()]))
+            else:
+                if airing.gridAiring.scheduled:
+                    changes['button1'] = ('unschedule', "Don't Record {0}".format(util.LOCALIZED_AIRING_TYPES[airing.type.upper()]))
+                    changes['title_indicator'] = 'indicators/rec_pill_hd.png'
+                else:
+                    changes['button1'] = ('record', 'Record {0}'.format(util.LOCALIZED_AIRING_TYPES[airing.type.upper()]))
+
+            secs = airing.gridAiring.secondsToStart()
+
+            if secs < 1:
+                start = 'Started {0} ago'.format(util.durationToText(secs*-1))
+            else:
+                start = 'Starts in {0}'.format(util.durationToText(secs))
+
+            changes['start'] = start
+
+        return changes
+
 
 class EPGXMLGenerator(object):
     BASE_ID = 100
     HALF_HOUR_WIDTH = 320
 
     BASE_XML_PATH = os.path.join(
-        xbmc.translatePath(util.ADDON.getAddonInfo('path')).decode('utf-8'), 'resources', 'skins', 'Main', '720p', 'script-tablo-livetv.xml'
+        SKIN_PATH, 'resources', 'skins', 'Main', '720p', 'script-tablo-livetv.xml'
     )
 
     OUTPUT_PATH = os.path.join(
-        xbmc.translatePath(util.ADDON.getAddonInfo('path')).decode('utf-8'), 'resources', 'skins', 'Main', '720p', 'script-tablo-livetv-generated.xml'
+        SKIN_PATH, 'resources', 'skins', 'Main', '720p', 'script-tablo-livetv-generated.xml'
     )
 
     CHANNEL_BASE_XML = '''

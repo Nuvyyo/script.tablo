@@ -59,8 +59,9 @@ class GuideShowWindow(kodigui.BaseDialog, util.CronReceiver):
         if not self.callback:
             return False
 
-        changes = self.callback(self.object, self.action)
+        action = self.action
         self.action = None
+        changes = self.callback(self.object, action)
 
         if not changes:
             return False
