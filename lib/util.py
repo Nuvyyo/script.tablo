@@ -16,6 +16,8 @@ DEBUG = True
 
 ADDON = xbmcaddon.Addon()
 
+PROFILE = xbmc.translatePath(ADDON.getAddonInfo('profile')).decode('utf-8')
+
 T = ADDON.getLocalizedString
 
 LOCALIZED_SHOW_TYPES = {  # TODO: Actually localize these :)

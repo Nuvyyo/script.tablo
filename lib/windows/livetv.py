@@ -7,6 +7,7 @@ import skin
 from lib import util
 
 from lib import tablo
+from lib.tablo import grid
 
 WM = None
 
@@ -44,6 +45,8 @@ class LiveTVWindow(kodigui.BaseWindow):
         self.upDownDatetime = None
 
         self.gridGroup = self.getControl(self.GRID_GROUP_ID)
+
+        self.grid = grid.Grid(util.PROFILE)
 
         self.fillChannels()
 
@@ -224,6 +227,10 @@ class LiveTVWindow(kodigui.BaseWindow):
         self.slotButtons = {}
         self.offButtons = {}
         self.rows = []
+
+        self.grid.getChannels(self.gen.paths)
+
+        return
 
         if not self.channels:
             self.chanLabelButtons = {}
