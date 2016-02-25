@@ -3,7 +3,7 @@ import kodigui
 from lib import util
 
 
-class GuideShowWindow(kodigui.BaseDialog, util.CronReceiver):
+class ActionDialog(kodigui.BaseDialog, util.CronReceiver):
     name = 'GUIDE'
     xmlFile = 'script-tablo-action.xml'
     path = util.ADDON.getAddonInfo('path')
@@ -87,7 +87,7 @@ def openDialog(
     number=None, button2=None, title_indicator=None, background=None, callback=None, obj=None
 ):
 
-    w = GuideShowWindow.open(
+    w = ActionDialog.open(
         number=number,
         title=title,
         info=info,

@@ -1,4 +1,5 @@
 import requests
+import m3u8
 import urlparse
 import compat
 import pytz
@@ -12,7 +13,9 @@ USER_AGENT = 'Tablo-Kodi/0.1'
 
 
 class APIError(Exception):
-    pass
+    def __init__(self, *args, **kwargs):
+        Exception.__init__(self, *args)
+        self.code = kwargs.get('code')
 
 
 def now():
@@ -27,7 +30,7 @@ def requestHandler(f):
     def wrapper(*args, **kwargs):
         r = f(*args, **kwargs)
         if not r.ok:
-            e = APIError('{0}: {1}'.format(r.status_code, '/' + r.url.split('://', 1)[-1].split('/', 1)[-1]))
+            e = APIError('{0}: {1}'.format(r.status_code, '/' + r.url.split('://', 1)[-1].split('/', 1)[-1]), code=r.status_code)
             try:
                 edata = r.json()
                 if isinstance(edata, dict):
@@ -38,7 +41,10 @@ def requestHandler(f):
                 pass
             raise e
 
-        return r.json()
+        try:
+            return r.json()
+        except (ValueError, TypeError):
+            return r.text
 
     return wrapper
 
@@ -63,6 +69,7 @@ class Watch(object):
         except APIError, e:
             self.error = e.message.get('description', 'Unknown')
 
+        self.base = ''
         self.url = ''
         self.width = 0
         self.height = 0
@@ -82,20 +89,54 @@ class Watch(object):
 
     def getPlaylist(self, url):
         p = urlparse.urlparse(url)
-        fromPL = requests.get(url).text.strip().splitlines()[-1]
-        self.url = '{0}://{1}{2}'.format(p.scheme, p.netloc, fromPL)
+        self.base = '{0}://{1}{2}'.format(p.scheme, p.netloc, p.path.rsplit('/', 1)[0])
+        m = m3u8.loads(requests.get(url).text)
+        # for line in reversed(requests.get(url).text.strip().splitlines()):
+        #     if line.startswith('#'):
+        #         continue
+        #     fromPL = line
+        #     break
+        # else:
+        #     return
+
+        self.url = '{0}://{1}{2}'.format(p.scheme, p.netloc, m.playlists[0].uri)
+
+    def makeSeekPlaylist(self, position):
+        m = m3u8.loads(requests.get(self.url).text)
+        m.base_path = self.base
+        duration = m.segments[0].duration
+        while duration < position:
+            del m.segments[0]
+            if not m.segments:
+                break
+            duration += m.segments[0].duration
+
+        return m.dumps()
+
+
+class Channel(object):
+    def __init__(self, data):
+        self.path = data['path']
+        self.object_id = data['object_id']
+        self.data = data
+
+    def __getattr__(self, name):
+        return self.data['channel'].get(name)
 
 
 class Airing(object):
     def __init__(self, data, type_=None):
         self.path = data.get('path')
         self.scheduleData = data.get('schedule')
+        self.qualifiers = data.get('qualifiers')
         self.data = data
         self.type = type_
         self._background = None
+        self._thumb = None
         self._datetime = False
         self._datetimeEnd = None
-        self.gridAiring = None
+        self._gridAiring = None
+        self.deleted = False
         self.setType(type_)
 
     def setType(self, type_):
@@ -105,7 +146,10 @@ class Airing(object):
         return self.data[self.type].get(name)
 
     def watch(self):
-        return Watch(self.data['airing_details']['channel']['path'])
+        if 'recording' in self.path:
+            return Watch(self.path)
+        else:
+            return Watch(self.data['airing_details']['channel']['path'])
 
     @property
     def background(self):
@@ -114,12 +158,38 @@ class Airing(object):
         return self._background
 
     @property
+    def thumb(self):
+        if not self._thumb:
+            self._thumb = self.thumbnail_image and API.images(self.thumbnail_image['image_id']) or ''
+        return self._thumb
+
+    @property
+    def snapshot(self):
+        if not self.data.get('snapshot_image'):
+            return ''
+
+        return API.images(self.data['snapshot_image']['image_id'])
+
+    @property
     def duration(self):
         return self.data['airing_details']['duration']
 
     @property
+    def channel(self):
+        return self.data['airing_details']['channel']
+
+    @property
     def scheduled(self):
         return self.scheduleData['state'] == 'scheduled'
+
+    @property
+    def conflicted(self):
+        return self.scheduleData['state'] == 'conflict'
+
+    def schedule(self, on=True):
+        airing = API(self.path).patch(scheduled=on)
+        self.scheduleData = airing.get('schedule')
+        return self.scheduleData
 
     @property
     def datetime(self):
@@ -183,9 +253,37 @@ class Airing(object):
     def network(self):
         return self.data['airing_details']['channel']['channel'].get('network') or ''
 
-    def schedule(self, on=True):
-        airing = API(self.path).patch(scheduled=on)
-        self.scheduleData = airing.get('schedule')
+    # For recordings
+    def delete(self):
+        self.deleted = True
+        return API(self.path).delete()
+
+    @property
+    def watched(self):
+        return bool(self.data['user_info'].get('watched'))
+
+    def markWatched(self, watched=True):
+        recording = API(self.path).patch(watched=watched)
+        self.data['user_info'] = recording.get('user_info')
+        return self.data['user_info']
+
+    @property
+    def protected(self):
+        return bool(self.data['user_info'].get('protected'))
+
+    def markProtected(self, protected=True):
+        recording = API(self.path).patch(protected=protected)
+        self.data['user_info'] = recording.get('user_info')
+        return self.data['user_info']
+
+    @property
+    def position(self):
+        return self.data['user_info'].get('position')
+
+    def setPosition(self, position=0):
+        recording = API(self.path).patch(position=int(position))
+        self.data['user_info'] = recording.get('user_info')
+        return self.data['user_info']
 
 
 class GridAiring(Airing):
@@ -199,16 +297,28 @@ class GridAiring(Airing):
         elif 'program' in self.data:
             self.type = 'program'
 
-    def getAiringData(self):
-        data = API(self.path).get()
-        if 'episode' in data:
-            self.gridAiring = Airing(data, 'episode')
-        elif 'schedule' in data:
-            self.gridAiring = Airing(data, 'schedule')
-        elif 'event' in data:
-            self.gridAiring = Airing(data, 'event')
-        elif 'airing' in data:
-            self.gridAiring = Airing(data, 'airing')
+    @property
+    def gridAiring(self):
+        if not self._gridAiring:
+            data = API(self.path).get()
+            if 'episode' in data:
+                self._gridAiring = Airing(data, 'episode')
+            elif 'schedule' in data:
+                self._gridAiring = Airing(data, 'schedule')
+            elif 'event' in data:
+                self._gridAiring = Airing(data, 'event')
+            elif 'airing' in data:
+                self._gridAiring = Airing(data, 'airing')
+
+        return self._gridAiring
+
+    @property
+    def scheduled(self):
+        return self.scheduleData['state'] != 'none'
+
+    def schedule(self, on=True):
+        self.scheduleData = self.gridAiring.schedule(on)
+        return self.scheduleData
 
 
 class Show(object):
@@ -219,12 +329,15 @@ class Show(object):
         self._thumb = ''
         self._background = ''
         self.path = data['path']
-        self.scheduleRule = data.get('schedule_rule')
+        self.scheduleRule = data.get('schedule_rule') != 'none' and data.get('schedule_rule') or None
         self.showCounts = data.get('show_counts')
         self.processData(data)
 
     def __getattr__(self, name):
         return self.data.get(name)
+
+    def update(self):
+        self.__init__(API(self.path).get())
 
     @classmethod
     def newFromData(self, data):
@@ -257,7 +370,17 @@ class Show(object):
 
     def schedule(self, rule='none'):
         data = API(self.path).patch(schedule=rule)
-        self.scheduleRule = data.get('schedule_rule')
+        self.scheduleRule = data.get('schedule_rule') != 'none' and data.get('schedule_rule') or None
+
+    def _airings(self):
+        return API(self.path).airings.get()
+
+    def airings(self):
+        try:
+            return self._airings()
+        except APIError, e:
+            print 'Show.airings() failed: {0}'.format(e.message)
+            return []
 
 
 class Series(Show):
@@ -271,9 +394,13 @@ class Series(Show):
         return API(self.path).episodes.get()
 
     def seasons(self):
-        return API(self.path).seasons.get()
+        try:
+            return API(self.path).seasons.get()
+        except APIError, e:
+            print 'Series.seasons() failed: {0}'.format(e.message)
+            return []
 
-    def airings(self):
+    def _airings(self):
         return self.episodes()
 
 
@@ -283,9 +410,6 @@ class Movie(Show):
 
     def processData(self, data):
         self.data = data['movie']
-
-    def airings(self):
-        return API(self.path).airings.get()
 
 
 class Sport(Show):
@@ -298,7 +422,7 @@ class Sport(Show):
     def events(self):
         return API(self.path).events.get()
 
-    def airings(self):
+    def _airings(self):
         return self.events()
 
 
@@ -308,9 +432,6 @@ class Program(Show):
 
     def processData(self, data):
         self.data = data['program']
-
-    def airings(self):
-        return API(self.path).airings.get()
 
 
 class Endpoint(object):

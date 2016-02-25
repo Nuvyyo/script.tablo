@@ -1,8 +1,8 @@
-Add Live TV
 Save device and auto re-connect
 Add indicators all over
-Finish recordings
 Add Device view and disconnect option
-Fix keys list when scrolling past bottom of screen
-Fix aspect on selected guide posters
-Fix grid nav focus loss
+Fix recording error message
+Guide left nav onto short item when moving from hour+ item
+Mark position on video stop
+Start video at saved position
+Advance EPG on half hour change

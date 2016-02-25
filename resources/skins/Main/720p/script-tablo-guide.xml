@@ -131,7 +131,7 @@
 
                 <control type="label">
                     <posx>20</posx>
-                    <posy>110</posy>
+                    <posy>100</posy>
                     <width>400</width>
                     <height>50</height>
                     <font>font30</font>
@@ -143,86 +143,146 @@
 
                 <control type="panel" id="301">
                     <posx>10</posx>
-                    <posy>200</posy>
+                    <posy>180</posy>
                     <width>1200</width>
-                    <height>720</height>
+                    <height>740</height>
                     <scrolltime>200</scrolltime>
                     <onleft>100</onleft>
                     <onright>400</onright>
                     <!-- 270x360 -->
-                    <itemlayout width="200" height="266">
-                        <control type="image">
+                    <itemlayout width="200" height="260">
+                        <control type="group">
                             <posx>10</posx>
-                            <posy>10</posy>
-                            <width>180</width>
-                            <height>246</height>
-                            <texture>script-tablo-white_square.png</texture>
-                            <colordiffuse>FF101924</colordiffuse>
-                        </control>
-                        <control type="textbox">
-                            <left>10</left>
-                            <top>10</top>
-                            <width>180</width>
-                            <height>246</height>
-                            <font>font30</font>
-                            <textcolor>FFFFFFFF</textcolor>
-                            <align>center</align>
-                            <aligny>center</aligny>
-                            <label>$INFO[ListItem.Label]</label>
-                        </control>
-                       <control type="image">
-                            <posx>10</posx>
-                            <posy>10</posy>
-                            <width>180</width>
-                            <height>246</height>
-                            <texture>$INFO[ListItem.Thumb]</texture>
+                            <posy>12</posy>
+                            <control type="image">
+                                <posx>0</posx>
+                                <posy>0</posy>
+                                <width>180</width>
+                                <height>246</height>
+                                <texture>script-tablo-white_square.png</texture>
+                                <colordiffuse>FF101924</colordiffuse>
+                            </control>
+                            <control type="textbox">
+                                <posx>0</posx>
+                                <posy>0</posy>
+                                <width>180</width>
+                                <height>246</height>
+                                <font>font30</font>
+                                <textcolor>FFFFFFFF</textcolor>
+                                <align>center</align>
+                                <aligny>center</aligny>
+                                <label>$INFO[ListItem.Label]</label>
+                            </control>
+                            <control type="image">
+                                <posx>0</posx>
+                                <posy>0</posy>
+                                <width>180</width>
+                                <height>246</height>
+                                <texture>$INFO[ListItem.Thumb]</texture>
+                            </control>
+                            <control type="image">
+                                <posx>0</posx>
+                                <posy>0</posy>
+                                <width>180</width>
+                                <height>246</height>
+                                <texture border="3">highlights/highlight_border.png</texture>
+                            </control>
+                            <control type="image">
+                                <posx>120</posx>
+                                <posy>0</posy>
+                                <width>60</width>
+                                <height>60</height>
+                                <texture>$INFO[ListItem.Property(badge)]</texture>
+                            </control>
+                            <control type="label">
+                                <posx>150</posx>
+                                <posy>0</posy>
+                                <width>30</width>
+                                <height>30</height>
+                                <font>font14</font>
+                                <textcolor>FFFFFFFF</textcolor>
+                                <align>center</align>
+                                <aligny>center</aligny>
+                                <label>$INFO[ListItem.Property(badge.count)]</label>
+                            </control>
                         </control>
                     </itemlayout>
 
-                    <focusedlayout width="200" height="266">
-                        <control type="image">
+                    <focusedlayout width="200" height="260">
+                        <control type="group">
                             <posx>0</posx>
-                            <posy>0</posy>
-                            <width>200</width>
-                            <height>266</height>
-                            <texture>script-tablo-white_square.png</texture>
-                        </control>
-                        <control type="image">
-                            <posx>5</posx>
-                            <posy>5</posy>
-                            <width>190</width>
-                            <height>256</height>
-                            <texture>script-tablo-white_square.png</texture>
-                            <colordiffuse>FF101924</colordiffuse>
-                        </control>
-                        <control type="textbox">
-                            <left>10</left>
-                            <top>10</top>
-                            <width>180</width>
-                            <height>246</height>
-                            <font>font30</font>
-                            <textcolor>FFFFFFFF</textcolor>
-                            <align>center</align>
-                            <aligny>center</aligny>
-                            <label>$INFO[ListItem.Label]</label>
-                        </control>
-                        <control type="image">
-                            <posx>5</posx>
-                            <posy>5</posy>
-                            <width>190</width>
-                            <height>256</height>
-                            <texture>$INFO[ListItem.Thumb]</texture>
+                            <posy>2</posy>
+                            <control type="image">
+                                <posx>-26</posx>
+                                <posy>-28</posy>
+                                <width>252</width>
+                                <height>322</height>
+                                <texture border="30">shadows/high_bold.png</texture>
+                            </control>
+                            <control type="image">
+                                <posx>0</posx>
+                                <posy>-2</posy>
+                                <width>200</width>
+                                <height>270</height>
+                                <texture>script-tablo-white_square.png</texture>
+                            </control>
+                            <control type="image">
+                                <posx>5</posx>
+                                <posy>3</posy>
+                                <width>190</width>
+                                <height>260</height>
+                                <texture>script-tablo-white_square.png</texture>
+                                <colordiffuse>FF101924</colordiffuse>
+                            </control>
+                            <control type="textbox">
+                                <left>10</left>
+                                <top>8</top>
+                                <width>180</width>
+                                <height>250</height>
+                                <font>font30</font>
+                                <textcolor>FFFFFFFF</textcolor>
+                                <align>center</align>
+                                <aligny>center</aligny>
+                                <label>$INFO[ListItem.Label]</label>
+                            </control>
+                            <control type="image">
+                                <posx>5</posx>
+                                <posy>3</posy>
+                                <width>190</width>
+                                <height>260</height>
+                                <texture>$INFO[ListItem.Thumb]</texture>
+                            </control>
+                            <control type="image">
+                                <posx>135</posx>
+                                <posy>3</posy>
+                                <width>60</width>
+                                <height>60</height>
+                                <texture>$INFO[ListItem.Property(badge)]</texture>
+                            </control>
+                            <control type="label">
+                                <posx>165</posx>
+                                <posy>3</posy>
+                                <width>30</width>
+                                <height>30</height>
+                                <font>font14</font>
+                                <textcolor>FFFFFFFF</textcolor>
+                                <align>center</align>
+                                <aligny>center</aligny>
+                                <label>$INFO[ListItem.Property(badge.count)]</label>
+                            </control>
                         </control>
                     </focusedlayout>
                 </control>
 
                 <control type="group" id="401">
                     <defaultcontrol>400</defaultcontrol>
-                    <control type="list" id="400">
+                    <control type="fixedlist" id="400">
                         <posx>1210</posx>
                         <posy>200</posy>
                         <width>50</width>
                         <height>720</height>
+                        <focusposition>11</focusposition>
+                        <movement>11</movement>
                         <scrolltime>200</scrolltime>
                         <orientation>vertical</orientation>
                         <onleft>301</onleft>

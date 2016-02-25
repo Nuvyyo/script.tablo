@@ -3,6 +3,8 @@ import xbmcgui
 import kodigui
 import base
 import actiondialog
+import time
+import threading
 
 from lib import util
 from lib import backgroundthread
@@ -31,6 +33,46 @@ class ShowsTask(backgroundthread.Task):
                 return
 
             self.callback(tablo.Show.newFromData(show))
+
+
+class DelayedShowUpdater(object):
+    def __init__(self, window):
+        self._window = window
+        self._timeout = 0
+        self._item = None
+        self._thread = None
+        self._abort = False
+        self._delay = 0.2
+
+    def reset(self):
+        self._timeout = time.time() + self._delay
+        if not self._thread or not self._thread.isAlive():
+            self._thread = threading.Thread(target=self.wait)
+            self._thread.start()
+
+    def aborted(self):
+        return self._abort or xbmc.abortRequested or self._window._closing
+
+    def wait(self):
+        while not self.aborted():
+            if time.time() > self._timeout:
+                break
+            xbmc.sleep(100)
+        else:
+            return
+
+        self._thread = None
+        self._timeout = 0
+
+        if not self._item.dataSource.get('show'):
+            self._window.getSingleShowData(self._item.dataSource['path'])
+
+    def setItem(self, item):
+        self._item = item
+        self.reset()
+
+    def abort(self):
+        self._abort = True
 
 
 class GuideWindow(kodigui.BaseWindow):
@@ -69,6 +111,8 @@ class GuideWindow(kodigui.BaseWindow):
 
         self.setFilter(None)
 
+        self.delayedShowUpdater = DelayedShowUpdater(self)
+
         self._tasks = []
 
         self.fillTypeList()
@@ -100,6 +144,9 @@ class GuideWindow(kodigui.BaseWindow):
             elif action == xbmcgui.ACTION_PREVIOUS_MENU:
                 WM.finish()
                 return
+            elif self.getFocusId(self.SHOW_PANEL_ID):
+                if action in (xbmcgui.ACTION_MOVE_UP, xbmcgui.ACTION_MOVE_DOWN, xbmcgui.ACTION_MOVE_LEFT, xbmcgui.ACTION_MOVE_RIGHT):
+                    self.updateSelected()
         except:
             util.ERROR()
 
@@ -124,6 +171,14 @@ class GuideWindow(kodigui.BaseWindow):
         kodigui.BaseWindow.doClose(self)
         self.cancelTasks()
 
+    def updateSelected(self):
+        item = self.showList.getSelectedItem()
+        if not item:
+            return
+
+        if not item.dataSource.get('show'):
+            self.getSingleShowData(item.dataSource['path'])
+
     @base.dialogFunction
     def showClicked(self):
         item = self.showList.getSelectedItem()
@@ -139,7 +194,10 @@ class GuideWindow(kodigui.BaseWindow):
                 show = item.dataSource.get('show')
         if self.closing():
             return
+
         GuideShowWindow.open(show=show)
+
+        self.updateShowItem(show)
 
     def setFilter(self, filter_=False):
         if filter_ is False:
@@ -244,6 +302,9 @@ class GuideWindow(kodigui.BaseWindow):
         backgroundthread.BGThreader.addTasks(self._tasks)
 
     def updateShowItem(self, show):
+        if show.path not in self.showItems:
+            return
+
         item = self.showItems[show.path]
         key = item.dataSource['key']
         item.dataSource['show'] = show
@@ -251,12 +312,28 @@ class GuideWindow(kodigui.BaseWindow):
         item.setThumbnailImage(show.thumb)
         item.setProperty('background', show.background)
         item.setProperty('key', key)
+        if show.scheduleRule:
+            if show.scheduleRule == 'conflict':
+                item.setProperty('badge', 'guide/guide_badge_conflict_hd.png')
+            else:
+                item.setProperty('badge', 'guide/guide_badge_scheduled_hd.png')
+            item.setProperty('badge.count', '')
+        elif show.showCounts and show.showCounts.get('scheduled_count'):
+            item.setProperty('badge', 'guide/guide_badge_recurring_hd.png')
+            item.setProperty('badge.count', str(show.showCounts.get('scheduled_count')))
+        elif show.showCounts and show.showCounts.get('conflicted_count'):
+            item.setProperty('badge', 'guide/guide_badge_conflict_hd.png')
+            item.setProperty('badge.count', '')
+        elif show.showCounts and show.showCounts.get('unwatched_count'):
+            item.setProperty('badge', 'recordings/recordings_badge_unwatched_hd.png')
+            item.setProperty('badge.count', str(show.showCounts.get('unwatched_count')))
+        else:
+            item.setProperty('badge', '')
+            item.setProperty('badge.count', '')
 
+    @base.tabloErrorHandler
     def fillShows(self):
         self.cancelTasks()
-
-        self.showList.reset()
-        self.keysList.reset()
 
         self.showItems = {}
 
@@ -290,6 +367,7 @@ class GuideWindow(kodigui.BaseWindow):
                     ct += 1
                     paths.append(p)
                     item = kodigui.ManagedListItem(data_source={'path': p, 'key': key, 'show': None})
+                    item.setProperty('key', key)
                     if ct > 6:
                         item.setProperty('after.firstrow', '1')
                     self.showItems[p] = item
@@ -297,6 +375,9 @@ class GuideWindow(kodigui.BaseWindow):
 
             keyitems.append(keyitem)
             self.keys[k['key']] = i
+
+        self.showList.reset()
+        self.keysList.reset()
 
         self.keysList.addItems(keyitems)
         self.showList.addItems(items)
@@ -319,6 +400,8 @@ class AiringsTask(backgroundthread.Task):
         for path, airing in airings.items():
             if self.isCanceled():
                 return
+            if not airing:
+                continue
 
             self.callback(tablo.Airing(airing, self.airingType))
 
@@ -344,9 +427,11 @@ class GuideShowWindow(kodigui.BaseWindow):
         kodigui.BaseWindow.__init__(self, *args, **kwargs)
         self.show = kwargs.get('show')
         self.scheduleButtonActions = {}
+        self.modified = False
 
     def onFirstInit(self):
         self._tasks = []
+        self.seasonCount = 0
         self.airingItems = {}
 
         self.setProperty('thumb', self.show.thumb)
@@ -357,10 +442,34 @@ class GuideShowWindow(kodigui.BaseWindow):
         self.setProperty('section.action', self.sectionAction)
         self.setProperty('is.movie', self.show.type == 'MOVIE' and '1' or '')
 
+        if self.show.type == 'MOVIE' and self.show.quality_rating:
+            info = []
+            if self.show.film_rating:
+                info.append(self.show.film_rating.upper())
+            if self.show.release_year:
+                info.append(str(self.show.release_year))
+
+            self.setProperty('info', u' / '.join(info) + u' / ')
+            self.setProperty('stars', str(self.show.quality_rating/2))
+            self.setProperty('half.star', str(self.show.quality_rating % 2))
+        elif self.show.type == 'SPORT':
+            if self.show.showCounts.get('airing_count'):
+                self.setProperty('info', '{0} Event{1}'.format(self.show.showCounts['airing_count'], self.show.showCounts['airing_count'] > 1 and 's' or ''))
+            self.setProperty('plot', self.show.title)
+
         self.airingsList = kodigui.ManagedControlList(self, self.AIRINGS_LIST_ID, 20)
 
         self.setupScheduleDialog()
         self.fillAirings()
+
+        if self.show.type == 'SERIES':
+            info = []
+            if self.seasonCount:
+                info.append('{0} Season{1}'.format(self.seasonCount, self.seasonCount > 1 and 's' or ''))
+            if self.show.showCounts.get('airing_count'):
+                info.append('{0} Episode{1}'.format(self.show.showCounts['airing_count'], self.show.showCounts['airing_count'] > 1 and 's' or ''))
+
+            self.setProperty('info', u' / '.join(info))
 
     def onClick(self, controlID):
         if controlID == self.AIRINGS_LIST_ID:
@@ -400,6 +509,7 @@ class GuideShowWindow(kodigui.BaseWindow):
         self.show.schedule(action)
 
         self.setupScheduleDialog()
+        self.updateAirings()
 
     def airingsListClicked(self):
         item = self.airingsList.getSelectedItem()
@@ -466,8 +576,10 @@ class GuideShowWindow(kodigui.BaseWindow):
                     return None
             elif action == 'record':
                 airing.schedule()
+                self.show.update()
             elif action == 'unschedule':
                 airing.schedule(False)
+                self.show.update()
 
         if airing.ended():
             secs = airing.secondsSinceEnd()
@@ -556,6 +668,7 @@ class GuideShowWindow(kodigui.BaseWindow):
 
     def updateAiringItem(self, airing):
         item = self.airingItems[airing.path]
+        item.setProperty('disabled', '')
         item.dataSource['airing'] = airing
 
         if airing.type == 'schedule':
@@ -607,8 +720,13 @@ class GuideShowWindow(kodigui.BaseWindow):
             self.setProperty('schedule.bottom', 'Record New')
             self.setProperty('title.indicator', '')
 
+    def updateAirings(self):
+        self.getAiringData(self.airingItems.keys())
+
     @util.busyDialog
+    @base.tabloErrorHandler
     def fillAirings(self):
+        self.airingsList.reset()
         self.airingItems = {}
         airings = []
 
@@ -616,7 +734,9 @@ class GuideShowWindow(kodigui.BaseWindow):
             seasons = self.show.seasons()
             seasonsData = tablo.API.batch.post(seasons)
 
+            first = True
             for seasonPath in seasons:
+                self.seasonCount += 1
                 season = seasonsData[seasonPath]
 
                 number = season['season']['number']
@@ -625,15 +745,19 @@ class GuideShowWindow(kodigui.BaseWindow):
                 item = kodigui.ManagedListItem('', data_source={'path': None, 'airing': None})
                 item.setProperty('header', '1')
                 self.airingsList.addItem(item)
+
                 item = kodigui.ManagedListItem(title, data_source={'path': None, 'airing': None})
                 item.setProperty('header', '1')
+                item.setProperty('top', '1')
                 self.airingsList.addItem(item)
 
                 seasonEps = tablo.API(seasonPath).episodes.get()
                 airings += seasonEps
-
                 for p in seasonEps:
                     item = kodigui.ManagedListItem('', data_source={'path': p, 'airing': None})
+                    if first:
+                        first = False
+                        item.setProperty('top', '1')
                     self.airingItems[p] = item
                     self.airingsList.addItem(item)
         else:
@@ -643,8 +767,12 @@ class GuideShowWindow(kodigui.BaseWindow):
             item.setProperty('header', '1')
             self.airingsList.addItem(item)
 
+            first = True
             for p in airings:
                 item = kodigui.ManagedListItem('', data_source={'path': p, 'airing': None})
+                if first:
+                    first = False
+                    item.setProperty('top', '1')
                 self.airingItems[p] = item
                 self.airingsList.addItem(item)
 

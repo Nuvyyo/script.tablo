@@ -6,7 +6,7 @@ import time
 import datetime
 import requests
 
-#from lib import util
+# from lib import util
 import util
 
 DEVICE_DISCOVERY_PORT = 8881

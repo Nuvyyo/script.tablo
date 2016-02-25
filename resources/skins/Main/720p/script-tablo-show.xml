@@ -12,7 +12,7 @@
             <posy>0</posy>
             <width>1280</width>
             <height>720</height>
-            <texture fallback="placeholders/placeholder_background_hd.jpg">$INFO[Window.Property(background)]</texture>
+            <texture background="true" fallback="placeholders/placeholder_background_hd.jpg">$INFO[Window.Property(background)]</texture>
             <aspectratio aligny="top">scale</aspectratio>
             <colordiffuse>8AFFFFFF</colordiffuse>
             <fadetime>500</fadetime>
@@ -31,7 +31,7 @@
 
         <control type="group">
             <animation effect="slide" start="0,0" end="-670,0" time="200" condition="ControlGroup(500).HasFocus(0)">Conditional</animation>
-            <animation effect="slide" start="0,0" end="0,-720" time="200" condition="ControlGroup(200).HasFocus(0)">Conditional</animation>
+            <animation effect="slide" start="0,0" end="0,-660" time="200" condition="ControlGroup(200).HasFocus(0)">Conditional</animation>
             <posx>0</posx>
             <posy>0</posy>
             <control type="group" id="100">
@@ -72,7 +72,7 @@
                 <control type="grouplist">
                     <visible>!IsEmpty(Window.Property(title.indicator))</visible>
                     <left>290</left>
-                    <top>20</top>
+                    <top>15</top>
                     <height>100</height>
                     <width>810</width>
                     <orientation>horizontal</orientation>
@@ -97,7 +97,7 @@
                 <control type="label">
                     <visible>IsEmpty(Window.Property(title.indicator))</visible>
                     <left>290</left>
-                    <top>20</top>
+                    <top>15</top>
                     <height>100</height>
                     <width>810</width>
                     <font>WeatherTemp</font>
@@ -107,20 +107,63 @@
                     <label>$INFO[Window.Property(title)]</label>
                 </control>
 
-                <control type="label">
+                <control type="grouplist" id="{ID}">
                     <left>290</left>
-                    <top>100</top>
+                    <top>117</top>
                     <width>810</width>
                     <height>30</height>
-                    <font>font16</font>
-                    <textcolor>FFEBEBEB</textcolor>
-                    <align>left</align>
-                    <aligny>center</aligny>
-                    <label>$INFO[Window.Property(info)]</label>
+                    <orientation>horizontal</orientation>
+                    <itemgap>2</itemgap>
+                    <control type="label">
+                        <width min="20" max="810">auto</width>
+                        <height>30</height>
+                        <font>font16</font>
+                        <textcolor>FFFFFFFF</textcolor>
+                        <align>left</align>
+                        <aligny>center</aligny>
+                        <label>$INFO[Window.Property(info)]</label>
+                    </control>
+                    <control type="image">
+                        <visible>IntegerGreaterThan(Window.Property(stars),0)</visible>
+                        <width>25</width>
+                        <height>26</height>
+                        <texture>stars/star_hd.png</texture>
+                    </control>
+                    <control type="image">
+                        <visible>IntegerGreaterThan(Window.Property(stars),1)</visible>
+                        <width>25</width>
+                        <height>26</height>
+                        <texture>stars/star_hd.png</texture>
+                    </control>
+                    <control type="image">
+                        <visible>IntegerGreaterThan(Window.Property(stars),2)</visible>
+                        <width>25</width>
+                        <height>26</height>
+                        <texture>stars/star_hd.png</texture>
+                    </control>
+                    <control type="image">
+                        <visible>IntegerGreaterThan(Window.Property(stars),3)</visible>
+                        <width>25</width>
+                        <height>26</height>
+                        <texture>stars/star_hd.png</texture>
+                    </control>
+                    <control type="image">
+                        <visible>IntegerGreaterThan(Window.Property(stars),4)</visible>
+                        <width>25</width>
+                        <height>26</height>
+                        <texture>stars/star_hd.png</texture>
+                    </control>
+                    <control type="image">
+                        <visible>StringCompare(Window.Property(half.star),1)</visible>
+                        <width>25</width>
+                        <height>26</height>
+                        <texture>stars/half_star_hd.png</texture>
+                    </control>
                 </control>
+
                 <control type="textbox">
                     <left>290</left>
-                    <top>140</top>
+                    <top>150</top>
                     <width>810</width>
                     <height>110</height>
                     <font>font14</font>
@@ -371,12 +414,30 @@
             <control type="group" id="200">
                 <defaultcontrol>300</defaultcontrol>
                 <posx>0</posx>
-                <posy>720</posy>
-                <control type="list" id="300">
+                <posy>660</posy>
+                <control type="image">
+                    <visible>!ControlGroup(200).HasFocus(0)</visible>
+                    <posx>620</posx>
+                    <posy>20</posy>
+                    <width>39</width>
+                    <height>16</height>
+                    <texture>indicators/arrow_hint_down_hd.png</texture>
+                </control>
+                <control type="image">
+                    <visible>ControlGroup(200).HasFocus(0) + !IsEmpty(Container(300).ListItem.Property(top))</visible>
+                    <posx>620</posx>
+                    <posy>20</posy>
+                    <width>39</width>
+                    <height>16</height>
+                    <texture flipy="true">indicators/arrow_hint_down_hd.png</texture>
+                </control>
+                <control type="fixedlist" id="300">
                     <posx>54</posx>
                     <posy>0</posy>
                     <width>1172</width>
                     <height>720</height>
+                    <focusposition>3</focusposition>
+                    <movement>4</movement>
                     <scrolltime>200</scrolltime>
                     <orientation>vertical</orientation>
                     <onup>100</onup>
@@ -388,7 +449,7 @@
                             <control type="group">
                                 <visible>!IsEmpty(ListItem.Property(header))</visible>
                                 <posx>10</posx>
-                                <posy>10</posy>
+                                <posy>0</posy>
                                 <control type="label">
                                     <left>0</left>
                                     <top>0</top>
@@ -404,7 +465,7 @@
                             <control type="group">
                                 <visible>IsEmpty(ListItem.Property(header))</visible>
                                 <posx>10</posx>
-                                <posy>10</posy>
+                                <posy>0</posy>
                                 <control type="image">
                                     <posx>0</posx>
                                     <posy>0</posy>
@@ -415,7 +476,7 @@
                                 </control>
 
                                 <control type="label">
-                                    <visible>IsEmpty(ListItem.Property(airing))</visible>
+                                    <visible>IsEmpty(ListItem.Property(airing)) + IsEmpty(ListItem.Property(indicator))</visible>
                                     <left>20</left>
                                     <top>0</top>
                                     <width>60</width>
@@ -433,6 +494,14 @@
                                     <width>21</width>
                                     <height>22</height>
                                     <texture>indicators/guide_airing_cell_now_playing_indicator_hd.png</texture>
+                                </control>
+                                <control type="image">
+                                    <visible>!IsEmpty(ListItem.Property(indicator))</visible>
+                                    <posx>27</posx>
+                                    <posy>27</posy>
+                                    <width>26</width>
+                                    <height>26</height>
+                                    <texture>$INFO[ListItem.Property(indicator)]</texture>
                                 </control>
 
                                 <control type="label">
@@ -464,6 +533,15 @@
                                     <height>30</height>
                                     <texture>$INFO[ListItem.Property(badge)]</texture>
                                 </control>
+                                <control type="image">
+                                    <visible>!IsEmpty(ListItem.Property(disabled))</visible>
+                                    <posx>0</posx>
+                                    <posy>0</posy>
+                                    <width>1100</width>
+                                    <height>80</height>
+                                    <texture>script-tablo-white_square.png</texture>
+                                    <colordiffuse>A0404040</colordiffuse>
+                                </control>
                             </control>
                         </control>
                     </itemlayout>
@@ -475,7 +553,7 @@
                             <control type="group">
                                 <visible>!IsEmpty(ListItem.Property(header))</visible>
                                 <posx>10</posx>
-                                <posy>10</posy>
+                                <posy>0</posy>
                                 <control type="label">
                                     <left>0</left>
                                     <top>0</top>
@@ -490,7 +568,7 @@
                             </control>
                             <control type="group">
                                 <posx>0</posx>
-                                <posy>5</posy>
+                                <posy>-5</posy>
                                 <visible>IsEmpty(ListItem.Property(header))</visible>
                                 <control type="image">
                                     <posx>-26</posx>
@@ -509,7 +587,7 @@
                                 </control>
 
                                 <control type="label">
-                                    <visible>IsEmpty(ListItem.Property(airing))</visible>
+                                    <visible>IsEmpty(ListItem.Property(airing)) + IsEmpty(ListItem.Property(indicator))</visible>
                                     <left>20</left>
                                     <top>0</top>
                                     <width>60</width>
@@ -527,6 +605,14 @@
                                     <width>21</width>
                                     <height>22</height>
                                     <texture>indicators/guide_airing_cell_now_playing_indicator_hd.png</texture>
+                                </control>
+                                <control type="image">
+                                    <visible>!IsEmpty(ListItem.Property(indicator))</visible>
+                                    <posx>32</posx>
+                                    <posy>32</posy>
+                                    <width>26</width>
+                                    <height>26</height>
+                                    <texture>$INFO[ListItem.Property(indicator)]</texture>
                                 </control>
 
                                 <control type="label">
@@ -557,6 +643,15 @@
                                     <width>30</width>
                                     <height>30</height>
                                     <texture>$INFO[ListItem.Property(badge)]</texture>
+                                </control>
+                                <control type="image">
+                                    <visible>!IsEmpty(ListItem.Property(disabled))</visible>
+                                    <posx>0</posx>
+                                    <posy>0</posy>
+                                    <width>1120</width>
+                                    <height>90</height>
+                                    <texture>script-tablo-white_square.png</texture>
+                                    <colordiffuse>A0404040</colordiffuse>
                                 </control>
                             </control>
                         </control>

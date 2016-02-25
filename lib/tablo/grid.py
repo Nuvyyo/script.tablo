@@ -1,245 +1,152 @@
 import os
 import json
-import threading
-from peewee import peewee
+import time
+import datetime
 
 from lib import tablo
 
 from lib import backgroundthread
 from lib import util
 
-import compat
-
-DATABASE_VERSION = 0
-
-
-class DBManager(object):
-    LOCK = threading.Lock()
-    DB = None
-
-    def __getattr__(self, name):
-        return getattr(DBManager.DB, name)
-
-    def __enter__(self):
-        DBManager.LOCK.acquire()
-        DBManager.DB.connect()
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        DBManager.DB.close()
-        DBManager.LOCK.release()
+SAVE_VERSION = 1
+INTERVAL_HOURS = 2
+INTERVAL_TIMEDELTA = datetime.timedelta(hours=INTERVAL_HOURS)
 
 
 class ChannelTask(backgroundthread.Task):
-    def setup(self, path, channel, callback):
-        self.path = path
+    def setup(self, channel, callback):
+        self.path = channel.path
         self.channel = channel
         self.callback = callback
 
     def run(self):
-        data = tablo.API.views.livetv.channels(self.channel['object_id']).get(duration=86400)
+        data = tablo.API.views.livetv.channels(self.channel.object_id).get(duration=86400+(3600*INTERVAL_HOURS))
         if self.isCanceled():
             return
 
-        util.DEBUG_LOG('Retrieved channel: {0}'.format(self.channel['object_id']))
+        util.DEBUG_LOG('Retrieved channel: {0}'.format(self.channel.object_id))
 
         self.callback(self.path, data)
 
 
-class DateTimeFieldTablo(peewee.DateTimeField):
-    def python_value(self, value):
-        value = peewee.DateTimeField.python_value(self, value)
-        return tablo.API.timezone.fromutc(value)
-
-
 class Grid(object):
     def __init__(self, work_path, update_callback):
-        self.Version = None
-        self.Channel = None
-        self.Airing = None
+        self.channels = {}
+        self.paths = []
+        self._airings = {}
         self.updateCallback = update_callback
         self._tasks = []
-        self.initializeDB(work_path)
+        self.workPath = os.path.join(work_path, 'grid')
+        self.oldestUpdate = datetime.datetime.now()
+        self.initSave()
 
-    def initializeDB(self, path=None):
-        ###########################################################################################
-        # Version
-        ###########################################################################################
+    def initSave(self):
+        if not os.path.exists(self.workPath):
+            os.makedirs(self.workPath)
+
+    def saveVersion(self):
+        data = {'version': SAVE_VERSION}
+        with open(os.path.join(self.workPath, 'version'), 'w') as f:
+            json.dump(data, f)
+
+    # def saveChannelData(self, data):
+    #     with open(os.path.join(self.workPath, 'channels.data'), 'w') as f:
+    #         json.dump(data, f)
+
+    def saveChannelAiringData(self, channel, data):
+        with open(os.path.join(self.workPath, str(channel.object_id) + '.air'), 'w') as f:
+            json.dump(
+                {'updated': time.mktime(datetime.datetime.now().timetuple()), 'data': data}, f
+            )
+
+    def updateChannelAiringData(self, channel=None, path=None):
+        channel = channel or self.channels[path]
+        # os.remove(os.path.join(self.workPath, str(channel.object_id) + '.air'))
+        with open(os.path.join(self.workPath, str(channel.object_id) + '.air'), 'r') as f:
+            data = json.load(f)
+        data['updated'] = 0
+        with open(os.path.join(self.workPath, str(channel.object_id) + '.air'), 'w') as f:
+            json.dump(data, f)
+        self.getChannelData(channel)
+
+    def loadVersion(self):
+        path = os.path.join(self.workPath, 'version')
         if not os.path.exists(path):
-            os.path.makedirs(path)
+            return None
 
-        dbPath = os.path.join(path, 'grid.db')
-        # dbExists = os.path.exists(dbPath)
+        with open(path, 'r') as f:
+            data = json.load(f)
+            return data
 
-        DBManager.DB = peewee.SqliteDatabase(dbPath, threadlocals=True)
+    def loadChannels(self):
+        # path = os.path.join(self.workPath, 'channels.data')
+        # if not os.path.exists(path):
+        #     return False
 
-        with DBManager() as db:
-            class DBVersion(peewee.Model):
-                version = peewee.IntegerField(default=0)
-                updated = peewee.DateTimeField(null=True)
+        # util.DEBUG_LOG('Loading saved grid data...')
+        # with open(path, 'r') as f:
+        #     self.channels = json.load(f)
+        util.DEBUG_LOG('Loading grid data...')
 
-                class Meta:
-                    database = db.DB
+        self.channels = tablo.API.batch.post(self.paths)
 
-            DBVersion.create_table(fail_silently=True)
+        for path in self.channels:
+            channel = tablo.Channel(self.channels[path])
+            self.channels[path] = channel
 
-            self.Version = DBVersion
+            if path not in self._airings:
+                self._airings[path] = []
 
-            # if dbExists:  # Only check version if we had a DB, otherwise we're creating it fresh
-            #     checkDBVersion(DB)
+            self.updateCallback(channel)
 
-            ###########################################################################################
-            # Tables
-            ###########################################################################################
-            class Base(peewee.Model):
-                class Meta:
-                    database = db.DB
+            if not self.loadAirings(channel):
+                self.getChannelData(channel)
 
-            class Channel(Base):
-                ID = peewee.IntegerField(primary_key=True)
-                path = peewee.CharField(unique=True, null=True)
-                callSign = peewee.CharField(default='')
-                network = peewee.CharField(default='')
-                major = peewee.IntegerField(default=0)
-                minor = peewee.IntegerField(default=0)
+        util.DEBUG_LOG('Loading of grid data done.')
 
-            Channel.create_table(fail_silently=True)
+        return True
 
-            class Airing(Base):
-                channel = peewee.ForeignKeyField(Channel, related_name='airings')
-                type = peewee.CharField()
-                path = peewee.CharField(null=True)
-                title = peewee.CharField(null=True)
-                background = peewee.CharField(null=True)
-                thumbnail = peewee.CharField(null=True)
-                seriesTitle = peewee.CharField(null=True)
-                episodeNumber = peewee.IntegerField(default=0)
-                seasonNumber = peewee.IntegerField(default=0)
-                datetime = DateTimeFieldTablo(null=True)
-                datetimeEnd = DateTimeFieldTablo(null=True)
-                duration = peewee.IntegerField(default=0)
-                scheduleState = peewee.CharField(null=True)
-                scheduleQualifier = peewee.CharField(null=True)
-                scheduleSkipReason = peewee.CharField(null=True)
-                _qualifiers = peewee.CharField(null=True)
-                _gridAiring = peewee.CharField(null=True)
+    def loadAirings(self, channel):
+        path = os.path.join(self.workPath, str(channel.object_id) + '.air')
+        if not os.path.exists(path):
+            self._airings[channel.path] = []
+            return False
 
-                def qualifiers(self):
-                    return json.loads(self._qualifiers)
+        with open(path, 'r') as f:
+            data = json.load(f)
 
-                def watch(self):
-                    return tablo.api.Watch(self.channel.path)
+        ret = True
 
-                @property
-                def scheduled(self):
-                    return self.scheduleState == 'scheduled'
+        updated = datetime.datetime.fromtimestamp(int(data['updated']))
+        age = (datetime.datetime.now() - updated)
+        if age > INTERVAL_TIMEDELTA:
+            ret = False
 
-                def displayTimeStart(self):
-                    if not self.datetime:
-                        return ''
+        if updated < self.oldestUpdate:
+            self.oldestUpdate = updated
 
-                    return self.datetime.strftime('%I:%M %p').lstrip('0')
+        self._airings[channel.path] = [tablo.GridAiring(a) for a in data['data']]
 
-                def displayTimeEnd(self):
-                    if not self.datetime:
-                        return ''
+        if self._airings[channel.path]:
+            self.updateCallback(channel)
+            return ret
 
-                    return self.datetimeEnd.strftime('%I:%M %p').lstrip('0')
+        return False
 
-                def displayDay(self):
-                    if not self.datetime:
-                        return ''
-
-                    return self.datetime.strftime('%A, %B {0}').format(self.datetime.day)
-
-                def displayChannel(self):
-                    return '{0}-{1}'.format(
-                        self.channel.major,
-                        self.channel.minor
-                    )
-
-                def secondsToEnd(self, start=None):
-                    start = start or tablo.api.now()
-                    return compat.timedelta_total_seconds(self.datetimeEnd - start)
-
-                def secondsToStart(self):
-                    return compat.timedelta_total_seconds(self.datetime - tablo.api.now())
-
-                def secondsSinceEnd(self):
-                    return compat.timedelta_total_seconds(tablo.api.now() - self.datetimeEnd)
-
-                def airingNow(self, ref=None):
-                    ref = ref or tablo.api.now()
-                    return self.datetime <= ref < self.datetimeEnd
-
-                def ended(self):
-                    return self.datetimeEnd < tablo.api.now()
-
-                @property
-                def network(self):
-                    return self.channel.network
-
-                def schedule(self, on=True):
-                    airing = tablo.API(self.path).patch(scheduled=on)
-                    self.update(
-                        scheduleState=airing['schedule']['state'],
-                        scheduleQualifier=airing['schedule']['qualifier'],
-                        scheduleSkipReason=airing['schedule']['skip_reason']
-                    ).execute()
-
-                @property
-                def gridAiring(self):
-                    if self._gridAiring:
-                        return self.getGridAiring(json.loads(self._gridAiring))
-                    else:
-                        return self.getGridAiring()
-
-                def getGridAiring(self, data=None):
-                    if not data:
-                        data = tablo.API(self.path).get()
-                        self._gridAiring = json.dumps(data)
-
-                    if 'episode' in data:
-                        return tablo.Airing(data, 'episode')
-                    elif 'schedule' in data:
-                        return tablo.Airing(data, 'schedule')
-                    elif 'event' in data:
-                        return tablo.Airing(data, 'event')
-                    elif 'airing' in data:
-                        return tablo.Airing(data, 'airing')
-
-            Airing.create_table(fail_silently=True)
-
-            self.Channel = Channel
-            self.Airing = Airing
-
-    def checkDBVersion(self):
-        v = self.Version.get_or_create(id=1)[0]
-        if v.version < DATABASE_VERSION:
-            # if migrateDB(self.DB, v.version):
-            #     v.update(version=DATABASE_VERSION).execute()
-            pass
-
-        return v.updated
-
-    def markUpdated(self):
-        v = self.Version.get_or_create(id=1)[0]
-        v.update(updated=tablo.api.now()).execute()
-
-    def getChannelData(self, path, channel):
+    def getChannelData(self, channel=None, path=None):
+        channel = channel or self.channels[path]
         t = ChannelTask()
         self._tasks.append(t)
-        t.setup(path, channel, self.channelDataCallback)
+        t.setup(channel, self.channelDataCallback)
 
         backgroundthread.BGThreader.addTask(t)
 
     def channelDataCallback(self, path, data):
-        with DBManager() as db:
-            with db.transaction():
-                for airing in data:
-                    self.addAiring(airing, channelPath=path)
+        self.saveChannelAiringData(self.channels[path], data)  # This only works HERE - before we convert the airing data
 
-            self.updateCallback(self.Channel.get(path=path))
+        self._airings[path] = [tablo.GridAiring(a) for a in data]
+
+        self.updateCallback(self.channels[path])
 
     def cancelTasks(self):
         if not self._tasks:
@@ -250,90 +157,24 @@ class Grid(object):
             t.cancel()
         self._tasks = []
 
-    def addChannel(self, ID, path, call_sign, major, minor, network):
-        with DBManager.DB.transaction():
-            return self.Channel.get_or_create(
-                ID=ID,
-                path=path,
-                callSign=call_sign,
-                major=major,
-                minor=minor,
-                network=network
-            )[0]
-
-    def addAiring(self, data, channel=None, channelPath=None):
-        channel = channel or self.Channel.get(path=channelPath)
-
-        if 'series' in data:
-            cat = 'series'
-        elif 'movie' in data:
-            cat = 'movie'
-        elif 'sport' in data:
-            cat = 'sport'
-        elif 'program' in data:
-            cat = 'program'
-
-        catData = data[cat]
-
-        background = catData.get('background_image') and tablo.API.images(catData['background_image']['image_id']) or ''
-        thumbnail = catData.get('thumbnail_image') and tablo.API.images(catData['thumbnail_image']['image_id']) or ''
-
-        duration = data['airing_details']['duration']
-        datetime = compat.datetime.datetime.strptime(data['airing_details'].get('datetime').rsplit('Z', 1)[0], '%Y-%m-%dT%H:%M')
-        datetimeEnd = datetime + tablo.api.compat.datetime.timedelta(seconds=duration)
-
-        self.Airing.create(
-            channel=channel,
-            type=cat,
-            path=data['path'],
-            title=catData.get('title', ''),
-            background=background,
-            thumbnail=thumbnail,
-            seriesTitle=catData.get('series_title', ''),
-            episodeNumber=data.get('episode_number', 0),
-            seasonNumber=data.get('season_number', 0),
-            datetime=datetime,
-            duration=duration,
-            datetimeEnd=datetimeEnd,
-            scheduleState=data['schedule']['state'],
-            scheduleQualifier=data['schedule']['qualifier'],
-            scheduleSkipReason=data['schedule']['skip_reason'],
-            _qualifiers=data.get('qualifiers', '')
-        )
-
     def getChannels(self, paths=None):
-        with DBManager():
-            updated = self.checkDBVersion()
-            if updated:
-                self.triggerUpdates()
-                return
+        self.paths = paths or tablo.API.guide.channels.get()
 
-            self.markUpdated()
+        self.loadChannels()
 
-            paths = paths or tablo.API.guide.channels.get()
-            channels = tablo.API.batch.post(paths)
-            for path in paths:
-                channelData = channels[path]['channel']
-                self.addChannel(
-                    ID=channels[path]['object_id'],
-                    path=path,
-                    call_sign=channelData.get('call_sign') or '',
-                    major=channelData.get('major', 0),
-                    minor=channelData.get('minor', 0),
-                    network=channelData.get('network') or ''
-                )
-                self.getChannelData(path, channels[path])
+        self.saveVersion()
 
     def triggerUpdates(self):
-        for c in self.Channel.select():
-            self.updateCallback(c)
+        for path in self.channels:
+            self.updateCallback(self.channels[path])
 
     def airings(self, start, cutoff, channel_path=None, channel=None):
-        channel = channel or self.Channel.get(path=channel_path)
-        return channel.airings.select().where(
-            (self.Airing.datetimeEnd > start.astimezone(tablo.api.pytz.utc)) &
-            (self.Airing.datetime < cutoff.astimezone(tablo.api.pytz.utc))
-        )
+        channel = channel or self.channels[channel_path]
+        return [a for a in self._airings[channel.path] if a.datetimeEnd > start and a.datetime < cutoff]
 
     def getAiring(self, path):
-        return self.Airing.get(path=path)
+        for c in self._airings.values():
+            for a in c:
+                if a.path == path:
+                    return a
+        return None

@@ -18,6 +18,12 @@ class ScheduledWindow(guide.GuideWindow):
         self.setProperty('hide.menu', '1')
         guide.GuideWindow.onFirstInit(self)
 
+    def onReInit(self):
+        self.fillShows()
+
+        self.setFilter()
+        self.onWindowFocus()
+
     def onWindowFocus(self):
         self.setProperty('hide.menu', '1')
         guide.GuideWindow.onWindowFocus(self)

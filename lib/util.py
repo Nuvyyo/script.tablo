@@ -153,14 +153,16 @@ def durationToText(seconds):
     left = seconds % 86400
     hours = int(left/3600)
     if hours:
-        return '{0} hour{1}'.format(hours, hours > 1 and 's' or '')
+        hours = '{0} hr{1} '.format(hours, hours > 1 and 's' or '')
+    else:
+        hours = ''
     left = left % 3600
     mins = int(left/60)
     if mins:
-        return '{0} minute{1}'.format(mins, mins > 1 and 's' or '')
+        return hours + '{0} min{1}'.format(mins, mins > 1 and 's' or '')
     secs = int(left % 60)
     if secs:
-        return '{0} second{1}'.format(secs, secs > 1 and 's' or '')
+        return '{0} sec{1}'.format(secs, secs > 1 and 's' or '')
     return '0 seconds'
 
 

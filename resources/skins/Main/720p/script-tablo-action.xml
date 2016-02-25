@@ -14,7 +14,7 @@
             <posy>0</posy>
             <width>1280</width>
             <height>720</height>
-            <texture fallback="placeholders/placeholder_background_hd.jpg">$INFO[Window.Property(background)]</texture>
+            <texture background="true" fallback="placeholders/placeholder_background_hd.jpg">$INFO[Window.Property(background)]</texture>
             <aspectratio aligny="top">scale</aspectratio>
             <colordiffuse>FF8A8A8A</colordiffuse>
         </control>

@@ -1,0 +1,383 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<window>
+    <defaultcontrol>100</defaultcontrol>
+    <coordinates>
+        <system>1</system>
+        <posx>0</posx>
+        <posy>0</posy>
+    </coordinates>
+    <animation effect="fade" start="0" end="100" time="200">WindowOpen</animation>
+    <animation effect="fade" start="100" end="0" time="200">WindowClose</animation>
+    <controls>
+        <control type="image">
+            <posx>0</posx>
+            <posy>0</posy>
+            <width>1280</width>
+            <height>720</height>
+            <texture background="true" fallback="placeholders/placeholder_background_hd.jpg">$INFO[Window.Property(background)]</texture>
+            <aspectratio aligny="top">scale</aspectratio>
+            <colordiffuse>FF8A8A8A</colordiffuse>
+        </control>
+
+        <control type="group">
+            <posx>0</posx>
+            <posy>0</posy>
+            <control type="group" id="100">
+                <defaultcontrol>400</defaultcontrol>
+                <posx>80</posx>
+                <posy>120</posy>
+                <control type="image">
+                    <posx>-26</posx>
+                    <posy>-26</posy>
+                    <width>1172</width>
+                    <height>532</height>
+                    <texture border="30">shadows/high_bold.png</texture>
+                </control>
+                <control type="image">
+                    <posx>0</posx>
+                    <posy>0</posy>
+                    <width>1120</width>
+                    <height>480</height>
+                    <texture>script-tablo-white_square.png</texture>
+                    <colordiffuse>FF102C3D</colordiffuse>
+                </control>
+
+                <!-- <control type="label">
+                    <left>30</left>
+                    <top>20</top>
+                    <height>100</height>
+                    <width>1060</width>
+                    <font>WeatherTemp</font>
+                    <textcolor>FFFFFFFF</textcolor>
+                    <align>left</align>
+                    <aligny>center</aligny>
+                    <label>$INFO[Window.Property(title)]</label>
+                </control> -->
+
+                <control type="grouplist">
+                    <left>30</left>
+                    <top>20</top>
+                    <height>100</height>
+                    <width>1060</width>
+                    <orientation>horizontal</orientation>
+                    <itemgap>20</itemgap>
+                    <usecontrolcoords>true</usecontrolcoords>
+                    <control type="image">
+                        <visible>!IsEmpty(Window.Property(indicator))</visible>
+                        <posx>0</posx>
+                        <posy>35</posy>
+                        <width>30</width>
+                        <height>30</height>
+                        <texture>$INFO[Window.Property(indicator)]</texture>
+                    </control>
+                    <control type="label">
+                        <width min="200" max="1060">auto</width>
+                        <height>100</height>
+                        <font>WeatherTemp</font>
+                        <textcolor>FFFFFFFF</textcolor>
+                        <align>left</align>
+                        <aligny>center</aligny>
+                        <label>$INFO[Window.Property(title)]</label>
+                    </control>
+                </control>
+
+                <control type="label">
+                    <left>30</left>
+                    <top>130</top>
+                    <width>1060</width>
+                    <height>30</height>
+                    <font>font16</font>
+                    <textcolor>FFFFFFFF</textcolor>
+                    <align>left</align>
+                    <aligny>center</aligny>
+                    <label>[B]$INFO[Window.Property(info)][/B]</label>
+                </control>
+                <control type="image">
+                    <posx>30</posx>
+                    <posy>170</posy>
+                    <width>356</width>
+                    <height>200</height>
+                    <texture>script-tablo-white_square.png</texture>
+                    <colordiffuse>FF000000</colordiffuse>
+                </control>
+                <control type="image">
+                    <visible>!IsEmpty(Window.Property(failed))</visible>
+                    <posx>183</posx>
+                    <posy>245</posy>
+                    <width>50</width>
+                    <height>50</height>
+                    <texture>indicators/recording_failed_hd.png</texture>
+                </control>
+                <control type="image">
+                    <posx>30</posx>
+                    <posy>170</posy>
+                    <width>356</width>
+                    <height>200</height>
+                    <texture>$INFO[Window.Property(preview)]</texture>
+                    <aspectratio>scale</aspectratio>
+                </control>
+                <control type="group">
+                    <visible>!IsEmpty(Window.Property(seen))</visible>
+                    <posx>30</posx>
+                    <posy>365</posy>
+                    <control type="image">
+                        <posx>0</posx>
+                        <posy>0</posy>
+                        <width>356</width>
+                        <height>5</height>
+                        <texture>script-tablo-white_square.png</texture>
+                        <colordiffuse>FFE8E8E8</colordiffuse>
+                    </control>
+                    <control type="image" id="600">
+                        <posx>0</posx>
+                        <posy>0</posy>
+                        <width>1</width>
+                        <height>5</height>
+                        <texture>script-tablo-white_square.png</texture>
+                        <colordiffuse>FF2F8EC0</colordiffuse>
+                    </control>
+                </control>
+
+                <control type="textbox">
+                    <left>400</left>
+                    <top>170</top>
+                    <width>660</width>
+                    <height>200</height>
+                    <font>font14</font>
+                    <textcolor>FFEBEBEB</textcolor>
+                    <label>$INFO[Window.Property(plot)]</label>
+                </control>
+
+                <control type="group">
+                    <posx>20</posx>
+                    <posy>390</posy>
+                    <control type="group">
+                        <posx>20</posx>
+                        <posy>0</posy>
+                        <control type="button" id="400">
+                            <posx>0</posx>
+                            <posy>0</posy>
+                            <width>245</width>
+                            <height>60</height>
+                            <onright>401</onright>
+                            <ondown>200</ondown>
+                            <font>font30</font>
+                            <textcolor>FFFFFFFF</textcolor>
+                            <focusedcolor>FFFFFFFF</focusedcolor>
+                            <align>center</align>
+                            <aligny>center</aligny>
+                            <texturefocus colordiffuse="52FFFFFF" border="8">highlights/highlight_focused.png</texturefocus>
+                            <texturenofocus>-</texturenofocus>
+                            <textoffsetx>0</textoffsetx>
+                            <textoffsety>0</textoffsety>
+                            <label></label>
+                        </control>
+                        <control type="label">
+                            <visible>Control.HasFocus(400)</visible>
+                            <posx>0</posx>
+                            <posy>0</posy>
+                            <width>245</width>
+                            <height>60</height>
+                            <font>font30</font>
+                            <textcolor>FFFFFFFF</textcolor>
+                            <align>center</align>
+                            <aligny>center</aligny>
+                            <label>[B]Watch[/B]</label>
+                        </control>
+                        <control type="label">
+                            <visible>!Control.HasFocus(400) + Control.IsEnabled(400)</visible>
+                            <posx>0</posx>
+                            <posy>0</posy>
+                            <width>245</width>
+                            <height>60</height>
+                            <font>font30</font>
+                            <textcolor>FFFFFFFF</textcolor>
+                            <align>center</align>
+                            <aligny>center</aligny>
+                            <label>Watch</label>
+                        </control>
+                        <control type="label">
+                            <visible>!Control.IsEnabled(400)</visible>
+                            <posx>0</posx>
+                            <posy>0</posy>
+                            <width>245</width>
+                            <height>60</height>
+                            <font>font30</font>
+                            <textcolor>80EBEBEB</textcolor>
+                            <align>center</align>
+                            <aligny>center</aligny>
+                            <label>Watch</label>
+                        </control>
+                    </control>
+
+                    <control type="group">
+                        <posx>285</posx>
+                        <posy>0</posy>
+                        <control type="button" id="401">
+                            <posx>0</posx>
+                            <posy>0</posy>
+                            <width>245</width>
+                            <height>60</height>
+                            <onleft>400</onleft>
+                            <onright>402</onright>
+                            <ondown>200</ondown>
+                            <font>font30</font>
+                            <textcolor>FFFFFFFF</textcolor>
+                            <focusedcolor>FFFFFFFF</focusedcolor>
+                            <align>center</align>
+                            <aligny>center</aligny>
+                            <texturefocus colordiffuse="52FFFFFF" border="8">highlights/highlight_focused.png</texturefocus>
+                            <texturenofocus>-</texturenofocus>
+                            <textoffsetx>0</textoffsetx>
+                            <textoffsety>0</textoffsety>
+                            <label></label>
+                        </control>
+                        <control type="label">
+                            <visible>Control.HasFocus(401)</visible>
+                            <posx>0</posx>
+                            <posy>0</posy>
+                            <width>245</width>
+                            <height>60</height>
+                            <font>font30</font>
+                            <textcolor>FFFFFFFF</textcolor>
+                            <align>center</align>
+                            <aligny>center</aligny>
+                            <label>[B]$INFO[Window.Property(button2)][/B]</label>
+                        </control>
+                        <control type="label">
+                            <visible>!Control.HasFocus(401) + Control.IsEnabled(401)</visible>
+                            <posx>0</posx>
+                            <posy>0</posy>
+                            <width>245</width>
+                            <height>60</height>
+                            <font>font30</font>
+                            <textcolor>FFFFFFFF</textcolor>
+                            <align>center</align>
+                            <aligny>center</aligny>
+                            <label>$INFO[Window.Property(button2)]</label>
+                        </control>
+                        <control type="label">
+                            <visible>!Control.IsEnabled(401)</visible>
+                            <posx>0</posx>
+                            <posy>0</posy>
+                            <width>245</width>
+                            <height>60</height>
+                            <font>font30</font>
+                            <textcolor>80EBEBEB</textcolor>
+                            <align>center</align>
+                            <aligny>center</aligny>
+                            <label>$INFO[Window.Property(button2)]</label>
+                        </control>
+                    </control>
+
+                    <control type="group">
+                        <posx>550</posx>
+                        <posy>0</posy>
+                        <control type="button" id="402">
+                            <posx>0</posx>
+                            <posy>0</posy>
+                            <width>245</width>
+                            <height>60</height>
+                            <onleft>401</onleft>
+                            <onright>403</onright>
+                            <ondown>200</ondown>
+                            <font>font30</font>
+                            <textcolor>FFFFFFFF</textcolor>
+                            <focusedcolor>FFFFFFFF</focusedcolor>
+                            <align>center</align>
+                            <aligny>center</aligny>
+                            <texturefocus colordiffuse="52FFFFFF" border="8">highlights/highlight_focused.png</texturefocus>
+                            <texturenofocus>-</texturenofocus>
+                            <textoffsetx>0</textoffsetx>
+                            <textoffsety>0</textoffsety>
+                            <label></label>
+                        </control>
+                        <control type="label">
+                            <visible>Control.HasFocus(402)</visible>
+                            <posx>0</posx>
+                            <posy>0</posy>
+                            <width>245</width>
+                            <height>60</height>
+                            <font>font30</font>
+                            <textcolor>FFFFFFFF</textcolor>
+                            <align>center</align>
+                            <aligny>center</aligny>
+                            <label>[B]$INFO[Window.Property(button3)][/B]</label>
+                        </control>
+                        <control type="label">
+                            <visible>!Control.HasFocus(402) + Control.IsEnabled(402)</visible>
+                            <posx>0</posx>
+                            <posy>0</posy>
+                            <width>245</width>
+                            <height>60</height>
+                            <font>font30</font>
+                            <textcolor>FFFFFFFF</textcolor>
+                            <align>center</align>
+                            <aligny>center</aligny>
+                            <label>$INFO[Window.Property(button3)]</label>
+                        </control>
+                        <control type="label">
+                            <visible>!Control.IsEnabled(402)</visible>
+                            <posx>0</posx>
+                            <posy>0</posy>
+                            <width>245</width>
+                            <height>60</height>
+                            <font>font30</font>
+                            <textcolor>80EBEBEB</textcolor>
+                            <align>center</align>
+                            <aligny>center</aligny>
+                            <label>$INFO[Window.Property(button3)]</label>
+                        </control>
+                    </control>
+
+                    <control type="group">
+                        <posx>815</posx>
+                        <posy>0</posy>
+                        <control type="button" id="403">
+                            <posx>0</posx>
+                            <posy>0</posy>
+                            <width>245</width>
+                            <height>60</height>
+                            <onleft>402</onleft>
+                            <ondown>200</ondown>
+                            <font>font30</font>
+                            <textcolor>FFFFFFFF</textcolor>
+                            <focusedcolor>FFFFFFFF</focusedcolor>
+                            <align>center</align>
+                            <aligny>center</aligny>
+                            <texturefocus colordiffuse="52FFFFFF" border="8">highlights/highlight_focused.png</texturefocus>
+                            <texturenofocus>-</texturenofocus>
+                            <textoffsetx>0</textoffsetx>
+                            <textoffsety>0</textoffsety>
+                            <label></label>
+                        </control>
+                        <control type="label">
+                            <visible>Control.HasFocus(403)</visible>
+                            <posx>0</posx>
+                            <posy>0</posy>
+                            <width>245</width>
+                            <height>60</height>
+                            <font>font30</font>
+                            <textcolor>FFFFFFFF</textcolor>
+                            <align>center</align>
+                            <aligny>center</aligny>
+                            <label>[B]Delete..[/B]</label>
+                        </control>
+                        <control type="label">
+                            <visible>!Control.HasFocus(403)</visible>
+                            <posx>0</posx>
+                            <posy>0</posy>
+                            <width>245</width>
+                            <height>60</height>
+                            <font>font30</font>
+                            <textcolor>FFFFFFFF</textcolor>
+                            <align>center</align>
+                            <aligny>center</aligny>
+                            <label>Delete...</label>
+                        </control>
+                    </control>
+                </control>
+            </control>
+        </control>
+    </controls>
+</window>
