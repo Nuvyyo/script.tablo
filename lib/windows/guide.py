@@ -10,6 +10,8 @@ from lib import util
 from lib import backgroundthread
 from lib import tablo
 
+from lib.tablo import grid
+
 WM = None
 
 
@@ -508,8 +510,30 @@ class GuideShowWindow(kodigui.BaseWindow):
 
         self.show.schedule(action)
 
+        for item in self.showList:
+            if 'airing' in item.dataSource:
+                grid.addPending(airing=item.dataSource['airing'])
+
         self.setupScheduleDialog()
         self.updateAirings()
+
+    def setDialogButtons(self, airing, arg_dict):
+        if airing.airingNow():
+            arg_dict['button1'] = ('watch', 'Watch')
+            if airing.scheduled:
+                arg_dict['button2'] = ('unschedule', "Don't Record {0}".format(util.LOCALIZED_AIRING_TYPES[self.show.type]))
+                arg_dict['title_indicator'] = 'indicators/rec_pill_hd.png'
+            else:
+                arg_dict['button2'] = ('record', 'Record {0}'.format(util.LOCALIZED_AIRING_TYPES[self.show.type]))
+        else:
+            if airing.scheduled:
+                arg_dict['button1'] = ('unschedule', "Don't Record {0}".format(util.LOCALIZED_AIRING_TYPES[self.show.type]))
+                arg_dict['title_indicator'] = 'indicators/rec_pill_hd.png'
+            elif airing.conflicted:
+                arg_dict['button1'] = ('unschedule', "Don't Record {0}".format(util.LOCALIZED_AIRING_TYPES[self.show.type]))
+                arg_dict['title_indicator'] = 'indicators/conflict_pill_hd.png'
+            else:
+                arg_dict['button1'] = ('record', 'Record {0}'.format(util.LOCALIZED_AIRING_TYPES[self.show.type]))
 
     def airingsListClicked(self):
         item = self.airingsList.getSelectedItem()
@@ -537,14 +561,19 @@ class GuideShowWindow(kodigui.BaseWindow):
             'obj': airing
         }
 
-        if airing.scheduled:
-            kwargs['button1'] = ('unschedule', "Don't Record {0}".format(util.LOCALIZED_AIRING_TYPES[self.show.type]))
-            kwargs['title_indicator'] = 'indicators/rec_pill_hd.png'
-        elif airing.airingNow():
-            kwargs['button1'] = ('watch', 'Watch')
-            kwargs['button2'] = ('record', 'Record {0}'.format(util.LOCALIZED_AIRING_TYPES[self.show.type]))
-        else:
-            kwargs['button1'] = ('record', 'Record {0}'.format(util.LOCALIZED_AIRING_TYPES[self.show.type]))
+        self.setDialogButtons(airing, kwargs)
+
+        # if airing.scheduled:
+        #     kwargs['button1'] = ('unschedule', "Don't Record {0}".format(util.LOCALIZED_AIRING_TYPES[self.show.type]))
+        #     kwargs['title_indicator'] = 'indicators/rec_pill_hd.png'
+        # elif airing.conflicted:
+        #     kwargs['button1'] = ('unschedule', "Don't Record {0}".format(util.LOCALIZED_AIRING_TYPES[self.show.type]))
+        #     kwargs['title_indicator'] = 'indicators/conflict_pill_hd.png'
+        # elif airing.airingNow():
+        #     kwargs['button1'] = ('watch', 'Watch')
+        #     kwargs['button2'] = ('record', 'Record {0}'.format(util.LOCALIZED_AIRING_TYPES[self.show.type]))
+        # else:
+        #     kwargs['button1'] = ('record', 'Record {0}'.format(util.LOCALIZED_AIRING_TYPES[self.show.type]))
 
         secs = airing.secondsToStart()
 
@@ -568,7 +597,7 @@ class GuideShowWindow(kodigui.BaseWindow):
 
         if action:
             if action == 'watch':
-                watch = airing.gridAiring.watch()
+                watch = (airing.gridAiring or airing).watch()
                 if watch.error:
                     xbmcgui.Dialog().ok('Failed', 'Failed to play channel:', ' ', str(watch.error))
                 else:
@@ -577,27 +606,17 @@ class GuideShowWindow(kodigui.BaseWindow):
             elif action == 'record':
                 airing.schedule()
                 self.show.update()
+                grid.addPending(airing=airing)
             elif action == 'unschedule':
                 airing.schedule(False)
                 self.show.update()
+                grid.addPending(airing=airing)
 
         if airing.ended():
             secs = airing.secondsSinceEnd()
             changes['start'] = 'Ended {0} ago'.format(util.durationToText(secs))
         else:
-            if airing.airingNow():
-                changes['button1'] = ('watch', 'Watch')
-                if airing.scheduled:
-                    changes['button2'] = ('unschedule', "Don't Record {0}".format(util.LOCALIZED_AIRING_TYPES[self.show.type]))
-                    changes['title_indicator'] = 'indicators/rec_pill_hd.png'
-                else:
-                    changes['button2'] = ('record', 'Record {0}'.format(util.LOCALIZED_AIRING_TYPES[self.show.type]))
-            else:
-                if airing.scheduled:
-                    changes['button1'] = ('unschedule', "Don't Record {0}".format(util.LOCALIZED_AIRING_TYPES[self.show.type]))
-                    changes['title_indicator'] = 'indicators/rec_pill_hd.png'
-                else:
-                    changes['button1'] = ('record', 'Record {0}'.format(util.LOCALIZED_AIRING_TYPES[self.show.type]))
+            self.setDialogButtons(airing, changes)
 
             secs = airing.secondsToStart()
 
@@ -660,7 +679,13 @@ class GuideShowWindow(kodigui.BaseWindow):
         airing = item.dataSource['airing']
         if not airing:
             return
-        item.setProperty('badge', airing.scheduled and 'livetv/livetv_badge_scheduled_hd.png' or '')
+
+        if airing.scheduled:
+            item.setProperty('badge', 'livetv/livetv_badge_scheduled_hd.png')
+        elif airing.conflicted:
+            item.setProperty('badge', 'livetv/livetv_badge_conflict_hd.png')
+        else:
+            item.setProperty('badge', '')
 
     def updateIndicators(self):
         for item in self.airingsList:

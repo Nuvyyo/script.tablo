@@ -91,6 +91,7 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
         return new
 
     def onFirstInit(self):
+        self._showingDialog = False
         self.hhData = HalfHourData()
 
         self.baseY = self.getControl(45).getY()
@@ -110,6 +111,10 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
         self.getChannels()
 
         util.CRON.registerReceiver(self)
+
+    def onReInit(self):
+        if not self._showingDialog:
+            self.grid.updatePending()
 
     def onAction(self, action):
         try:
@@ -204,10 +209,10 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
         if self.hhData.decrementOffset():
             self.fillChannels()
 
-        if airing:
-            self.selectAiring(airing)
-        else:
-            self.selectFirstInRow()
+        # if airing:
+        #     self.selectAiring(airing)
+        # else:
+        self.selectFirstInRow()
 
     def guideNavDown(self):
         row = self.getRow()
@@ -308,7 +313,9 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
             self.setProperty('half.star', '')
 
         if airing.type == 'series':
-            info = [airing.data.get('title') or '']
+            info = []
+            if airing.data.get('title'):
+                info.append(airing.data.get('title'))
             if airing.data.get('season_number'):
                 info.append('Season {0}'.format(airing.data['season_number']))
             if airing.data.get('episode_number'):
@@ -349,7 +356,10 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
         if row < 0 or row >= len(self.rows):
             return False
 
-        controlID = self.rows[row][0][0]
+        if self.rows[row][0][2]:
+            controlID = self.rows[row][1][0]
+        else:
+            controlID = self.rows[row][0][0]
 
         self.lastFocus = controlID
         self.setFocusId(controlID)
@@ -514,6 +524,22 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
         for path in self.gen.paths:
             self.updateChannelAirings(path)
 
+    def setDialogButtons(self, airing, arg_dict):
+        if airing.gridAiring.airingNow():
+            arg_dict['button1'] = ('watch', 'Watch')
+            if airing.gridAiring.scheduled:
+                arg_dict['button2'] = ('unschedule', "Don't Record {0}".format(util.LOCALIZED_AIRING_TYPES[airing.type.upper()]))
+                arg_dict['title_indicator'] = 'indicators/rec_pill_hd.png'
+            else:
+                arg_dict['button2'] = ('record', 'Record {0}'.format(util.LOCALIZED_AIRING_TYPES[airing.type.upper()]))
+        else:
+            if airing.gridAiring.scheduled:
+                arg_dict['button1'] = ('unschedule', "Don't Record {0}".format(util.LOCALIZED_AIRING_TYPES[airing.type.upper()]))
+                arg_dict['title_indicator'] = 'indicators/rec_pill_hd.png'
+            else:
+                arg_dict['button1'] = ('record', 'Record {0}'.format(util.LOCALIZED_AIRING_TYPES[airing.type.upper()]))
+
+    @base.dialogFunction
     def airingClicked(self, airing):
         # while not airing and backgroundthread.BGThreader.working() and not xbmc.abortRequested:
         #     xbmc.sleep(100)
@@ -533,14 +559,7 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
             'obj': airing
         }
 
-        if airing.gridAiring.scheduled:
-            kwargs['button1'] = ('unschedule', "Don't Record {0}".format(util.LOCALIZED_AIRING_TYPES[airing.type.upper()]))
-            kwargs['title_indicator'] = 'indicators/rec_pill_hd.png'
-        elif airing.gridAiring.airingNow():
-            kwargs['button1'] = ('watch', 'Watch')
-            kwargs['button2'] = ('record', 'Record {0}'.format(util.LOCALIZED_AIRING_TYPES[airing.type.upper()]))
-        else:
-            kwargs['button1'] = ('record', 'Record {0}'.format(util.LOCALIZED_AIRING_TYPES[airing.type.upper()]))
+        self.setDialogButtons(airing, kwargs)
 
         secs = airing.gridAiring.secondsToStart()
 
@@ -564,9 +583,8 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
         if action:
             if action == 'watch':
                 error = player.PLAYER.playAiringChannel(airing.gridAiring)
-                if not error:
-                    return None
-                xbmcgui.Dialog().ok('Failed', 'Failed to play channel:', ' ', str(error))
+                if error:
+                    xbmcgui.Dialog().ok('Failed', 'Failed to play channel:', ' ', str(error))
             elif action == 'record':
                 airing.schedule()
                 self.grid.updateChannelAiringData(path=airing.gridAiring.channel['path'])
@@ -580,19 +598,7 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
             secs = airing.gridAiring.secondsSinceEnd()
             changes['start'] = 'Ended {0} ago'.format(util.durationToText(secs))
         else:
-            if airing.gridAiring.airingNow():
-                changes['button1'] = ('watch', 'Watch')
-                if airing.gridAiring.scheduled:
-                    changes['button2'] = ('unschedule', "Don't Record {0}".format(util.LOCALIZED_AIRING_TYPES[airing.type.upper()]))
-                    changes['title_indicator'] = 'indicators/rec_pill_hd.png'
-                else:
-                    changes['button2'] = ('record', 'Record {0}'.format(util.LOCALIZED_AIRING_TYPES[airing.type.upper()]))
-            else:
-                if airing.gridAiring.scheduled:
-                    changes['button1'] = ('unschedule', "Don't Record {0}".format(util.LOCALIZED_AIRING_TYPES[airing.type.upper()]))
-                    changes['title_indicator'] = 'indicators/rec_pill_hd.png'
-                else:
-                    changes['button1'] = ('record', 'Record {0}'.format(util.LOCALIZED_AIRING_TYPES[airing.type.upper()]))
+            self.setDialogButtons(airing, changes)
 
             secs = airing.gridAiring.secondsToStart()
 

@@ -58,8 +58,25 @@ class WindowManager(xbmc.Monitor):
 
             self.waitOnWindow()
 
+            if not self.current:
+                return
+
             if self.exit:
                 return
+
+    def disconnect(self):
+        self.current = None
+        self.showMenu()
+
+        for key in self.windows.keys():
+            self.windows[key].doClose()
+            del self.windows[key]
+
+        util.setGlobalProperty('menu.visible', '')
+        self.menu.doClose()
+        del self.menu
+
+        self.menu = None
 
     def finish(self):
         if not xbmcgui.Dialog().yesno('Exit?', 'Close Tablo?'):
@@ -69,13 +86,14 @@ class WindowManager(xbmc.Monitor):
         self.showMenu()
         self.current = None
 
-        for w in self.windows.values():
-            w.doClose()
-
-        self.windows = {}
+        for key in self.windows.keys():
+            self.windows[key].doClose()
+            del self.windows[key]
 
         util.setGlobalProperty('menu.visible', '')
         self.menu.doClose()
+        del self.menu
+        self.menu = None
 
         return True
 
@@ -101,8 +119,10 @@ class MenuDialog(kodigui.BaseDialog):
     def onClick(self, controlID):
         if controlID == 101:
             WM.open(DeviceWindow)
+            WM.hideMenu()
         elif controlID == 102:
             WM.open(LiveTVWindow)
+            WM.hideMenu()
         elif controlID == 103:
             WM.open(RecordingsWindow)
             WM.hideMenu()

@@ -58,6 +58,7 @@ class BaseWindow(xbmcgui.WindowXML, BaseFunctions):
         self._closing = False
         self._winID = None
         self.started = False
+        self.finishedInit = False
 
     def onInit(self):
         self._winID = xbmcgui.getCurrentWindowId()
@@ -67,6 +68,7 @@ class BaseWindow(xbmcgui.WindowXML, BaseFunctions):
         else:
             self.started = True
             self.onFirstInit()
+            self.finishedInit = True
 
     def onFirstInit(self): pass
 

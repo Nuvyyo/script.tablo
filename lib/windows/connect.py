@@ -24,6 +24,7 @@ class ConnectWindow(kodigui.BaseWindow):
         elif controlID == 200:
             mli = self.deviceList.getSelectedItem()
             tablo.API.selectDevice(mli.dataSource.ID)
+            util.saveTabloDeviceID(mli.dataSource.ID)
             self.exit = False
             self.doClose()
 

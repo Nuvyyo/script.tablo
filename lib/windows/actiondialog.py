@@ -3,7 +3,7 @@ import kodigui
 from lib import util
 
 
-class ActionDialog(kodigui.BaseDialog, util.CronReceiver):
+class ActionDialog(kodigui.BaseWindow, util.CronReceiver):
     name = 'GUIDE'
     xmlFile = 'script-tablo-action.xml'
     path = util.ADDON.getAddonInfo('path')
@@ -13,7 +13,7 @@ class ActionDialog(kodigui.BaseDialog, util.CronReceiver):
     BUTTON2_ID = 401
 
     def __init__(self, *args, **kwargs):
-        kodigui.BaseDialog.__init__(self, *args, **kwargs)
+        kodigui.BaseWindow.__init__(self, *args, **kwargs)
         self.number = kwargs.get('number')
         self.title = kwargs.get('title')
         self.info = kwargs.get('info')
@@ -26,7 +26,6 @@ class ActionDialog(kodigui.BaseDialog, util.CronReceiver):
         self.callback = kwargs.get('callback')
         self.object = kwargs.get('object')
         self.action = None
-        util.CRON.registerReceiver(self)
 
     def onFirstInit(self):
         self.updateDisplayProperties()
@@ -38,10 +37,10 @@ class ActionDialog(kodigui.BaseDialog, util.CronReceiver):
         self.setProperty('background', self.background)
         self.setProperty('title.indicator', self.titleIndicator)
         self.setFocusId(self.BUTTON1_ID)
+        util.CRON.registerReceiver(self)
 
     def onReInit(self):
-        if xbmc.Player().isPlaying():
-            xbmc.Player().stop()
+        util.CRON.registerReceiver(self)
 
     def onClick(self, controlID):
         if controlID == self.BUTTON1_ID:
@@ -53,6 +52,8 @@ class ActionDialog(kodigui.BaseDialog, util.CronReceiver):
             self.doClose()
 
     def tick(self):
+        if self._closing:
+            util.CRON.cancelReceiver(self)
         self.doCallback()
 
     def doCallback(self):

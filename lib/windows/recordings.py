@@ -66,7 +66,8 @@ class RecordingShowWindow(guide.GuideShowWindow):
         kwargs = {
             'background': self.show.background,
             'callback': self.actionDialogCallback,
-            'obj': airing
+            'obj': airing,
+            'show': self.show
         }
 
         failed = airing.data['video_details']['state'] == 'failed'
@@ -85,7 +86,8 @@ class RecordingShowWindow(guide.GuideShowWindow):
             if airing.data['user_info']['position']:
                 left = airing.data['video_details']['duration'] - airing.data['user_info']['position']
                 total = airing.data['video_details']['duration']
-                kwargs['seen'] = airing.data['user_info']['position'] / float(total)
+                kwargs['seenratio'] = airing.data['user_info']['position'] / float(total)
+                kwargs['seen'] = airing.data['user_info']['position']
                 description += '[CR][CR]Remaining: {0} of {1}'.format(util.durationToText(left), util.durationToText(total))
                 indicator = 'indicators/seen_partial_hd.png'
             else:
@@ -112,29 +114,36 @@ class RecordingShowWindow(guide.GuideShowWindow):
 
         if action:
             if action == 'watch':
-                player.PLAYER.playRecording(airing, show=self.show)
+                player.PLAYER.playRecording(airing, show=self.show, resume=False)
                 # xbmc.Player().play(airing.watch().url)
-                return None
+            elif action == 'resume':
+                player.PLAYER.playRecording(airing, show=self.show)
             elif action == 'toggle':
                 airing.markWatched(not airing.watched)
                 self.modified = True
             elif action == 'protect':
                 airing.markProtected(not airing.protected)
             elif action == 'delete':
-                if xbmcgui.Dialog().yesno(
-                    'Confirm', 'Permanently delete this {0}?'.format(util.LOCALIZED_AIRING_TYPES[self.show.type]), nolabel='Cancel', yeslabel='Delete'
-                ):
-                    self.modified = True
-                    airing.delete()
-                    return None
-
+                self.modified = True
+                airing.delete()
+                return None
             if action == 'toggle':
                 changes['button2'] = airing.watched and 'Mark Unwatched' or 'Mark Watched'
-                changes['indicator'] = not airing.watched and 'indicators/seen_unwatched_hd.png' or ''
             elif action == 'protect':
                 changes['button3'] = airing.protected and 'Unprotect' or 'Protect'
 
-            changes['indicator'] = not airing.watched and 'indicators/seen_unwatched_hd.png' or ''
+            if airing.watched:
+                changes['indicator'] = ''
+            else:
+                if airing.data['user_info']['position']:
+                    changes['indicator'] = 'indicators/seen_partial_hd.png'
+                    total = airing.data['video_details']['duration']
+                    changes['seenratio'] = airing.data['user_info']['position'] / float(total)
+                    changes['seen'] = airing.data['user_info']['position']
+                else:
+                    changes['indicator'] = 'indicators/seen_unwatched_hd.png'
+                    changes['seenratio'] = None
+                    changes['seen'] = None
 
         return changes
 
@@ -176,7 +185,6 @@ class RecordingShowWindow(guide.GuideShowWindow):
             self.updateItemIndicators(item)
 
     def updateAiringItem(self, airing):
-        print airing.data
         item = self.airingItems[airing.path]
         item.dataSource['airing'] = airing
 
@@ -224,10 +232,15 @@ class RecordingDialog(actiondialog.ActionDialog):
     path = util.ADDON.getAddonInfo('path')
     theme = 'Main'
 
+    BUTTONS_GROUP_ID = 399
     WATCH_BUTTON_ID = 400
     TOGGLE_BUTTON_ID = 401
     PROTECT_BUTTON_ID = 402
     DELETE_BUTTON_ID = 403
+
+    DIALOG_GROUP_ID = 500
+    DIALOG_TOP_BUTTON_ID = 501
+    DIALOG_BOTTOM_BUTTON_ID = 502
 
     SEEN_PROGRESS_IMAGE_ID = 600
     SEEN_PROGRESS_WIDTH = 356
@@ -241,12 +254,15 @@ class RecordingDialog(actiondialog.ActionDialog):
         self.failed = kwargs.get('failed', '')
         self.indicator = kwargs.get('indicator', '')
         self.seen = kwargs.get('seen')
+        self.seenratio = kwargs.get('seenratio')
         self.background = kwargs.get('background')
         self.callback = kwargs.get('callback')
         self.object = kwargs.get('object')
+        self.show = kwargs.get('show')
         self.button2 = kwargs.get('button2')
         self.button3 = kwargs.get('button3')
         self.action = None
+        self.parentAction = None
         util.CRON.registerReceiver(self)
 
     def onFirstInit(self):
@@ -262,8 +278,8 @@ class RecordingDialog(actiondialog.ActionDialog):
         self.setProperty('button2', self.button2)
         self.setProperty('button3', self.button3)
 
-        if self.seen:
-            self.getControl(self.SEEN_PROGRESS_IMAGE_ID).setWidth(int(self.seen*self.SEEN_PROGRESS_WIDTH))
+        if self.seenratio:
+            self.getControl(self.SEEN_PROGRESS_IMAGE_ID).setWidth(int(self.seenratio*self.SEEN_PROGRESS_WIDTH))
 
         if self.failed:
             self.getControl(self.WATCH_BUTTON_ID).setEnabled(False)
@@ -273,15 +289,58 @@ class RecordingDialog(actiondialog.ActionDialog):
         else:
             self.setFocusId(self.WATCH_BUTTON_ID)
 
+    def onReInit(self):
+        actiondialog.ActionDialog.onReInit(self)
+        player.PLAYER.stopAndWait()
+        self.action = 'dummy'
+
+    def onAction(self, action):
+        try:
+            if action == xbmcgui.ACTION_NAV_BACK or action == xbmcgui.ACTION_PREVIOUS_MENU:
+                if xbmc.getCondVisibility('ControlGroup({0}).HasFocus(0)'.format(self.DIALOG_GROUP_ID)):
+                    self.setFocusId(self.BUTTONS_GROUP_ID)
+                else:
+                    self.doClose()
+                return
+        except:
+            util.ERROR()
+
+        actiondialog.ActionDialog.onAction(self, action)
+
     def onClick(self, controlID):
         if controlID == self.WATCH_BUTTON_ID:
-            self.action = 'watch'
+            if self.seen:
+                self.setProperty('dialog.message', 'Resume watching at {0}?'.format(util.durationToText(self.seen)))
+                self.setProperty('dialog.top', 'Play From Start')
+                self.setProperty('dialog.bottom', 'Resume')
+                self.parentAction = 'watch'
+                self.setFocusId(self.DIALOG_GROUP_ID)
+                return
+            else:
+                self.action = 'watch'
+        elif controlID == self.DIALOG_TOP_BUTTON_ID:
+            if self.parentAction == 'watch':
+                self.action = 'watch'
+            elif self.parentAction == 'delete':
+                self.action = 'delete'
+            self.parentAction = ''
+        elif controlID == self.DIALOG_BOTTOM_BUTTON_ID:
+            if self.parentAction == 'watch':
+                self.action = 'resume'
+            else:
+                self.parentAction = ''
+                return
+            self.parentAction = ''
         elif controlID == self.TOGGLE_BUTTON_ID:
             self.action = 'toggle'
         elif controlID == self.PROTECT_BUTTON_ID:
             self.action = 'protect'
         elif controlID == self.DELETE_BUTTON_ID:
-            self.action = 'delete'
+            self.setProperty('dialog.message', 'Permanently delete this {0}?'.format(util.LOCALIZED_AIRING_TYPES[self.show.type].lower()))
+            self.setProperty('dialog.top', 'Delete')
+            self.setProperty('dialog.bottom', 'Cancel')
+            self.parentAction = 'delete'
+            return
 
         if not self.doCallback():
             self.doClose()
@@ -302,6 +361,8 @@ class RecordingDialog(actiondialog.ActionDialog):
 
         self.button2 = changes.get('button2') or self.button2
         self.button3 = changes.get('button3') or self.button3
+        self.seen = changes.get('seen')
+        self.seenratio = changes.get('seenratio')
         self.indicator = changes.get('indicator') or ''
 
         self.updateDisplayProperties()
@@ -312,11 +373,13 @@ class RecordingDialog(actiondialog.ActionDialog):
         self.setProperty('button2', self.button2)
         self.setProperty('button3', self.button3)
         self.setProperty('indicator', self.indicator)
+        self.setProperty('seen', self.seen and '1' or '')
+        self.getControl(self.SEEN_PROGRESS_IMAGE_ID).setWidth(int((self.seenratio or 0)*self.SEEN_PROGRESS_WIDTH))
 
 
 def openDialog(
     title, info, plot, preview, failed, button2, button3, indicator,
-    seen=None, background=None, callback=None, obj=None
+    seen=None, seenratio=None, background=None, callback=None, obj=None, show=None
 ):
 
     w = RecordingDialog.open(
@@ -329,9 +392,11 @@ def openDialog(
         button2=button2,
         button3=button3,
         seen=seen,
+        seenratio=seenratio,
         background=background,
         callback=callback,
-        object=obj
+        object=obj,
+        show=show
     )
 
     util.CRON.cancelReceiver(w)

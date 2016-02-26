@@ -12,6 +12,13 @@ SAVE_VERSION = 1
 INTERVAL_HOURS = 2
 INTERVAL_TIMEDELTA = datetime.timedelta(hours=INTERVAL_HOURS)
 
+PENDING_UPDATE = {}
+
+
+def addPending(path=None, airing=None):
+    path = path or airing.data['airing_details']['channel']['path']
+    PENDING_UPDATE[path] = 1
+
 
 class ChannelTask(backgroundthread.Task):
     def setup(self, channel, callback):
@@ -38,6 +45,7 @@ class Grid(object):
         self._tasks = []
         self.workPath = os.path.join(work_path, 'grid')
         self.oldestUpdate = datetime.datetime.now()
+        self.pendingUpdate = {}
         self.initSave()
 
     def initSave(self):
@@ -79,6 +87,7 @@ class Grid(object):
             return data
 
     def loadChannels(self):
+        self.cancelTasks()
         # path = os.path.join(self.workPath, 'channels.data')
         # if not os.path.exists(path):
         #     return False
@@ -88,10 +97,11 @@ class Grid(object):
         #     self.channels = json.load(f)
         util.DEBUG_LOG('Loading grid data...')
 
-        self.channels = tablo.API.batch.post(self.paths)
+        self.channels = {}
+        channels = tablo.API.batch.post(self.paths)
 
-        for path in self.channels:
-            channel = tablo.Channel(self.channels[path])
+        for path in channels:
+            channel = tablo.Channel(channels[path])
             self.channels[path] = channel
 
             if path not in self._airings:
@@ -99,8 +109,10 @@ class Grid(object):
 
             self.updateCallback(channel)
 
-            if not self.loadAirings(channel):
-                self.getChannelData(channel)
+            self.loadAirings(channel)
+
+        for path in channels:
+            self.getChannelData(self.channels[path])
 
         util.DEBUG_LOG('Loading of grid data done.')
 
@@ -178,3 +190,10 @@ class Grid(object):
                 if a.path == path:
                     return a
         return None
+
+    def updatePending(self):
+        global PENDING_UPDATE
+
+        for p in PENDING_UPDATE.keys():
+            self.getChannelData(path=p)
+        PENDING_UPDATE = {}

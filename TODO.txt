@@ -1,8 +1,6 @@
-Save device and auto re-connect
-Add indicators all over
-Add Device view and disconnect option
+Add any missing indicators
 Fix recording error message
-Guide left nav onto short item when moving from hour+ item
-Mark position on video stop
-Start video at saved position
-Advance EPG on half hour change
+Improve: Start video at saved position
+Test: Advance EPG on half hour change
+Maybe: bif based seeking?
+Update LiveTV on changes elswhere

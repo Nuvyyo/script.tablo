@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
+import os
 import sys
 import binascii
 import json
 import threading
-
+import math
 import time
 import datetime
+
 import xbmc
 import xbmcgui
 import xbmcaddon
@@ -166,6 +168,25 @@ def durationToText(seconds):
     return '0 seconds'
 
 
+SIZE_NAMES = ("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
+
+
+def simpleSize(size):
+    """
+    Converts bytes to a short user friendly string
+    Example: 12345 -> 12.06 KB
+    """
+    s = 0
+    if size > 0:
+        i = int(math.floor(math.log(size, 1024)))
+        p = math.pow(1024, i)
+        s = round(size/p, 2)
+    if (s > 0):
+        return '%s %s' % (s, SIZE_NAMES[i])
+    else:
+        return '0B'
+
+
 def busyDialog(func):
     def inner(*args, **kwargs):
         w = None
@@ -313,8 +334,31 @@ class Cron(threading.Thread):
         return ret
 
     def registerReceiver(self, receiver):
-        self._receivers.append(receiver)
+        if receiver not in self._receivers:
+            self._receivers.append(receiver)
 
     def cancelReceiver(self, receiver):
         if receiver in self._receivers:
             self._receivers.pop(self._receivers.index(receiver))
+
+
+def saveTabloDeviceID(ID):
+    with open(os.path.join(PROFILE, 'device.ID'), 'w') as f:
+        f.write(ID)
+
+
+def loadTabloDeviceID():
+    path = os.path.join(PROFILE, 'device.ID')
+    if not os.path.exists(path):
+        return None
+
+    with open(path, 'r') as f:
+        return f.read()
+
+
+def clearTabloDeviceID():
+    path = os.path.join(PROFILE, 'device.ID')
+    if not os.path.exists(path):
+        return
+
+    os.remove(path)

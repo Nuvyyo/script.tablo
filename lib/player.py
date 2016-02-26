@@ -12,6 +12,8 @@ class TabloPlayer(xbmc.Player):
         return self
 
     def reset(self):
+        self._waiting = threading.Event()
+        self._waiting.set()
         self.airing = None
         self.watch = None
         self.startPosition = 0
@@ -30,15 +32,13 @@ class TabloPlayer(xbmc.Player):
         thumb = airing.thumb
         li = xbmcgui.ListItem(title, title, thumbnailImage=thumb, path=watch.url)
         li.setInfo('video', {'title': title, 'tvshowtitle': title})
-        # li.setInfo('video', {'duration': str(rec.duration / 60), 'title': rec.episodeTitle, 'tvshowtitle': rec.seriesTitle})
-        # li.addStreamInfo('video', {'duration': rec.duration})
         li.setIconImage(thumb)
         util.DEBUG_LOG('Player: Playing channel')
         self.play(watch.url, li, False, 0)
 
         return None
 
-    def playRecording(self, rec, show=None):
+    def playRecording(self, rec, show=None, resume=True):
         self.reset()
         self.isPlayingRecording = True
         self.airing = rec
@@ -54,7 +54,7 @@ class TabloPlayer(xbmc.Player):
         # li.setInfo('video', {'duration': str(rec.duration / 60), 'title': rec.episodeTitle, 'tvshowtitle': rec.seriesTitle})
         # li.addStreamInfo('video', {'duration': rec.duration})
         li.setIconImage(thumb)
-        if rec.position:
+        if rec.position and resume:
             util.DEBUG_LOG('Player: Resuming at {0}'.format(rec.position))
             pl = os.path.join(util.PROFILE, 'pl.m3u8')
             self.startPosition = rec.position
@@ -71,25 +71,39 @@ class TabloPlayer(xbmc.Player):
         threading.Thread(target=self._wait).start()
 
     def _wait(self):
-        while self.isPlayingVideo() and not xbmc.abortRequested:
-            self.position = self.getTime()
-            xbmc.sleep(100)
-            if not xbmc.getCondVisibility('VideoPlayer.IsFullscreen'):
-                util.DEBUG_LOG('Player: Video closed')
-                break
+        self._waiting.clear()
+        try:
+            while self.isPlayingVideo() and not xbmc.abortRequested:
+                self.position = self.getTime()
+                xbmc.sleep(100)
 
-        if self.position and self.isPlayingRecording:
-            util.DEBUG_LOG('Player: Saving position')
-            self.airing.setPosition(self.startPosition + self.position)
+                if xbmc.getCondVisibility('Player.Caching') and self.position < 1:
+                    util.DEBUG_LOG('Player: Forcing resume at {0}'.format(self.position))
+                    self.pause()
 
-        if self.isPlayingVideo():
-            util.DEBUG_LOG('Player: Stopping video')
-            self.stop()
+                if not xbmc.getCondVisibility('VideoPlayer.IsFullscreen'):
+                    util.DEBUG_LOG('Player: Video closed')
+                    break
 
-        util.DEBUG_LOG('Player: Played for {0} seconds'.format(self.position))
+            if self.position and self.isPlayingRecording:
+                util.DEBUG_LOG('Player: Saving position')
+                self.airing.setPosition(self.startPosition + self.position)
+
+            if self.isPlayingVideo():
+                util.DEBUG_LOG('Player: Stopping video')
+                self.stop()
+
+            util.DEBUG_LOG('Player: Played for {0} seconds'.format(self.position))
+        finally:
+            self._waiting.set()
 
     def onPlayBackStarted(self):
         self.wait()
+
+    def stopAndWait(self):
+        if self.isPlayingVideo():
+            self.stop()
+            self._waiting.wait()
 
 
 PLAYER = TabloPlayer().init()

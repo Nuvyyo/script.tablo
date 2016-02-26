@@ -283,6 +283,7 @@ class Airing(object):
     def setPosition(self, position=0):
         recording = API(self.path).patch(position=int(position))
         self.data['user_info'] = recording.get('user_info')
+        self.data['video_details'] = recording.get('video_details')
         return self.data['user_info']
 
 
@@ -485,12 +486,14 @@ class TabloApi(Endpoint):
         self.device = None
         self.devices = None
         self.timezone = None
+        self.serverInfo = {}
 
     def discover(self):
         self.devices = discovery.Devices()
 
     def getServerInfo(self):
         info = self.server.info.get()
+        self.serverInfo = info
         timezone = info.get('timezone')
         if not timezone:
             self.timezone = pytz.UTC()
@@ -503,14 +506,17 @@ class TabloApi(Endpoint):
     def selectDevice(self, selection):
         if isinstance(selection, int):
             self.device = self.devices.tablos[selection]
-            return
-
-        for d in self.devices.tablos:
-            if selection == d.ID:
-                self.device = d
-                break
+        else:
+            for d in self.devices.tablos:
+                if selection == d.ID:
+                    self.device = d
+                    break
+            else:
+                return False
 
         self.getServerInfo()
+
+        return True
 
     def deviceSelected(self):
         return bool(self.device)
