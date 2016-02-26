@@ -202,10 +202,9 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
         if not short_airing:
             for controlID, rowAiring, short in self.rows[self.getRow()]:
                 if airing == rowAiring:
-                    if not short:
+                    if not short and not at_edge:
                         return
                     break
-
         if self.hhData.decrementOffset():
             self.fillChannels()
 
@@ -490,7 +489,7 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
             control = self.getControl(ID)
 
             control.setSelected(False)
-            control.setWidth(1120 - totalwidth)
+            control.setWidth(1110 - totalwidth)
             control.setLabel('Loading...')
             control.setVisible(True)
             self.slotButtons[ID] = None

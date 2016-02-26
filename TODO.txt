@@ -3,4 +3,5 @@ Fix recording error message
 Improve: Start video at saved position
 Test: Advance EPG on half hour change
 Maybe: bif based seeking?
-Update LiveTV on changes elswhere
+Add no 'whatever' messages when there is no content for a section
+'More' indicators on EPG for airings that go off the left
