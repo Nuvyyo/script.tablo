@@ -1,7 +1,7 @@
 import xbmc
 import xbmcgui
 import threading
-import os
+# import os
 
 from lib import util
 
@@ -56,14 +56,15 @@ class TabloPlayer(xbmc.Player):
         li.setIconImage(thumb)
         if rec.position and resume:
             util.DEBUG_LOG('Player: Resuming at {0}'.format(rec.position))
-            pl = os.path.join(util.PROFILE, 'pl.m3u8')
+            # pl = os.path.join(util.PROFILE, 'pl.m3u8')
             self.startPosition = rec.position
-            with open(pl, 'w') as f:
-                f.write(watch.makeSeekPlaylist(rec.position))
-            self.play(pl, li, False, 0)
+            # with open(pl, 'w') as f:
+            #     f.write(watch.makeSeekPlaylist(rec.position))
+            # self.play(pl, li, False, 0)
         else:
             util.DEBUG_LOG('Player: Playing from beginning')
-            self.play(watch.url, li, False, 0)
+
+        self.play(watch.url, li, False, 0)
 
         return None
 
@@ -87,7 +88,8 @@ class TabloPlayer(xbmc.Player):
 
             if self.position and self.isPlayingRecording:
                 util.DEBUG_LOG('Player: Saving position')
-                self.airing.setPosition(self.startPosition + self.position)
+                # self.airing.setPosition(self.startPosition + self.position)
+                self.airing.setPosition(self.position)
 
             if self.isPlayingVideo():
                 util.DEBUG_LOG('Player: Stopping video')
@@ -98,6 +100,8 @@ class TabloPlayer(xbmc.Player):
             self._waiting.set()
 
     def onPlayBackStarted(self):
+        if self.startPosition:
+            self.seekTime(self.startPosition)
         self.wait()
 
     def stopAndWait(self):

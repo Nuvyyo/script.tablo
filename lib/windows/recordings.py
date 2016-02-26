@@ -41,6 +41,38 @@ class RecordingsWindow(guide.GuideWindow):
 class RecordingShowWindow(guide.GuideShowWindow):
     sectionAction = 'Delete...'
 
+    def setDialogIndicators(self, airing, arg_dict):
+        if airing.type == 'schedule':
+            description = self.show.description or ''
+        else:
+            description = airing.description or ''
+
+        failed = airing.data['video_details']['state'] == 'failed'
+
+        if failed:
+            description += u'[CR][CR][COLOR FFC81010]Recording failed due to: {0}[/COLOR]'.format(airing.data['video_details']['error']['details'])
+        else:
+            if airing.watched:
+                arg_dict['indicator'] = ''
+            else:
+                if airing.data['user_info']['position']:
+                    arg_dict['indicator'] = 'indicators/seen_partial_hd.png'
+                else:
+                    arg_dict['indicator'] = 'indicators/seen_unwatched_hd.png'
+
+            if airing.data['user_info']['position']:
+                left = airing.data['video_details']['duration'] - airing.data['user_info']['position']
+                total = airing.data['video_details']['duration']
+                description += '[CR][CR]Remaining: {0} of {1}'.format(util.durationToText(left), util.durationToText(total))
+                arg_dict['seenratio'] = airing.data['user_info']['position'] / float(total)
+                arg_dict['seen'] = airing.data['user_info']['position']
+            else:
+                description += '[CR][CR]Length: {0}'.format(util.durationToText(airing.data['video_details']['duration']))
+                arg_dict['seenratio'] = None
+                arg_dict['seen'] = None
+
+        arg_dict['plot'] = description
+
     def airingsListClicked(self):
         item = self.airingsList.getSelectedItem()
         if not item:
@@ -70,39 +102,22 @@ class RecordingShowWindow(guide.GuideShowWindow):
             'show': self.show
         }
 
-        failed = airing.data['video_details']['state'] == 'failed'
         if airing.type == 'schedule':
-            description = self.show.description or ''
             title = self.show.title
         else:
-            description = airing.description or ''
             title = airing.title or self.show.title
 
-        indicator = ''
+        failed = airing.data['video_details']['state'] == 'failed'
 
-        if failed:
-            description += u'[CR][CR][COLOR FFC81010]Recording failed due to: {0}[/COLOR]'.format(airing.data['video_details']['error']['details'])
-        else:
-            if airing.data['user_info']['position']:
-                left = airing.data['video_details']['duration'] - airing.data['user_info']['position']
-                total = airing.data['video_details']['duration']
-                kwargs['seenratio'] = airing.data['user_info']['position'] / float(total)
-                kwargs['seen'] = airing.data['user_info']['position']
-                description += '[CR][CR]Remaining: {0} of {1}'.format(util.durationToText(left), util.durationToText(total))
-                indicator = 'indicators/seen_partial_hd.png'
-            else:
-                description += '[CR][CR]Length: {0}'.format(util.durationToText(airing.data['video_details']['duration']))
-                indicator = 'indicators/seen_unwatched_hd.png'
+        self.setDialogIndicators(airing, kwargs)
 
         openDialog(
             title,
             info,
-            description,
             airing.snapshot,
             failed,
             airing.watched and 'Mark Unwatched' or 'Mark Watched',
             airing.protected and 'Unprotect' or 'Protect',
-            indicator,
             **kwargs
         )
 
@@ -132,18 +147,7 @@ class RecordingShowWindow(guide.GuideShowWindow):
             elif action == 'protect':
                 changes['button3'] = airing.protected and 'Unprotect' or 'Protect'
 
-            if airing.watched:
-                changes['indicator'] = ''
-            else:
-                if airing.data['user_info']['position']:
-                    changes['indicator'] = 'indicators/seen_partial_hd.png'
-                    total = airing.data['video_details']['duration']
-                    changes['seenratio'] = airing.data['user_info']['position'] / float(total)
-                    changes['seen'] = airing.data['user_info']['position']
-                else:
-                    changes['indicator'] = 'indicators/seen_unwatched_hd.png'
-                    changes['seenratio'] = None
-                    changes['seen'] = None
+            self.setDialogIndicators(airing, changes)
 
         return changes
 
@@ -361,6 +365,7 @@ class RecordingDialog(actiondialog.ActionDialog):
 
         self.button2 = changes.get('button2') or self.button2
         self.button3 = changes.get('button3') or self.button3
+        self.plot = changes.get('plot') or self.plot
         self.seen = changes.get('seen')
         self.seenratio = changes.get('seenratio')
         self.indicator = changes.get('indicator') or ''
@@ -372,13 +377,14 @@ class RecordingDialog(actiondialog.ActionDialog):
     def updateDisplayProperties(self):
         self.setProperty('button2', self.button2)
         self.setProperty('button3', self.button3)
+        self.setProperty('plot', self.plot)
         self.setProperty('indicator', self.indicator)
         self.setProperty('seen', self.seen and '1' or '')
         self.getControl(self.SEEN_PROGRESS_IMAGE_ID).setWidth(int((self.seenratio or 0)*self.SEEN_PROGRESS_WIDTH))
 
 
 def openDialog(
-    title, info, plot, preview, failed, button2, button3, indicator,
+    title, info, preview, failed, button2, button3, plot=None, indicator=None,
     seen=None, seenratio=None, background=None, callback=None, obj=None, show=None
 ):
 
