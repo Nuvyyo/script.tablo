@@ -77,17 +77,17 @@ class Watch(object):
         if self.error:
             return
 
-        self.sd = data.get('bif_url_sd')
-        self.hd = data.get('bif_url_hd')
+        self.bifSD = data.get('bif_url_sd')
+        self.bifHD = data.get('bif_url_hd')
         self.expires = data.get('playlist_url')
         self.token = data.get('token')
         if 'video_details' in data:
             self.width = data['video_details']['width']
             self.height = data['video_details']['height']
 
-        self.getPlaylist(data.get('playlist_url'))
+        self.getPlaylistURL(data.get('playlist_url'))
 
-    def getPlaylist(self, url):
+    def getPlaylistURL(self, url):
         p = urlparse.urlparse(url)
         self.base = '{0}://{1}{2}'.format(p.scheme, p.netloc, p.path.rsplit('/', 1)[0])
         m = m3u8.loads(requests.get(url).text)
@@ -101,9 +101,13 @@ class Watch(object):
 
         self.url = '{0}://{1}{2}'.format(p.scheme, p.netloc, m.playlists[0].uri)
 
-    def makeSeekPlaylist(self, position):
+    def getSegmentedPlaylist(self):
         m = m3u8.loads(requests.get(self.url).text)
         m.base_path = self.base
+        return m
+
+    def makeSeekPlaylist(self, position):
+        m = self.getSegmentedPlaylist()
         duration = m.segments[0].duration
         while duration < position:
             del m.segments[0]
