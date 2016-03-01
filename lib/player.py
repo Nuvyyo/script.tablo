@@ -18,11 +18,19 @@ class TrickModeWindow(kodigui.BaseWindow):
 
     IMAGE_LIST_ID = 100
 
+    PROGRESS_IMAGE_ID = 200
+    PROGRESS_SELECT_IMAGE_ID = 201
+    PROGRESS_WIDTH = 880
+    PROGRESS_SELECT_IMAGE_X = 199
+    PROGRESS_SELECT_IMAGE_Y = -50
+
     def __init__(self, *args, **kwargs):
         kodigui.BaseWindow.__init__(self, *args, **kwargs)
         self.url = kwargs.get('url')
         self.callback = kwargs.get('callback')
+        self.playlist = kwargs.get('playlist')
         self.select = None
+        self.maxTimestamp = 0
 
         self.trickPath = os.path.join(util.PROFILE, 'trick')
         if not os.path.exists(self.trickPath):
@@ -32,10 +40,23 @@ class TrickModeWindow(kodigui.BaseWindow):
 
     def onFirstInit(self):
         self.imageList = kodigui.ManagedControlList(self, self.IMAGE_LIST_ID, 4)
-        if not self.url:
-            return
+        self.progressImage = self.getControl(self.PROGRESS_IMAGE_ID)
+        self.progressSelectImage = self.getControl(self.PROGRESS_SELECT_IMAGE_ID)
 
         self.fillImageList()
+
+        self.setProperty('end', util.durationToShortText(self.maxTimestamp))
+
+    def onAction(self, action):
+        try:
+            self.updateProgressSelection()
+
+            if action == xbmcgui.ACTION_STOP:
+                self.doClose()
+        except:
+            util.ERROR()
+
+        kodigui.BaseWindow.onAction(self, action)
 
     def onClick(self, controlID):
         if controlID != self.IMAGE_LIST_ID:
@@ -45,36 +66,82 @@ class TrickModeWindow(kodigui.BaseWindow):
         if not item:
             return
 
-        frame = item.dataSource
-        self.callback(frame['timestamp'])
+        if self.bif:
+            timestamp = item.dataSource['timestamp']
+        else:
+            timestamp = float(item.getProperty('timestamp'))
+
+        self.setProgress(timestamp)
+        self.callback(timestamp)
 
     def onFocus(self, controlID):
         if self.select is not None:
             self.imageList.selectItem(self.select)
             self.select = None
 
+    def blank(self):
+        self.setProperty('show', '')
+
+    def unBlank(self):
+        self.setProperty('show', '1')
+
     def setPosition(self, position):
-        if not self.url:
+        self.setProperty('current', util.durationToShortText(position))
+
+        if not (self.maxTimestamp):
             return
 
-        i = -1
-        print position
-        for i, frame in enumerate(self.bif.frames):
-            print frame['timestamp']
-            if position > frame['timestamp']:
-                continue
-            break
-        i -= 1
+        self.setProgress(position)
+        self.setProgressSelect(position)
 
-        print i
-        if i >= 0:
-            self.select = i
+        if self.bif:
+            i = -1
+            for i, frame in enumerate(self.bif.frames):
+                if position > frame['timestamp']:
+                    continue
+                break
+            i -= 1
+
+            if i >= 0:
+                self.select = i
+        else:
+            timestamp = 0
+            for i, segment in enumerate(self.playlist.segments):
+                timestamp += segment.duration
+                if timestamp > position:
+                    self.select = i
+                    break
+            else:
+                self.select = 0
+
+    def setProgress(self, position):
+        if not self.started:
+            return
+        w = int((position / float(self.maxTimestamp)) * self.PROGRESS_WIDTH) or 1
+        self.progressImage.setWidth(w)
+
+    def setProgressSelect(self, position):
+        if not self.started:
+            return
+
+        x = self.PROGRESS_SELECT_IMAGE_X + int((position / float(self.maxTimestamp)) * self.PROGRESS_WIDTH)
+        self.progressSelectImage.setPosition(x, self.PROGRESS_SELECT_IMAGE_Y)
+
+        self.setProperty('select', util.durationToShortText(position))
+
+    def updateProgressSelection(self):
+        item = self.imageList.getSelectedItem()
+        if not item:
+            return
+
+        self.setProgressSelect(float(item.getProperty('timestamp')))
 
     def cleanTrickPath(self):
         for f in os.listdir(self.trickPath):
             os.remove(os.path.join(self.trickPath, f))
 
     def getBif(self):
+        self.bif = None
         if not self.url:
             return
 
@@ -83,24 +150,40 @@ class TrickModeWindow(kodigui.BaseWindow):
         urllib.urlretrieve(self.url, bifPath)
         self.bif = bif.Bif(bifPath)
         self.bif.dumpImages(self.trickPath)
+        self.maxTimestamp = self.bif.maxTimestamp
 
     def fillImageList(self):
         items = []
-        for i in range(self.bif.size):
-            print os.path.join(self.trickPath, str(i) + '.jpg')
-            item = kodigui.ManagedListItem(
-                str(self.bif.frames[i]['timestamp']),
-                thumbnailImage=os.path.join(self.trickPath, str(i) + '.jpg'),
-                data_source=self.bif.frames[i]
-            )
-            items.append(item)
+
+        if self.bif:
+            for i in range(self.bif.size):
+                timestamp = self.bif.frames[i]['timestamp']
+                item = kodigui.ManagedListItem(
+                    str(timestamp),
+                    thumbnailImage=os.path.join(self.trickPath, str(i) + '.jpg'),
+                    data_source=self.bif.frames[i]
+                )
+                item.setProperty('timestamp', str(timestamp))
+                items.append(item)
+        else:
+            timestamp = 0
+            for segment in self.playlist.segments:
+                item = kodigui.ManagedListItem(
+                    str(timestamp),
+                    thumbnailImage='',
+                    data_source=segment
+                )
+                item.setProperty('timestamp', str(timestamp))
+                self.maxTimestamp = timestamp
+                timestamp += segment.duration
+                items.append(item)
 
         self.imageList.addItems(items)
 
 
 class TabloPlayer(xbmc.Player):
     def init(self):
-        self.playListFilename = os.path.join(util.PROFILE, 'pl.m3u8')
+        self.playlistFilename = os.path.join(util.PROFILE, 'pl.m3u8')
         self.reset()
         return self
 
@@ -113,10 +196,9 @@ class TabloPlayer(xbmc.Player):
         self.position = 0
         self.isPlayingRecording = False
         self.seeking = False
-        self.playList = None
+        self.playlist = None
         self.segments = None
         self.trickWindow = None
-        self.hasBif = False
         self.item = None
 
     @property
@@ -124,9 +206,7 @@ class TabloPlayer(xbmc.Player):
         return self.startPosition + self.position
 
     def makeSeekedPlaylist(self, position):
-        print len(self.segments)
-        print position
-        m = self.playList
+        m = self.playlist
         m.segments = copy.copy(self.segments)
         if position > 0:
             duration = m.segments[0].duration
@@ -136,13 +216,10 @@ class TabloPlayer(xbmc.Player):
                     break
                 duration += m.segments[0].duration
 
-        print len(m.segments)
-        m.dump(self.playListFilename)
+        m.dump(self.playlistFilename)
 
     def setupTrickMode(self, watch):
-        if watch.bifHD:
-            self.hasBif = True
-        self.trickWindow = TrickModeWindow.create(url=watch.bifHD, callback=self.playAtPosition)
+        self.trickWindow = TrickModeWindow.create(url=watch.bifHD, callback=self.playAtPosition, playlist=self.playlist)
 
     def playAiringChannel(self, airing):
         self.reset()
@@ -179,8 +256,8 @@ class TabloPlayer(xbmc.Player):
         # li.addStreamInfo('video', {'duration': rec.duration})
         self.item.setIconImage(thumb)
 
-        self.playList = watch.getSegmentedPlaylist()
-        self.segments = copy.copy(self.playList.segments)
+        self.playlist = watch.getSegmentedPlaylist()
+        self.segments = copy.copy(self.playlist.segments)
 
         self.setupTrickMode(watch)
 
@@ -199,7 +276,8 @@ class TabloPlayer(xbmc.Player):
         self.startPosition = position
         self.position = 0
         self.makeSeekedPlaylist(position)
-        self.play(self.playListFilename, self.item, False, 0)
+        self.trickWindow.setPosition(self.absolutePosition)
+        self.play(self.playlistFilename, self.item, False, 0)
 
     def wait(self):
         threading.Thread(target=self._wait).start()
@@ -238,13 +316,15 @@ class TabloPlayer(xbmc.Player):
             self._waiting.set()
 
     def onPlayBackStarted(self):
+        self.trickWindow.setPosition(self.absolutePosition)
+        self.trickWindow.blank()
         self.wait()
 
     def onPlayBackSeek(self, time, offset):
-        if self.hasBif:
-            self.seeking = True
-            self.trickWindow.setPosition(self.absolutePosition)
-            self.stop()
+        self.seeking = True
+        self.trickWindow.setPosition(self.absolutePosition)
+        self.trickWindow.unBlank()
+        self.stop()
 
     def stopAndWait(self):
         if self.isPlayingVideo():

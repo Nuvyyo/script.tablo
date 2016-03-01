@@ -7,6 +7,7 @@ class Bif(object):
         self.path = path
         self.size = 0
         self.frames = []
+        self.maxTimestamp = 0
         self.timestampMultiplier = 1000
         self.readHeader()
 
@@ -39,6 +40,8 @@ class Bif(object):
                 self.frames.append(fdata)
 
             del self.frames[-1]  # Remove last frame as it just shows the end of the last actual frame
+
+            self.maxTimestamp = self.frames[-1]['timestamp']
 
     def getImageData(self, idx):
         fdata = self.data['frames'][idx]

@@ -168,6 +168,30 @@ def durationToText(seconds):
     return '0 seconds'
 
 
+def durationToShortText(seconds):
+    """
+    Converts seconds to a short user friendly string
+    Example: 143 -> 2m 23s
+    """
+    days = int(seconds/86400)
+    if days:
+        return '{0}d'.format(days)
+    left = seconds % 86400
+    hours = int(left/3600)
+    if hours:
+        hours = '{0}h'.format(hours)
+    else:
+        hours = ''
+    left = left % 3600
+    mins = int(left/60)
+    if mins:
+        return hours + '{0}m'.format(mins)
+    secs = int(left % 60)
+    if secs:
+        return '{0}s'.format(secs)
+    return '0s'
+
+
 SIZE_NAMES = ("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
 
 
