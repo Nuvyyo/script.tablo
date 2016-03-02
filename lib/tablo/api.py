@@ -90,7 +90,9 @@ class Watch(object):
     def getPlaylistURL(self, url):
         p = urlparse.urlparse(url)
         self.base = '{0}://{1}{2}'.format(p.scheme, p.netloc, p.path.rsplit('/', 1)[0])
-        m = m3u8.loads(requests.get(url).text)
+        text = requests.get(url).text
+        print repr(text)
+        m = m3u8.loads(text)
         # for line in reversed(requests.get(url).text.strip().splitlines()):
         #     if line.startswith('#'):
         #         continue
