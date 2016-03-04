@@ -288,7 +288,7 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
 
     def getRow(self, controlID=None):
         controlID = controlID or self.getFocusId()
-        row = ((controlID - self.gen.maxEnd - 1)/8)
+        row = ((controlID - self.gen.maxEnd - 1)/(self.gen.ITEMS_PER_ROW + 2))
         return row
 
     def onClick(self, controlID):
@@ -531,7 +531,7 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
             self.slotButtons[ID] = None
             row.append((ID, None, False))
 
-        for slot in range(slot+1, 6):
+        for slot in range(slot+1, self.gen.ITEMS_PER_ROW):
             ID = genData['slots'][slot]
 
             self.setProperty('badge.color.{0}'.format(ID), '')
@@ -558,7 +558,7 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
             self.slotButtons[ID] = None
             row.append((ID, None, False))
 
-            for slot in range(slot+1, 6):
+            for slot in range(slot+1, self.gen.ITEMS_PER_ROW):
                 ID = genData['slots'][slot]
 
                 control = self.getControl(ID)
@@ -675,6 +675,7 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
 class EPGXMLGenerator(object):
     BASE_ID = 100
     HALF_HOUR_WIDTH = 320
+    ITEMS_PER_ROW = 16
 
     BASE_XML_PATH = os.path.join(
         SKIN_PATH, 'resources', 'skins', 'Main', '720p', 'script-tablo-livetv.xml'
@@ -792,7 +793,7 @@ class EPGXMLGenerator(object):
             airingsXML = ''
             slots = []
             airingsXML += self.CHANNEL_LABEL_BASE_XML.format(ID=chanLabelID)
-            for x in range(6):
+            for x in range(self.ITEMS_PER_ROW):
                 if not x:
                     width = 1100
                 else:

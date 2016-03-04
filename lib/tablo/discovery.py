@@ -23,9 +23,9 @@ class TabloDevice:
     port = 8885
 
     def __init__(self, data):
-        self.ID = data['serverid']
+        self.ID = data.get('serverid')
         self.name = data.get('name')
-        self.IP = data['private_ip']
+        self.IP = data.get('private_ip')
         self.publicIP = data.get('public_ip')
         self.SSL = data.get('ssl')
         self.host = data.get('host')
