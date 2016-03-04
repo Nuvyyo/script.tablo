@@ -56,6 +56,7 @@
                 </control> -->
 
                 <control type="grouplist">
+                    <visible>IsEmpty(Window.Property(protected))</visible>
                     <left>30</left>
                     <top>20</top>
                     <height>100</height>
@@ -72,6 +73,7 @@
                         <texture>$INFO[Window.Property(indicator)]</texture>
                     </control>
                     <control type="label">
+                        <visible>!IsEmpty(Window.Property(indicator))</visible>
                         <width min="200" max="1060">auto</width>
                         <height>100</height>
                         <font>WeatherTemp</font>
@@ -79,6 +81,62 @@
                         <align>left</align>
                         <aligny>center</aligny>
                         <label>$INFO[Window.Property(title)]</label>
+                    </control>
+                    <control type="label">
+                        <visible>IsEmpty(Window.Property(indicator))</visible>
+                        <width min="200" max="1090">auto</width>
+                        <height>100</height>
+                        <font>WeatherTemp</font>
+                        <textcolor>FFFFFFFF</textcolor>
+                        <align>left</align>
+                        <aligny>center</aligny>
+                        <label>$INFO[Window.Property(title)]</label>
+                    </control>
+                </control>
+
+                <control type="grouplist">
+                    <visible>!IsEmpty(Window.Property(protected))</visible>
+                    <left>30</left>
+                    <top>20</top>
+                    <height>100</height>
+                    <width>1060</width>
+                    <orientation>horizontal</orientation>
+                    <itemgap>20</itemgap>
+                    <usecontrolcoords>true</usecontrolcoords>
+                    <control type="image">
+                        <visible>!IsEmpty(Window.Property(indicator))</visible>
+                        <posx>0</posx>
+                        <posy>35</posy>
+                        <width>30</width>
+                        <height>30</height>
+                        <texture>$INFO[Window.Property(indicator)]</texture>
+                    </control>
+                    <control type="label">
+                        <visible>!IsEmpty(Window.Property(indicator))</visible>
+                        <width min="200" max="960">auto</width>
+                        <height>100</height>
+                        <font>WeatherTemp</font>
+                        <textcolor>FFFFFFFF</textcolor>
+                        <align>left</align>
+                        <aligny>center</aligny>
+                        <label>$INFO[Window.Property(title)]</label>
+                    </control>
+                    <control type="label">
+                        <visible>IsEmpty(Window.Property(indicator))</visible>
+                        <width min="200" max="1010">auto</width>
+                        <height>100</height>
+                        <font>WeatherTemp</font>
+                        <textcolor>FFFFFFFF</textcolor>
+                        <align>left</align>
+                        <aligny>center</aligny>
+                        <label>$INFO[Window.Property(title)]</label>
+                    </control>
+                    <control type="image">
+                        <posx>0</posx>
+                        <posy>38</posy>
+                        <width>20</width>
+                        <height>24</height>
+                        <texture>recordings/protected_hd.png</texture>
                     </control>
                 </control>
 

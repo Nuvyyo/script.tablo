@@ -86,7 +86,11 @@ class TrickModeWindow(kodigui.BaseWindow):
         self.setProperty('show', '1')
 
     def setPosition(self, position):
+        position = min(position, self.maxTimestamp)
+
         self.setProperty('current', util.durationToShortText(position))
+
+        util.DEBUG_LOG('TrickMode: Setting position at {0} of {1}'.format(position, self.maxTimestamp))
 
         if not (self.maxTimestamp):
             return
@@ -151,6 +155,7 @@ class TrickModeWindow(kodigui.BaseWindow):
         self.bif = bif.Bif(bifPath)
         self.bif.dumpImages(self.trickPath)
         self.maxTimestamp = self.bif.maxTimestamp
+        util.DEBUG_LOG('TrickMode: Bif frames ({0}) - max timestamp ({1})'.format(self.bif.size, self.bif.maxTimestamp))
 
     def fillImageList(self):
         items = []
@@ -224,17 +229,18 @@ class TabloPlayer(xbmc.Player):
     def playAiringChannel(self, airing):
         self.reset()
         self.airing = airing
+
         watch = airing.watch()
         if watch.error:
             return watch.error
 
         self.watch = watch
-        title = airing.title
+        title = '{0} {1}'.format(airing.displayChannel(), airing.network)
         thumb = airing.thumb
         li = xbmcgui.ListItem(title, title, thumbnailImage=thumb, path=watch.url)
         li.setInfo('video', {'title': title, 'tvshowtitle': title})
         li.setIconImage(thumb)
-        util.DEBUG_LOG('Player: Playing channel')
+        util.DEBUG_LOG('Player (LiveTV): Playing channel')
         self.play(watch.url, li, False, 0)
 
         return None
@@ -262,10 +268,10 @@ class TabloPlayer(xbmc.Player):
         self.setupTrickMode(watch)
 
         if rec.position and resume:
-            util.DEBUG_LOG('Player: Resuming at {0}'.format(rec.position))
+            util.DEBUG_LOG('Player (Recording): Resuming at {0}'.format(rec.position))
             self.playAtPosition(rec.position)
         else:
-            util.DEBUG_LOG('Player: Playing from beginning')
+            util.DEBUG_LOG('Player (Recording): Playing from beginning')
             self.playAtPosition(0)
             # self.play(watch.url, li, False, 0)
 
@@ -280,9 +286,12 @@ class TabloPlayer(xbmc.Player):
         self.play(self.playlistFilename, self.item, False, 0)
 
     def wait(self):
-        threading.Thread(target=self._wait).start()
+        if self.isPlayingRecording:
+            threading.Thread(target=self._waitRecording).start()
+        else:
+            threading.Thread(target=self._waitLiveTV).start()
 
-    def _wait(self):
+    def _waitRecording(self):
         self._waiting.clear()
         try:
             while self.isPlayingVideo() and not xbmc.abortRequested:
@@ -293,38 +302,62 @@ class TabloPlayer(xbmc.Player):
                 xbmc.sleep(100)
 
                 if xbmc.getCondVisibility('Player.Caching') and self.position < 1:
-                    util.DEBUG_LOG('Player: Forcing resume at {0}'.format(self.position))
+                    util.DEBUG_LOG('Player (Recording): Forcing resume at {0}'.format(self.position))
                     self.pause()
 
                 if not xbmc.getCondVisibility('VideoPlayer.IsFullscreen'):
-                    util.DEBUG_LOG('Player: Video closed')
+                    util.DEBUG_LOG('Player (Recording): Video closed')
                     break
 
             if self.position and self.isPlayingRecording:
-                util.DEBUG_LOG('Player: Saving position')
+                util.DEBUG_LOG('Player (Recording): Saving position')
                 self.airing.setPosition(self.absolutePosition)
                 # self.airing.setPosition(self.position)
 
             if not self.seeking:
                 if self.isPlayingVideo():
-                    util.DEBUG_LOG('Player: Stopping video')
+                    util.DEBUG_LOG('Player (Recording): Stopping video')
                     self.stop()
 
-                util.DEBUG_LOG('Player: Played for {0} seconds'.format(self.position))
+                util.DEBUG_LOG('Player (Recording): Played for {0} seconds'.format(self.position))
                 self.finish()
         finally:
             self._waiting.set()
 
+    def _waitLiveTV(self):
+        self._waiting.clear()
+        try:
+            while self.isPlayingVideo() and not xbmc.abortRequested:
+                xbmc.sleep(100)
+
+                if not xbmc.getCondVisibility('VideoPlayer.IsFullscreen'):
+                    util.DEBUG_LOG('Player (LiveTV): Video closed')
+                    break
+
+            if self.isPlayingVideo():
+                util.DEBUG_LOG('Player (LiveTV): Stopping video')
+                self.stop()
+
+            util.DEBUG_LOG('Player (LiveTV): Played for {0} seconds'.format(self.position))
+        finally:
+            self._waiting.set()
+
     def onPlayBackStarted(self):
-        self.trickWindow.setPosition(self.absolutePosition)
-        self.trickWindow.blank()
+        if self.isPlayingRecording:
+            self.trickWindow.setPosition(self.absolutePosition)
+            self.trickWindow.blank()
+
         self.wait()
 
     def onPlayBackSeek(self, time, offset):
+        if not self.isPlayingRecording:
+            return
+
         self.seeking = True
         self.trickWindow.setPosition(self.absolutePosition)
         self.trickWindow.unBlank()
         self.stop()
+        util.DEBUG_LOG('Player (Recording): Seek started at {0} (absolute: {1})'.format(self.position, self.absolutePosition))
 
     def stopAndWait(self):
         if self.isPlayingVideo():
@@ -332,6 +365,9 @@ class TabloPlayer(xbmc.Player):
             self._waiting.wait()
 
     def finish(self):
+        if not self.isPlayingRecording:
+            return
+
         self.trickWindow.doClose()
         del self.trickWindow
         self.trickWindow = None

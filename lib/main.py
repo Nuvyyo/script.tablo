@@ -5,7 +5,7 @@ import backgroundthread
 
 
 def start():
-    util.LOG('[- START -----------------------]')
+    util.LOG('[- START -----------------------] [{0}]'.format(util.ADDON.getAddonInfo('version')))
     util.setGlobalProperty('guide.filter', '')
     util.setGlobalProperty('section', '')
 
@@ -33,9 +33,11 @@ def start():
 
             connected = False
 
-        bw.doClose()
-        del bw
+        bw.setProperty('busy', '1')
 
         backgroundthread.BGThreader.shutdown()
+
+        bw.doClose()
+        del bw
 
     util.LOG('[- END -------------------------]')

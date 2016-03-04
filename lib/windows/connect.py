@@ -36,7 +36,7 @@ class ConnectWindow(kodigui.BaseWindow):
         self.deviceList.reset()
         tablo.API.discover()
         for device in tablo.API.devices.tablos:
-            self.deviceList.addItem(kodigui.ManagedListItem(device.name, data_source=device))
+            self.deviceList.addItem(kodigui.ManagedListItem(device.displayName, data_source=device))
 
         self.setProperty('initialized', '1')
 

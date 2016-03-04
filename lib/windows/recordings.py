@@ -181,6 +181,8 @@ class RecordingShowWindow(guide.GuideShowWindow):
             else:
                 item.setProperty('indicator', 'recordings/seen_small_unwatched_hd.png')
 
+        item.setProperty('protected', airing.protected and '1' or '')
+
         if airing.deleted:
             item.setProperty('disabled', '1')
 
@@ -293,6 +295,8 @@ class RecordingDialog(actiondialog.ActionDialog):
         else:
             self.setFocusId(self.WATCH_BUTTON_ID)
 
+        self.setProperty('protected', self.object.protected and '1' or '')
+
     def onReInit(self):
         actiondialog.ActionDialog.onReInit(self)
         player.PLAYER.stopAndWait()
@@ -380,6 +384,7 @@ class RecordingDialog(actiondialog.ActionDialog):
         self.setProperty('plot', self.plot)
         self.setProperty('indicator', self.indicator)
         self.setProperty('seen', self.seen and '1' or '')
+        self.setProperty('protected', self.object.protected and '1' or '')
         self.getControl(self.SEEN_PROGRESS_IMAGE_ID).setWidth(int((self.seenratio or 0)*self.SEEN_PROGRESS_WIDTH))
 
 

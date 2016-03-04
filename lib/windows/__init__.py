@@ -18,19 +18,29 @@ class WindowManager(xbmc.Monitor):
         util.setGlobalProperty('menu.visible', '1')
         self.menu = None
         self.current = None
+        self.last = None
         self.windows = {}
         self.waiting = False
         self.exit = False
 
     def open(self, window):
+        self.last = self.current
+
+        if self.current and self.current.name == window.name:
+            return
+
         if self.current:
             self.current.doClose()
 
         if window.name in self.windows:
+            self.current = self.windows[window.name]
             self.windows[window.name].show()
         else:
             self.current = window.generate() or window.create()
             self.windows[window.name] = self.current
+
+    def windowWasLast(self, window):
+        return window == self.last
 
     def showMenu(self):
         self.waiting = False
@@ -82,6 +92,8 @@ class WindowManager(xbmc.Monitor):
         if not xbmcgui.Dialog().yesno('Exit?', 'Close Tablo?'):
             return False
 
+        self.saveCurrent()
+
         self.exit = True
         self.showMenu()
         self.current = None
@@ -96,6 +108,13 @@ class WindowManager(xbmc.Monitor):
         self.menu = None
 
         return True
+
+    def saveCurrent(self):
+        if not self.current:
+            return
+
+        util.setSetting('window.last', self.current.name)
+
 
 WM = WindowManager()
 
@@ -112,31 +131,27 @@ class MenuDialog(kodigui.BaseDialog):
         self.recordingsButton = self.getControl(103)
         self.guideButton = self.getControl(104)
         self.scheduledButton = self.getControl(105)
+        self.loadFirstWindow()
 
     def onReInit(self):
         self.exit = True
 
     def onClick(self, controlID):
         if controlID == 101:
-            WM.open(DeviceWindow)
-            WM.hideMenu()
+            self.openWindow(DeviceWindow)
         elif controlID == 102:
-            WM.open(LiveTVWindow)
-            WM.hideMenu()
+            self.openWindow(LiveTVWindow)
         elif controlID == 103:
-            WM.open(RecordingsWindow)
-            WM.hideMenu()
+            self.openWindow(RecordingsWindow)
         elif controlID == 104:
-            WM.open(GuideWindow)
-            WM.hideMenu()
+            self.openWindow(GuideWindow)
         elif controlID == 105:
-            WM.open(ScheduledWindow)
-            WM.hideMenu()
+            self.openWindow(ScheduledWindow)
 
     def onAction(self, action):
         try:
             if action == xbmcgui.ACTION_MOVE_RIGHT:
-                WM.hideMenu()
+                self.onClick(self.getFocusId())
                 return
             elif action == xbmcgui.ACTION_PREVIOUS_MENU or action == xbmcgui.ACTION_NAV_BACK:
                 WM.finish()
@@ -145,6 +160,22 @@ class MenuDialog(kodigui.BaseDialog):
             util.ERROR()
 
         kodigui.BaseWindow.onAction(self, action)
+
+    def openWindow(self, window, hide_menu=True):
+        WM.open(window)
+        if hide_menu:
+            WM.hideMenu()
+
+    def loadFirstWindow(self):
+        last = util.getSetting('window.last')
+        if last:
+            for window, ID in ((DeviceWindow, 101), (LiveTVWindow, 102), (RecordingsWindow, 103), (GuideWindow, 104), (ScheduledWindow, 105)):
+                if window.name == last:
+                    self.setFocusId(ID)
+                    return self.openWindow(window, hide_menu=False)
+
+        self.setFocusId(102)
+        self.openWindow(LiveTVWindow, hide_menu=False)
 
 device.WM = WM
 livetv.WM = WM

@@ -1,4 +1,3 @@
-import xbmc
 import kodigui
 from lib import util
 

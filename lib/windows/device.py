@@ -17,8 +17,13 @@ class DeviceWindow(kodigui.BaseWindow):
     DRIVE_WIDTH = 680
 
     def onFirstInit(self):
-        self.setProperty('device.name', tablo.API.device.name)
-        hdinfo = tablo.API.server.harddrives.get()
+        self.setProperty('device.name', tablo.API.device.displayName)
+        try:
+            hdinfo = tablo.API.server.harddrives.get()
+        except:
+            hdinfo = None
+            util.ERROR()
+
         if hdinfo:
             controlID = 200
             for i, drive in enumerate(hdinfo):
@@ -35,20 +40,21 @@ class DeviceWindow(kodigui.BaseWindow):
                 control.setWidth(w - 10)
                 controlID += 100
 
-        self.setProperty('firmware', tablo.API.serverInfo.get('version', ''))
+        if not tablo.API.serverInfo:
+            tablo.API.getServerInfo()
+
+        self.setProperty('firmware', tablo.API.serverInfo.get('version', '[COLOR FFFF8080]Failed to get device information[/COLOR]'))
         self.setProperty('ip.address', tablo.API.serverInfo.get('local_address', ''))
         si = tablo.API.serverInfo.get('server_id', '')
-        self.setProperty('mac.address', '{0}:{1}:{2}:{3}:{4}:{5}'.format(si[4:6], si[6:8], si[8:10], si[10:12], si[12:14], si[14:16]))
+        if si:
+            self.setProperty('mac.address', '{0}:{1}:{2}:{3}:{4}:{5}'.format(si[4:6], si[6:8], si[8:10], si[10:12], si[12:14], si[14:16]))
 
         self.setProperty('addon.version', util.ADDON.getAddonInfo('version'))
 
     def onAction(self, action):
         try:
-            if action == xbmcgui.ACTION_MOVE_LEFT or action == xbmcgui.ACTION_NAV_BACK:
+            if action in(xbmcgui.ACTION_MOVE_LEFT, xbmcgui.ACTION_NAV_BACK, xbmcgui.ACTION_PREVIOUS_MENU):
                 WM.showMenu()
-                return
-            elif action == xbmcgui.ACTION_PREVIOUS_MENU:
-                WM.finish()
                 return
         except:
             util.ERROR()

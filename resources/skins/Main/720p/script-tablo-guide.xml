@@ -28,7 +28,15 @@
                 start="0,0"
                 end="-290,0"
                 time="200"
-                condition="ControlGroup(300).HasFocus(0) | [ !IsEmpty(Window.Property(hide.menu)) + IsEmpty(Window(10000).Property(script.tablo.menu.visible))]"
+                condition="ControlGroup(300).HasFocus(0) + IsEmpty(Window.Property(hide.menu))"
+            >Conditional</animation>
+
+            <animation
+                effect="slide"
+                start="0,0"
+                end="-290,0"
+                time="200"
+                condition="!IsEmpty(Window.Property(hide.menu)) + IsEmpty(Window(10000).Property(script.tablo.menu.visible))"
             >Conditional</animation>
 
             <control type="image">
@@ -76,7 +84,7 @@
                     <scrolltime>200</scrolltime>
                     <orientation>vertical</orientation>
                     <onleft>50</onleft>
-                    <onright>300</onright>
+                    <!-- <onright>300</onright> -->
                     <itemlayout height="70">
                        <control type="label">
                             <left>0</left>
@@ -139,7 +147,7 @@
                     <textcolor>FFFFFFFF</textcolor>
                     <align>left</align>
                     <aligny>center</aligny>
-                    <label>[B]$INFO[Window(10000).property(script.tablo.section)][/B]$INFO[Window(10000).Property(script.tablo.guide.filter), / , [B]*[/B]]</label>
+                    <label>[B]$INFO[Window(10000).property(script.tablo.section)][/B]$INFO[Window(10000).Property(script.tablo.guide.filter), / ]</label>
                 </control>
 
                 <control type="panel" id="301">

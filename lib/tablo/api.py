@@ -491,20 +491,24 @@ class TabloApi(Endpoint):
         Endpoint.__init__(self)
         self.device = None
         self.devices = None
-        self.timezone = None
+        self.timezone = pytz.UTC
         self.serverInfo = {}
 
     def discover(self):
         self.devices = discovery.Devices()
 
     def getServerInfo(self):
-        info = self.server.info.get()
+        try:
+            info = self.server.info.get()
+        except:
+            traceback.print_exc()
+            return
+
         self.serverInfo = info
         timezone = info.get('timezone')
-        if not timezone:
-            self.timezone = pytz.UTC()
 
-        self.timezone = pytz.timezone(timezone)
+        if timezone:
+            self.timezone = pytz.timezone(timezone)
 
     def foundTablos(self):
         return bool(self.devices and self.devices.tablos)

@@ -1,3 +1,20 @@
+- 0.0.8
+
+ADD:     Implement PgUp and PgDn in EPG
+FIX:     Various guide navigation issues
+FIX:     Trick mode progress bar extending past end on short videos
+CHANGE:  Match trick mode progress bar style to style in device view
+FIX:     Fallback to hostname for device name if server info fails
+CHANGE:  Remove * indicator from title in guide/recordings
+CHANGE:  Pressing select on the index bar now jumps to the shows panel at the first item for that letter
+CHANGE:  ESC now behaves the same as backspace, opening the submenu and then menu before confirming exit
+CHANGE:  Pressing right on the main and sub menus now behaves the same as pressing select
+CHANGE:  Selecting an item from the submenu now also closes the submenu
+CHANGE:  On first start the live TV view is now loaded automatically
+CHANGE:  Now remembers the last view and loads that automatically on startup
+ADD:     Added protected indicators to airing list cells and detail view
+CHANGE:  Device view now shows failed message (on version item) on failure to get server info
+
 - 0.0.1
 
 Initial work begins

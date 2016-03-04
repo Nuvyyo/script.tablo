@@ -1,7 +1,10 @@
 Add any missing indicators
 Fix recording error message
-Improve: Start video at saved position
-Test: Advance EPG on half hour change
-Maybe: bif based seeking?
-Add no 'whatever' messages when there is no content for a section
+Add 'No <whatver_content>' messages when there is no content for a section
 'More' indicators on EPG for airings that go off the left
+Handling situation where no server info returned on device view
+
+Watch for: It got stuck in state where only 4 of the 6 visible channels were scrolling as I navigated left / right. The other two remained static / stuck where they were.
+
+When initially navigating to the Live TV screen from the main menu, no airing is displayed as focused (with white background). It’s not until navigating up/down/
+right again that it would redraw with the focused appearance.

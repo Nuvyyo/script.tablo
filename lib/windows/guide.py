@@ -9,6 +9,7 @@ import threading
 from lib import util
 from lib import backgroundthread
 from lib import tablo
+from lib import player
 
 from lib.tablo import grid
 
@@ -102,6 +103,7 @@ class GuideWindow(kodigui.BaseWindow):
 
     def onFirstInit(self):
         self._showingDialog = False
+        self.filter = None
 
         self.typeList = kodigui.ManagedControlList(self, self.MENU_LIST_ID, 3)
         self.showList = kodigui.ManagedControlList(self, self.SHOW_PANEL_ID, 11)
@@ -122,10 +124,11 @@ class GuideWindow(kodigui.BaseWindow):
         self.onReInit()
 
     def onReInit(self):
-        if not self._showingDialog:
+        self.setFilter()
+
+        if not self._showingDialog and not WM.windowWasLast(self):
             self.fillShows()
 
-        self.setFilter()
         self.onWindowFocus()
 
     def onWindowFocus(self):
@@ -136,19 +139,18 @@ class GuideWindow(kodigui.BaseWindow):
         try:
             self.updateKey(action)
 
-            if action == xbmcgui.ACTION_NAV_BACK:
+            if action == xbmcgui.ACTION_NAV_BACK or action == xbmcgui.ACTION_PREVIOUS_MENU:
                 if xbmc.getCondVisibility('ControlGroup({0}).HasFocus(0)'.format(self.MENU_GROUP_ID)) or self.getProperty('hide.menu'):
                     WM.showMenu()
                     return
                 else:
                     self.setFocusId(self.MENU_GROUP_ID)
                     return
-            elif action == xbmcgui.ACTION_PREVIOUS_MENU:
-                WM.finish()
-                return
-            elif self.getFocusId(self.SHOW_PANEL_ID):
+            elif self.getFocusId() == self.SHOW_PANEL_ID:
                 if action in (xbmcgui.ACTION_MOVE_UP, xbmcgui.ACTION_MOVE_DOWN, xbmcgui.ACTION_MOVE_LEFT, xbmcgui.ACTION_MOVE_RIGHT):
                     self.updateSelected()
+            elif action == xbmcgui.ACTION_MOVE_RIGHT and self.getFocusId() == self.MENU_LIST_ID:
+                self.onClick(self.MENU_LIST_ID)
         except:
             util.ERROR()
 
@@ -158,10 +160,13 @@ class GuideWindow(kodigui.BaseWindow):
         if controlID == self.MENU_LIST_ID:
             item = self.typeList.getSelectedItem()
             if item:
-                self.setFilter(item.dataSource)
-                self.fillShows()
+                if self.setFilter(item.dataSource):
+                    self.fillShows()
+                self.setFocusId(self.SHOW_PANEL_ID)
         elif controlID == self.SHOW_PANEL_ID:
             self.showClicked()
+        elif controlID == self.KEY_LIST_ID:
+            self.setFocusId(self.SHOW_PANEL_ID)
 
     def onFocus(self, controlID):
         if controlID == 50:
@@ -204,11 +209,17 @@ class GuideWindow(kodigui.BaseWindow):
     def setFilter(self, filter_=False):
         if filter_ is False:
             filter_ = self.filter
-        else:
-            self.filter = filter_
+
+        ret = True
+        if filter_ == self.filter:
+            ret = False
+
+        self.filter = filter_
 
         util.setGlobalProperty('section', self.section)
         util.setGlobalProperty('guide.filter', [t[1] for t in self.types if t[0] == filter_][0])
+
+        return ret
 
     def updateKey(self, action=None):
         if self.getFocusId() == self.SHOW_PANEL_ID:
@@ -597,12 +608,9 @@ class GuideShowWindow(kodigui.BaseWindow):
 
         if action:
             if action == 'watch':
-                watch = (airing.gridAiring or airing).watch()
-                if watch.error:
-                    xbmcgui.Dialog().ok('Failed', 'Failed to play channel:', ' ', str(watch.error))
-                else:
-                    xbmc.Player().play(watch.url)
-                    return None
+                error = player.PLAYER.playAiringChannel(airing.gridAiring or airing)
+                if error:
+                    xbmcgui.Dialog().ok('Failed', 'Failed to play channel:', ' ', str(error))
             elif action == 'record':
                 airing.schedule()
                 self.show.update()

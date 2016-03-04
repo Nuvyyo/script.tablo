@@ -41,6 +41,7 @@ class Grid(object):
         self.channels = {}
         self.paths = []
         self._airings = {}
+        self._hasData = {}
         self.updateCallback = update_callback
         self._tasks = []
         self.workPath = os.path.join(work_path, 'grid')
@@ -154,6 +155,8 @@ class Grid(object):
         backgroundthread.BGThreader.addTask(t)
 
     def channelDataCallback(self, path, data):
+        self._hasData[path] = data and True or False
+
         self.saveChannelAiringData(self.channels[path], data)  # This only works HERE - before we convert the airing data
 
         self._airings[path] = [tablo.GridAiring(a) for a in data]
@@ -183,6 +186,9 @@ class Grid(object):
     def airings(self, start, cutoff, channel_path=None, channel=None):
         channel = channel or self.channels[channel_path]
         return [a for a in self._airings[channel.path] if a.datetimeEnd > start and a.datetime < cutoff]
+
+    def hasNoData(self, path):
+        return self._hasData.get(path) is False
 
     def getAiring(self, path):
         for c in self._airings.values():

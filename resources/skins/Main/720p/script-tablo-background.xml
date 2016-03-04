@@ -5,15 +5,21 @@
         <posx>0</posx>
         <posy>0</posy>
     </coordinates>
+    <backgroundcolor>0xff101924</backgroundcolor>
     <controls>
-        <control type="image">
-            <posx>0</posx>
-            <posy>0</posy>
-            <width>1280</width>
-            <height>720</height>
-            <texture>script-tablo-white_square.png</texture>
-            <!-- <colordiffuse>FF101924</colordiffuse> -->
-            <colordiffuse>FF000000</colordiffuse>
+        <control type="multiimage">
+            <visible>!IsEmpty(Window.Property(busy))</visible>
+            <posx>626</posx>
+            <posy>346</posy>
+            <width>28</width>
+            <height>28</height>
+            <imagepath>/home/ruuk/git/script.tablo/resources/skins/Main/media/spinners</imagepath>
+            <timeperimage>50</timeperimage>
+            <fadetime>0</fadetime>
+            <pauseatend>0</pauseatend>
+            <randomize>false</randomize>
+            <loop>yes</loop>
+            <aspectratio>stretch</aspectratio>
         </control>
     </controls>
 </window>

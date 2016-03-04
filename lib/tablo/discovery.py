@@ -73,6 +73,10 @@ class TabloDevice:
         self.name = data['name']
         self.version = data['version']
 
+    @property
+    def displayName(self):
+        return self.name or self.host
+
 
 class Devices(object):
     MAX_AGE = 3600
