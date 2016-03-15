@@ -1,3 +1,10 @@
+- 0.0.9
+
+FIX:     Issue where not all items displayed when there were many items in the EPG timespan for a channel
+ADD:     Indicators for items that start before EPG left time
+FIX:     Navigation onto short items on EPG is now handled properly
+ADD:     Empty content messages to views
+
 - 0.0.8
 
 ADD:     Implement PgUp and PgDn in EPG
