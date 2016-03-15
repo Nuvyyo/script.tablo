@@ -15,6 +15,11 @@ class RecordingsWindow(guide.GuideWindow):
     view = 'recordings'
     section = 'Recordings'
 
+    emptyMessage = ('No Recordings', 'You can schedule recordings from the Guide screen.')
+    emptyMessageTVShows = ('No Recorded TV Shows', 'You can schedule recordings from the Guide screen.')
+    emptyMessageMovies = ('No Recorded Movies', 'You can schedule recordings from the Guide screen.')
+    emptyMessageSports = ('No Recorded Sports', 'You can schedule recordings from the Guide screen.')
+
     @base.dialogFunction
     def showClicked(self):
         item = self.showList.getSelectedItem()

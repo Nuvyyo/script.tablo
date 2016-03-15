@@ -83,6 +83,10 @@ class GuideWindow(kodigui.BaseWindow):
     xmlFile = 'script-tablo-guide.xml'
     path = util.ADDON.getAddonInfo('path')
     theme = 'Main'
+    emptyMessage = ('No Shows to Display',)
+    emptyMessageTVShows = ('No TV Shows to Display',)
+    emptyMessageMovies = ('No Movies to Display',)
+    emptyMessageSports = ('No Sports to Display',)
 
     types = (
         (None, 'All'),
@@ -133,7 +137,7 @@ class GuideWindow(kodigui.BaseWindow):
 
     def onWindowFocus(self):
         if self.getProperty('hide.menu'):
-            self.setFocusId(self.SHOW_GROUP_ID)
+            self.setShowFocus()
 
     def onAction(self, action):
         try:
@@ -162,7 +166,9 @@ class GuideWindow(kodigui.BaseWindow):
             if item:
                 if self.setFilter(item.dataSource):
                     self.fillShows()
-                self.setFocusId(self.SHOW_PANEL_ID)
+
+            self.setShowFocus()
+
         elif controlID == self.SHOW_PANEL_ID:
             self.showClicked()
         elif controlID == self.KEY_LIST_ID:
@@ -177,6 +183,13 @@ class GuideWindow(kodigui.BaseWindow):
     def doClose(self):
         kodigui.BaseWindow.doClose(self)
         self.cancelTasks()
+
+    def setShowFocus(self):
+        xbmc.sleep(100)  # Give window states time to adjust
+        if xbmc.getCondVisibility('Control.IsVisible(301)'):
+            self.setFocusId(self.SHOW_GROUP_ID)
+        else:
+            self.setFocusId(51)
 
     def updateSelected(self):
         item = self.showList.getSelectedItem()
@@ -285,7 +298,7 @@ class GuideWindow(kodigui.BaseWindow):
 
         self.typeList.addItems(items)
 
-        self.setFocusId(200)
+        self.setFocusId(self.MENU_GROUP_ID)
 
     def cancelTasks(self):
         if not self._tasks:
@@ -394,6 +407,23 @@ class GuideWindow(kodigui.BaseWindow):
 
         self.keysList.addItems(keyitems)
         self.showList.addItems(items)
+
+        if items:
+            self.setProperty('empty.message', '')
+            self.setProperty('empty.message2', '')
+        else:
+            if self.filter == 'SERIES':
+                message = self.emptyMessageTVShows
+            elif self.filter == 'MOVIES':
+                message = self.emptyMessageMovies
+            elif self.filter == 'SPORTS':
+                message = self.emptyMessageSports
+            else:
+                message = self.emptyMessage
+
+            self.setProperty('empty.message', message[0])
+            if len(message) > 1:
+                self.setProperty('empty.message2', message[1])
 
         self.getShowData(paths)
 

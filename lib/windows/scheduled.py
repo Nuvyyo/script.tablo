@@ -6,6 +6,7 @@ class ScheduledWindow(guide.GuideWindow):
     view = 'guide'
     state = 'scheduled'
     section = 'Scheduled'
+    emptyMessage = ('No Shows to Display',)
 
     types = (
         (None, ''),
@@ -29,9 +30,6 @@ class ScheduledWindow(guide.GuideWindow):
 
     def onFocus(self, controlID):
         if controlID == 50:
-            self.setFocusId(self.SHOW_GROUP_ID)
+            self.setShowFocus()
             guide.WM.showMenu()
             return
-
-    def onWindowFocus(self):
-        guide.GuideWindow.onWindowFocus(self)

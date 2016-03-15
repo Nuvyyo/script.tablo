@@ -188,7 +188,9 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
             self.selectLastInRow()
             return
 
-        airing = self.getSelectedAiring() or self.getAiringByControlID(self.lastFocus)
+        last = self.getAiringByControlID(self.lastFocus)
+        airing = self.getSelectedAiring() or last
+
         row = self.getRow(self.lastFocus)
         self.fillChannels()
 
@@ -196,10 +198,14 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
             self.selectLastInRow()
 
     def guideLeft(self, at_edge=False, short_airing=None):
-        if at_edge and self.hhData.offsetHalfHours == 0:
-            self.setFocusId(self.lastFocus)
-            WM.showMenu()
-            return
+        if at_edge:
+            if self.hhData.offsetHalfHours == 0:
+                self.setFocusId(self.lastFocus)
+                WM.showMenu()
+                return
+            else:
+                selected = self.getAiringByControlID(self.lastFocus)
+                airing = short_airing or selected
         else:
             selected = self.getSelectedAiring()
             airing = short_airing or selected
@@ -357,7 +363,9 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
         self.setProperty('start', start)
 
     def selectAiring(self, airing, row=None):
-        row = row or self.getRow()
+        if row is None:
+            row = self.getRow()
+
         if row < 0 or row >= len(self.rows):
             return False
 
@@ -372,18 +380,21 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
         return True
 
     def selectFirstInRow(self, row=None, select=None):
-        row = row or self.getRow()
+        if row is None:
+            row = self.getRow()
+
         if row < 0 or row >= len(self.rows):
             return False
 
         controlID = None
         if select:
-            for newID, rowAiring, short in self.rows[row]:
-                if select == rowAiring:
-                    break
-                controlID = newID
-            else:
-                controlID = None
+            if select.datetime < self.hhData.halfHour:
+                for newID, rowAiring, short in self.rows[row]:
+                    if select == rowAiring:
+                        controlID = newID
+                        break
+                else:
+                    controlID = None
 
         if not controlID:
             if self.rows[row][0][2] and not self.hhData.offsetHalfHours == 0:  # Short and not at start of EPG
@@ -397,9 +408,8 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
         return True
 
     def selectLastInRow(self, row=None):
-        row = row or self.getRow(self.lastFocus)
-        if row < 0 or row >= len(self.rows):
-            return False
+        if row is None:
+            row = self.getRow()
 
         for i in range(len(self.rows[row])-1, -1, -1):
             controlID = self.rows[row][i][0]
@@ -449,6 +459,11 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
     def updateChannelAirings(self, path):
         genData = self.gen.channels[path]
 
+        pos = self.gen.paths.index(path)
+        pathID = path.rsplit('/', 1)[-1]
+
+        self.setProperty('started.{0}'.format(pathID), '')
+
         totalwidth = 0
 
         self.setProperty('nodata.{0}'.format(path.rsplit('/', 1)[-1]), '')
@@ -476,6 +491,8 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
                 control.setSelected(False)
 
             if airing.airingNow(self.hhData.halfHour):
+                if self.hhData.offsetHalfHours != 0 and self.hhData.halfHour != airing.datetime:
+                    self.setProperty('started.{0}'.format(pathID), '1')
                 duration = airing.secondsToEnd(start=self.hhData.halfHour)
             else:
                 duration = airing.duration
@@ -524,7 +541,7 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
             control.setWidth(1110 - totalwidth)
             if self.grid.hasNoData(path):
                 control.setLabel(' ')
-                self.setProperty('nodata.{0}'.format(path.rsplit('/', 1)[-1]), '1')
+                self.setProperty('nodata.{0}'.format(pathID), '1')
             else:
                 control.setLabel('Loading...')
             control.setVisible(True)
@@ -542,7 +559,7 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
             control.setLabel('')
             self.slotButtons[ID] = None
 
-        self.rows[self.gen.paths.index(path)] = row
+        self.rows[pos] = row
 
     def initEPG(self):
         row = []
@@ -708,6 +725,22 @@ class EPGXMLGenerator(object):
                         <height>52</height>
                         <texture>livetv/livetv_empty_cell_normal_hd.png</texture>
                     </control>
+                    <control type="image">
+                        <visible>!IsEmpty(Window.Property(started.{PATH})) + !Control.HasFocus({FIRST})</visible>
+                        <posx>184</posx>
+                        <posy>8</posy>
+                        <width>10</width>
+                        <height>36</height>
+                        <texture>livetv/livetv_airing_started_arrow_normal_hd.png</texture>
+                    </control>
+                    <control type="image">
+                        <visible>!IsEmpty(Window.Property(started.{PATH})) + Control.HasFocus({FIRST})</visible>
+                        <posx>184</posx>
+                        <posy>8</posy>
+                        <width>10</width>
+                        <height>36</height>
+                        <texture>livetv/livetv_airing_started_arrow_highlighted_hd.png</texture>
+                    </control>
                 </control>
 '''
 
@@ -724,8 +757,8 @@ class EPGXMLGenerator(object):
                         <aligny>center</aligny>
                         <texturefocus colordiffuse="FFE8E8E8" border="2">script-tablo-epg_slot.png</texturefocus>
                         <texturenofocus colordiffuse="FF101924" border="2">script-tablo-epg_slot.png</texturenofocus>
-    <textureradioonfocus colordiffuse="$INFO[Window(10000).Property(script.tablo.badge.color.{ID})]">livetv/livetv_badge_blank_hd.png</textureradioonfocus>
-    <textureradioonnofocus colordiffuse="$INFO[Window(10000).Property(script.tablo.badge.color.{ID})]">livetv/livetv_badge_blank_hd.png</textureradioonnofocus>
+                        <textureradioonfocus colordiffuse="$INFO[Window(10000).Property(script.tablo.badge.color.{ID})]">livetv/livetv_badge_blank_hd.png</textureradioonfocus>
+                        <textureradioonnofocus colordiffuse="$INFO[Window(10000).Property(script.tablo.badge.color.{ID})]">livetv/livetv_badge_blank_hd.png</textureradioonnofocus>
                         <textureradioofffocus>-</textureradioofffocus>
                         <textureradiooffnofocus>-</textureradiooffnofocus>
                         <radiowidth>30</radiowidth>
@@ -735,7 +768,7 @@ class EPGXMLGenerator(object):
                         <label></label>
                         <scroll>false</scroll>
                     </control>
-'''
+'''  # noqa E501
 
     END_BUTTON_XML = '''
                     <control type="button" id="{0}">
@@ -794,18 +827,19 @@ class EPGXMLGenerator(object):
             slots = []
             airingsXML += self.CHANNEL_LABEL_BASE_XML.format(ID=chanLabelID)
             for x in range(self.ITEMS_PER_ROW):
+                ID = self.nextID()
                 if not x:
                     width = 1100
+                    first = ID
                 else:
                     width = 1
-                ID = self.nextID()
                 slots.append(ID)
                 util.setGlobalProperty('badge.color.{0}'.format(ID), '')
                 airingsXML += self.AIRING_BASE_XML.format(ID=ID, WIDTH=width)
 
             airingsXML += self.END_BUTTON_XML.format(100+idx)
 
-            xml += self.CHANNEL_BASE_XML.format(ID=chanID, AIRINGS_XML=airingsXML, POSY=posy, PATH=p.rsplit('/', 1)[-1])
+            xml += self.CHANNEL_BASE_XML.format(ID=chanID, AIRINGS_XML=airingsXML, POSY=posy, PATH=p.rsplit('/', 1)[-1], FIRST=first)
             data = {'ID': chanID, 'label': chanLabelID, 'slots': slots}
 
             self.channels[p] = data

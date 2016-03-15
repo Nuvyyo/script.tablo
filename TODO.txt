@@ -1,8 +1,5 @@
 Add any missing indicators
 Fix recording error message
-Add 'No <whatver_content>' messages when there is no content for a section
-'More' indicators on EPG for airings that go off the left
-Handling situation where no server info returned on device view
 
 Watch for: It got stuck in state where only 4 of the 6 visible channels were scrolling as I navigated left / right. The other two remained static / stuck where they were.
 

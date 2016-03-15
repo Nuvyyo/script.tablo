@@ -20,6 +20,7 @@
             <onup>100</onup>
             <ondown>100</ondown>
         </control>
+
         <control type="group" id="99">
             <defaultcontrol>100</defaultcontrol>
 
@@ -28,7 +29,7 @@
                 start="0,0"
                 end="-290,0"
                 time="200"
-                condition="ControlGroup(300).HasFocus(0) + IsEmpty(Window.Property(hide.menu))"
+                condition="ControlGroup(300).HasFocus(0) + IsEmpty(Window.Property(hide.menu)) + IsEmpty(Window(10000).Property(script.tablo.menu.visible))"
             >Conditional</animation>
 
             <animation
@@ -139,6 +140,7 @@
                 <defaultcontrol always="true">301</defaultcontrol>
 
                 <control type="label">
+                    <visible>IsEmpty(Window.Property(empty.message))</visible>
                     <posx>20</posx>
                     <posy>100</posy>
                     <width>400</width>
@@ -151,13 +153,14 @@
                 </control>
 
                 <control type="panel" id="301">
+                    <visible>IntegerGreaterThan(Container(301).NumItems,0)</visible>
                     <posx>10</posx>
                     <posy>180</posy>
                     <width>1200</width>
                     <height>740</height>
                     <scrolltime>200</scrolltime>
                     <onleft>100</onleft>
-                    <onright>400</onright>
+                    <onright>51</onright>
                     <!-- 270x360 -->
                     <itemlayout width="200" height="260">
                         <control type="group">
@@ -283,9 +286,51 @@
                     </focusedlayout>
                 </control>
 
+                <control type="grouplist">
+                    <visible>!IntegerGreaterThan(Container(301).NumItems,0)</visible>
+                    <posx>10</posx>
+                    <posy>320</posy>
+                    <width>1200</width>
+                    <height>80</height>
+                    <orientation>vertical</orientation>
+                    <itemgap>10</itemgap>
+                    <aligny>center</aligny>
+                    <control type="label">
+                        <width>1200</width>
+                        <height>40</height>
+                        <font>font30</font>
+                        <textcolor>C8EBEBEB</textcolor>
+                        <align>center</align>
+                        <aligny>center</aligny>
+                        <label>$INFO[Window.Property(empty.message)]</label>
+                    </control>
+                    <control type="label">
+                        <width>1200</width>
+                        <height>30</height>
+                        <font>font13</font>
+                        <textcolor>C8EBEBEB</textcolor>
+                        <align>center</align>
+                        <aligny>center</aligny>
+                        <label>$INFO[Window.Property(empty.message2)]</label>
+                    </control>
+                </control>
+
+                <control type="button" id="51">
+                    <visible>!Control.IsVisible(301)</visible>
+                    <posx>-20</posx>
+                    <posy>-20</posy>
+                    <width>10</width>
+                    <height>10</height>
+                    <font>font13</font>
+                    <label> </label>
+                    <onleft>301</onleft>
+                    <onright>400</onright>
+                </control>
+
                 <control type="group" id="401">
                     <defaultcontrol>400</defaultcontrol>
                     <control type="fixedlist" id="400">
+                        <visible>Control.IsVisible(301)</visible>
                         <posx>1210</posx>
                         <posy>200</posy>
                         <width>50</width>
