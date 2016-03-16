@@ -243,29 +243,48 @@
                         <label></label>
                         <onclick>SetFocus(500)</onclick>
                     </control>
-                    <control type="label">
-                        <visible>Control.HasFocus(401)</visible>
-                        <posx>0</posx>
-                        <posy>0</posy>
-                        <width>280</width>
+                    <control type="grouplist">
+                        <left>0</left>
+                        <top>0</top>
                         <height>60</height>
-                        <font>font30</font>
-                        <textcolor>FFFFFFFF</textcolor>
-                        <align>center</align>
-                        <aligny>center</aligny>
-                        <label>[B]$INFO[Window.Property(section.action)][/B]</label>
-                    </control>
-                    <control type="label">
-                        <visible>!Control.HasFocus(401)</visible>
-                        <posx>0</posx>
-                        <posy>0</posy>
                         <width>280</width>
-                        <height>60</height>
-                        <font>font30</font>
-                        <textcolor>FFFFFFFF</textcolor>
+                        <orientation>horizontal</orientation>
+                        <itemgap>10</itemgap>
                         <align>center</align>
-                        <aligny>center</aligny>
-                        <label>$INFO[Window.Property(section.action)]</label>
+                        <usecontrolcoords>true</usecontrolcoords>
+                        <control type="label">
+                            <visible>Control.HasFocus(401)</visible>
+                            <width>auto</width>
+                            <height>60</height>
+                            <font>font30</font>
+                            <textcolor>FFFFFFFF</textcolor>
+                            <align>center</align>
+                            <aligny>center</aligny>
+                            <label>[B]$INFO[Window.Property(section.action)][/B]</label>
+                        </control>
+                        <control type="label">
+                            <visible>!Control.HasFocus(401)</visible>
+                            <width>auto</width>
+                            <height>60</height>
+                            <font>font30</font>
+                            <textcolor>FFFFFFFF</textcolor>
+                            <align>center</align>
+                            <aligny>center</aligny>
+                            <label>$INFO[Window.Property(section.action)]</label>
+                        </control>
+                        <control type="multiimage">
+                            <visible>!IsEmpty(Window.Property(action.busy))</visible>
+                            <posy>16</posy>
+                            <width>28</width>
+                            <height>28</height>
+                            <imagepath>/home/ruuk/git/script.tablo/resources/skins/Main/media/spinners</imagepath>
+                            <timeperimage>50</timeperimage>
+                            <fadetime>0</fadetime>
+                            <pauseatend>0</pauseatend>
+                            <randomize>false</randomize>
+                            <loop>yes</loop>
+                            <aspectratio>stretch</aspectratio>
+                        </control>
                     </control>
                 </control>
             </control>

@@ -6,6 +6,7 @@ import actiondialog
 from lib import util
 from lib import backgroundthread
 from lib import player
+from lib import tablo
 
 import guide
 
@@ -161,11 +162,17 @@ class RecordingShowWindow(guide.GuideShowWindow):
         if not action or action != 'delete':
             return
 
-        for item in self.airingsList:
-            airing = item.dataSource.get('airing')
-            if not airing:
-                continue
-            airing.delete()
+        self.setProperty('action.busy', '1')
+        try:
+            for item in self.airingsList:
+                airing = item.dataSource.get('airing')
+                if not airing or airing.deleted:
+                    continue
+                airing.delete()
+        except tablo.APIError:
+            util.ERROR()
+        finally:
+            self.setProperty('action.busy', '')
 
         self.modified = True
 
@@ -336,6 +343,14 @@ class RecordingDialog(actiondialog.ActionDialog):
                 self.action = 'watch'
             elif self.parentAction == 'delete':
                 self.action = 'delete'
+                self.setProperty('delete.busy', '1')
+                try:
+                    if not self.doCallback():
+                        self.doClose()
+                finally:
+                    self.setProperty('delete.busy', '')
+                self.parentAction = ''
+                return
             self.parentAction = ''
         elif controlID == self.DIALOG_BOTTOM_BUTTON_ID:
             if self.parentAction == 'watch':
@@ -346,8 +361,22 @@ class RecordingDialog(actiondialog.ActionDialog):
             self.parentAction = ''
         elif controlID == self.TOGGLE_BUTTON_ID:
             self.action = 'toggle'
+            self.setProperty('button2.busy', '1')
+            try:
+                if not self.doCallback():
+                    self.doClose()
+            finally:
+                self.setProperty('button2.busy', '')
+            return
         elif controlID == self.PROTECT_BUTTON_ID:
             self.action = 'protect'
+            self.setProperty('button3.busy', '1')
+            try:
+                if not self.doCallback():
+                    self.doClose()
+            finally:
+                self.setProperty('button3.busy', '')
+            return
         elif controlID == self.DELETE_BUTTON_ID:
             self.setProperty('dialog.message', 'Permanently delete this {0}?'.format(util.LOCALIZED_AIRING_TYPES[self.show.type].lower()))
             self.setProperty('dialog.top', 'Delete')

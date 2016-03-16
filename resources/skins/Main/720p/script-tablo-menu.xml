@@ -19,6 +19,21 @@
                 <colordiffuse>FF2F8EC0</colordiffuse>
             </control>
 
+            <control type="multiimage">
+                <visible>!IsEmpty(Window.Property(busy))</visible>
+                <posx>786</posx>
+                <posy>346</posy>
+                <width>28</width>
+                <height>28</height>
+                <imagepath>/home/ruuk/git/script.tablo/resources/skins/Main/media/spinners</imagepath>
+                <timeperimage>50</timeperimage>
+                <fadetime>0</fadetime>
+                <pauseatend>0</pauseatend>
+                <randomize>false</randomize>
+                <loop>yes</loop>
+                <aspectratio>stretch</aspectratio>
+            </control>
+
             <control type="group" id="100">
                 <defaultcontrol>101</defaultcontrol>
                 <posx>60</posx>

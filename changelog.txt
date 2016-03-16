@@ -1,3 +1,11 @@
+- 0.0.10
+
+FIX:     When returning to shows from a details screen the same item now remains selected
+ADD:     Busy dialog when shows are initially loading until first update set
+ADD:     Add busy spinners to relavant show detail/detail card buttons
+ADD:     'Cannot connect to Tablo' dialog on failure to connect when filling a view
+FIX:     Bug causing record button to display when initially showing details dialog for ended airings
+
 - 0.0.9
 
 FIX:     Issue where not all items displayed when there were many items in the EPG timespan for a channel

@@ -59,9 +59,20 @@ class ActionDialog(kodigui.BaseWindow, util.CronReceiver):
         if not self.callback:
             return False
 
+        if self.action != 'watch':
+            if self.button1 and self.button1[0] == self.action:
+                self.setProperty('button1.busy', '1')
+            elif self.button2 and self.button2[0] == self.action:
+                self.setProperty('button2.busy', '1')
+
         action = self.action
         self.action = None
-        changes = self.callback(self.object, action)
+
+        try:
+            changes = self.callback(self.object, action)
+        finally:
+            self.setProperty('button1.busy', '')
+            self.setProperty('button2.busy', '')
 
         if not changes:
             return False

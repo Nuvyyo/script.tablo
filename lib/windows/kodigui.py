@@ -13,6 +13,8 @@ class BaseFunctions:
     width = 1280
     height = 720
 
+    usesGenerate = False
+
     def __init__(self):
         self.isOpen = True
 
@@ -49,7 +51,7 @@ class BaseFunctions:
 
     @classmethod
     def generate(self):
-        pass
+        return None
 
 
 class BaseWindow(xbmcgui.WindowXML, BaseFunctions):

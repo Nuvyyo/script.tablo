@@ -10,7 +10,9 @@ Movie = api.Movie
 Sport = api.Sport
 Program = api.Program
 GridAiring = api.GridAiring
+
 APIError = api.APIError
+ConnectionError = api.ConnectionError
 
 
 def setUserAgent(agent):

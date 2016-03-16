@@ -17,6 +17,8 @@ class APIError(Exception):
         Exception.__init__(self, *args)
         self.code = kwargs.get('code')
 
+ConnectionError = requests.exceptions.ConnectionError
+
 
 def now():
     return compat.datetime.datetime.now(API.timezone)
@@ -91,7 +93,7 @@ class Watch(object):
         p = urlparse.urlparse(url)
         self.base = '{0}://{1}{2}'.format(p.scheme, p.netloc, p.path.rsplit('/', 1)[0])
         text = requests.get(url).text
-        print repr(text)
+        #print repr(text)
         m = m3u8.loads(text)
         # for line in reversed(requests.get(url).text.strip().splitlines()):
         #     if line.startswith('#'):
@@ -500,6 +502,9 @@ class TabloApi(Endpoint):
     def getServerInfo(self):
         try:
             info = self.server.info.get()
+        except ConnectionError:
+            print 'TabloApi.getServerInfo(): Failed to connect'
+            return
         except:
             traceback.print_exc()
             return

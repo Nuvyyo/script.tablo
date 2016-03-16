@@ -216,7 +216,7 @@
                         <control type="button" id="400">
                             <posx>0</posx>
                             <posy>0</posy>
-                            <width>245</width>
+                            <width>160</width>
                             <height>60</height>
                             <onright>401</onright>
                             <ondown>200</ondown>
@@ -235,7 +235,7 @@
                             <visible>Control.HasFocus(400)</visible>
                             <posx>0</posx>
                             <posy>0</posy>
-                            <width>245</width>
+                            <width>160</width>
                             <height>60</height>
                             <font>font30</font>
                             <textcolor>FFFFFFFF</textcolor>
@@ -247,7 +247,7 @@
                             <visible>!Control.HasFocus(400) + Control.IsEnabled(400)</visible>
                             <posx>0</posx>
                             <posy>0</posy>
-                            <width>245</width>
+                            <width>160</width>
                             <height>60</height>
                             <font>font30</font>
                             <textcolor>FFFFFFFF</textcolor>
@@ -259,7 +259,7 @@
                             <visible>!Control.IsEnabled(400)</visible>
                             <posx>0</posx>
                             <posy>0</posy>
-                            <width>245</width>
+                            <width>160</width>
                             <height>60</height>
                             <font>font30</font>
                             <textcolor>80EBEBEB</textcolor>
@@ -270,12 +270,12 @@
                     </control>
 
                     <control type="group">
-                        <posx>285</posx>
+                        <posx>200</posx>
                         <posy>0</posy>
                         <control type="button" id="401">
                             <posx>0</posx>
                             <posy>0</posy>
-                            <width>245</width>
+                            <width>330</width>
                             <height>60</height>
                             <onleft>400</onleft>
                             <onright>402</onright>
@@ -291,41 +291,58 @@
                             <textoffsety>0</textoffsety>
                             <label></label>
                         </control>
-                        <control type="label">
-                            <visible>Control.HasFocus(401)</visible>
-                            <posx>0</posx>
-                            <posy>0</posy>
-                            <width>245</width>
+                        <control type="grouplist">
+                            <left>0</left>
+                            <top>0</top>
                             <height>60</height>
-                            <font>font30</font>
-                            <textcolor>FFFFFFFF</textcolor>
+                            <width>330</width>
+                            <orientation>horizontal</orientation>
+                            <itemgap>10</itemgap>
                             <align>center</align>
-                            <aligny>center</aligny>
-                            <label>[B]$INFO[Window.Property(button2)][/B]</label>
-                        </control>
-                        <control type="label">
-                            <visible>!Control.HasFocus(401) + Control.IsEnabled(401)</visible>
-                            <posx>0</posx>
-                            <posy>0</posy>
-                            <width>245</width>
-                            <height>60</height>
-                            <font>font30</font>
-                            <textcolor>FFFFFFFF</textcolor>
-                            <align>center</align>
-                            <aligny>center</aligny>
-                            <label>$INFO[Window.Property(button2)]</label>
-                        </control>
-                        <control type="label">
-                            <visible>!Control.IsEnabled(401)</visible>
-                            <posx>0</posx>
-                            <posy>0</posy>
-                            <width>245</width>
-                            <height>60</height>
-                            <font>font30</font>
-                            <textcolor>80EBEBEB</textcolor>
-                            <align>center</align>
-                            <aligny>center</aligny>
-                            <label>$INFO[Window.Property(button2)]</label>
+                            <usecontrolcoords>true</usecontrolcoords>
+                            <control type="label">
+                                <visible>Control.HasFocus(401)</visible>
+                                <width>auto</width>
+                                <height>60</height>
+                                <font>font30</font>
+                                <textcolor>FFFFFFFF</textcolor>
+                                <align>center</align>
+                                <aligny>center</aligny>
+                                <label>[B]$INFO[Window.Property(button2)][/B]</label>
+                            </control>
+                            <control type="label">
+                                <visible>!Control.HasFocus(401) + Control.IsEnabled(401)</visible>
+                                <width>auto</width>
+                                <height>60</height>
+                                <font>font30</font>
+                                <textcolor>FFFFFFFF</textcolor>
+                                <align>center</align>
+                                <aligny>center</aligny>
+                                <label>$INFO[Window.Property(button2)]</label>
+                            </control>
+                            <control type="label">
+                                <visible>!Control.IsEnabled(401)</visible>
+                                <width>auto</width>
+                                <height>60</height>
+                                <font>font30</font>
+                                <textcolor>80EBEBEB</textcolor>
+                                <align>center</align>
+                                <aligny>center</aligny>
+                                <label>$INFO[Window.Property(button2)]</label>
+                            </control>
+                            <control type="multiimage">
+                                <visible>!IsEmpty(Window.Property(button2.busy))</visible>
+                                <posy>16</posy>
+                                <width>28</width>
+                                <height>28</height>
+                                <imagepath>/home/ruuk/git/script.tablo/resources/skins/Main/media/spinners</imagepath>
+                                <timeperimage>50</timeperimage>
+                                <fadetime>0</fadetime>
+                                <pauseatend>0</pauseatend>
+                                <randomize>false</randomize>
+                                <loop>yes</loop>
+                                <aspectratio>stretch</aspectratio>
+                            </control>
                         </control>
                     </control>
 
@@ -351,41 +368,58 @@
                             <textoffsety>0</textoffsety>
                             <label></label>
                         </control>
-                        <control type="label">
-                            <visible>Control.HasFocus(402)</visible>
-                            <posx>0</posx>
-                            <posy>0</posy>
-                            <width>245</width>
+                        <control type="grouplist">
+                            <left>0</left>
+                            <top>0</top>
                             <height>60</height>
-                            <font>font30</font>
-                            <textcolor>FFFFFFFF</textcolor>
-                            <align>center</align>
-                            <aligny>center</aligny>
-                            <label>[B]$INFO[Window.Property(button3)][/B]</label>
-                        </control>
-                        <control type="label">
-                            <visible>!Control.HasFocus(402) + Control.IsEnabled(402)</visible>
-                            <posx>0</posx>
-                            <posy>0</posy>
                             <width>245</width>
-                            <height>60</height>
-                            <font>font30</font>
-                            <textcolor>FFFFFFFF</textcolor>
+                            <orientation>horizontal</orientation>
+                            <itemgap>10</itemgap>
                             <align>center</align>
-                            <aligny>center</aligny>
-                            <label>$INFO[Window.Property(button3)]</label>
-                        </control>
-                        <control type="label">
-                            <visible>!Control.IsEnabled(402)</visible>
-                            <posx>0</posx>
-                            <posy>0</posy>
-                            <width>245</width>
-                            <height>60</height>
-                            <font>font30</font>
-                            <textcolor>80EBEBEB</textcolor>
-                            <align>center</align>
-                            <aligny>center</aligny>
-                            <label>$INFO[Window.Property(button3)]</label>
+                            <usecontrolcoords>true</usecontrolcoords>
+                            <control type="label">
+                                <visible>Control.HasFocus(402)</visible>
+                                <width>auto</width>
+                                <height>60</height>
+                                <font>font30</font>
+                                <textcolor>FFFFFFFF</textcolor>
+                                <align>center</align>
+                                <aligny>center</aligny>
+                                <label>[B]$INFO[Window.Property(button3)][/B]</label>
+                            </control>
+                            <control type="label">
+                                <visible>!Control.HasFocus(402) + Control.IsEnabled(402)</visible>
+                                <width>auto</width>
+                                <height>60</height>
+                                <font>font30</font>
+                                <textcolor>FFFFFFFF</textcolor>
+                                <align>center</align>
+                                <aligny>center</aligny>
+                                <label>$INFO[Window.Property(button3)]</label>
+                            </control>
+                            <control type="label">
+                                <visible>!Control.IsEnabled(402)</visible>
+                                <width>auto</width>
+                                <height>60</height>
+                                <font>font30</font>
+                                <textcolor>80EBEBEB</textcolor>
+                                <align>center</align>
+                                <aligny>center</aligny>
+                                <label>$INFO[Window.Property(button3)]</label>
+                            </control>
+                            <control type="multiimage">
+                                <visible>!IsEmpty(Window.Property(button3.busy))</visible>
+                                <posy>16</posy>
+                                <width>28</width>
+                                <height>28</height>
+                                <imagepath>/home/ruuk/git/script.tablo/resources/skins/Main/media/spinners</imagepath>
+                                <timeperimage>50</timeperimage>
+                                <fadetime>0</fadetime>
+                                <pauseatend>0</pauseatend>
+                                <randomize>false</randomize>
+                                <loop>yes</loop>
+                                <aspectratio>stretch</aspectratio>
+                            </control>
                         </control>
                     </control>
 
@@ -411,29 +445,48 @@
                             <label></label>
                             <onclick>Control.SetFocus(500)</onclick>
                         </control>
-                        <control type="label">
-                            <visible>Control.HasFocus(403)</visible>
-                            <posx>0</posx>
-                            <posy>0</posy>
-                            <width>245</width>
+                        <control type="grouplist">
+                            <left>0</left>
+                            <top>0</top>
                             <height>60</height>
-                            <font>font30</font>
-                            <textcolor>FFFFFFFF</textcolor>
-                            <align>center</align>
-                            <aligny>center</aligny>
-                            <label>[B]Delete..[/B]</label>
-                        </control>
-                        <control type="label">
-                            <visible>!Control.HasFocus(403)</visible>
-                            <posx>0</posx>
-                            <posy>0</posy>
                             <width>245</width>
-                            <height>60</height>
-                            <font>font30</font>
-                            <textcolor>FFFFFFFF</textcolor>
+                            <orientation>horizontal</orientation>
+                            <itemgap>10</itemgap>
                             <align>center</align>
-                            <aligny>center</aligny>
-                            <label>Delete...</label>
+                            <usecontrolcoords>true</usecontrolcoords>
+                            <control type="label">
+                                <visible>Control.HasFocus(403)</visible>
+                                <width>auto</width>
+                                <height>60</height>
+                                <font>font30</font>
+                                <textcolor>FFFFFFFF</textcolor>
+                                <align>center</align>
+                                <aligny>center</aligny>
+                                <label>[B]Delete..[/B]</label>
+                            </control>
+                            <control type="label">
+                                <visible>!Control.HasFocus(403)</visible>
+                                <width>auto</width>
+                                <height>60</height>
+                                <font>font30</font>
+                                <textcolor>FFFFFFFF</textcolor>
+                                <align>center</align>
+                                <aligny>center</aligny>
+                                <label>Delete...</label>
+                            </control>
+                            <control type="multiimage">
+                                <visible>!IsEmpty(Window.Property(delete.busy))</visible>
+                                <posy>16</posy>
+                                <width>28</width>
+                                <height>28</height>
+                                <imagepath>/home/ruuk/git/script.tablo/resources/skins/Main/media/spinners</imagepath>
+                                <timeperimage>50</timeperimage>
+                                <fadetime>0</fadetime>
+                                <pauseatend>0</pauseatend>
+                                <randomize>false</randomize>
+                                <loop>yes</loop>
+                                <aspectratio>stretch</aspectratio>
+                            </control>
                         </control>
                     </control>
                 </control>

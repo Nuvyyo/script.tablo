@@ -37,6 +37,8 @@ class ShowsTask(backgroundthread.Task):
 
             self.callback(tablo.Show.newFromData(show))
 
+        self.callback(None)
+
 
 class DelayedShowUpdater(object):
     def __init__(self, window):
@@ -164,8 +166,8 @@ class GuideWindow(kodigui.BaseWindow):
         if controlID == self.MENU_LIST_ID:
             item = self.typeList.getSelectedItem()
             if item:
-                if self.setFilter(item.dataSource):
-                    self.fillShows()
+                if self.setFilter(item.dataSource) or not self.showList.size():
+                    self.fillShows(reset=True)
 
             self.setShowFocus()
 
@@ -189,7 +191,8 @@ class GuideWindow(kodigui.BaseWindow):
         if xbmc.getCondVisibility('Control.IsVisible(301)'):
             self.setFocusId(self.SHOW_GROUP_ID)
         else:
-            self.setFocusId(51)
+            if self.getFocusId() != self.SHOW_PANEL_ID:
+                self.setFocusId(51)
 
     def updateSelected(self):
         item = self.showList.getSelectedItem()
@@ -328,6 +331,12 @@ class GuideWindow(kodigui.BaseWindow):
         backgroundthread.BGThreader.addTasks(self._tasks)
 
     def updateShowItem(self, show):
+        if not show:
+            self.setProperty('busy', '')
+            return
+
+        self.setProperty('busy', '')
+
         if show.path not in self.showItems:
             return
 
@@ -358,8 +367,20 @@ class GuideWindow(kodigui.BaseWindow):
             item.setProperty('badge.count', '')
 
     @base.tabloErrorHandler
-    def fillShows(self):
+    def fillShows(self, reset=False):
         self.cancelTasks()
+
+        self.setProperty('busy', '1')
+
+        lastPath = None
+        selectItem = None
+        lastPos = None
+
+        if not reset:
+            currentItem = self.showList.getSelectedItem()
+            if currentItem:
+                lastPath = currentItem.dataSource['path']
+                lastPos = currentItem.pos()
 
         self.showItems = {}
 
@@ -367,14 +388,24 @@ class GuideWindow(kodigui.BaseWindow):
         if self.state:
             args = {'state': self.state}
 
-        if self.filter == 'SERIES':
-            keys = tablo.API.views(self.view).series.get(**args)
-        elif self.filter == 'MOVIES':
-            keys = tablo.API.views(self.view).movies.get(**args)
-        elif self.filter == 'SPORTS':
-            keys = tablo.API.views(self.view).sports.get(**args)
-        else:
-            keys = tablo.API.views(self.view).shows.get(**args)
+        try:
+            if self.filter == 'SERIES':
+                keys = tablo.API.views(self.view).series.get(**args)
+            elif self.filter == 'MOVIES':
+                keys = tablo.API.views(self.view).movies.get(**args)
+            elif self.filter == 'SPORTS':
+                keys = tablo.API.views(self.view).sports.get(**args)
+            else:
+                keys = tablo.API.views(self.view).shows.get(**args)
+        except tablo.ConnectionError:
+            self.setProperty('busy', '')
+            xbmcgui.Dialog().ok('Connection Failure', 'Cannot connect to {0}'.format(tablo.API.device.displayName))
+            return
+        except:
+            msg = util.ERROR()
+            self.setProperty('busy', '')
+            xbmcgui.Dialog().ok('Error', 'Error:', msg)
+            return
 
         paths = []
 
@@ -393,6 +424,8 @@ class GuideWindow(kodigui.BaseWindow):
                     ct += 1
                     paths.append(p)
                     item = kodigui.ManagedListItem(data_source={'path': p, 'key': key, 'show': None})
+                    if p == lastPath:
+                        selectItem = item
                     item.setProperty('key', key)
                     if ct > 6:
                         item.setProperty('after.firstrow', '1')
@@ -408,10 +441,23 @@ class GuideWindow(kodigui.BaseWindow):
         self.keysList.addItems(keyitems)
         self.showList.addItems(items)
 
+        if selectItem:
+            self.showList.selectItem(selectItem.pos())
+        elif lastPos:
+            if self.showList.positionIsValid(lastPos):
+                self.showList.selectItem(lastPos)
+            else:
+                if lastPos > 0:
+                    self.showList.selectItem(self.showList.size() - 1)  # Select last item
+
         if items:
             self.setProperty('empty.message', '')
             self.setProperty('empty.message2', '')
+
+            if self.getFocusId() in (51, 400):
+                self.setFocusId(self.SHOW_PANEL_ID)
         else:
+            self.setProperty('busy', '')
             if self.filter == 'SERIES':
                 message = self.emptyMessageTVShows
             elif self.filter == 'MOVIES':
@@ -541,6 +587,7 @@ class GuideShowWindow(kodigui.BaseWindow):
         kodigui.BaseWindow.onAction(self, action)
 
     def doClose(self):
+        self.setProperty('busy', '')
         kodigui.BaseWindow.doClose(self)
         self.cancelTasks()
 
@@ -548,11 +595,14 @@ class GuideShowWindow(kodigui.BaseWindow):
         action = self.scheduleButtonActions.get(controlID)
         if not action:
             return
+        self.setProperty('action.busy', '1')
+        try:
+            self.show.schedule(action)
+        finally:
+            self.setProperty('action.busy', '')
 
-        self.show.schedule(action)
-
-        for item in self.showList:
-            if 'airing' in item.dataSource:
+        for item in self.airingsList:
+            if item.dataSource.get('airing'):
                 grid.addPending(airing=item.dataSource['airing'])
 
         self.setupScheduleDialog()
@@ -604,24 +654,18 @@ class GuideShowWindow(kodigui.BaseWindow):
 
         self.setDialogButtons(airing, kwargs)
 
-        # if airing.scheduled:
-        #     kwargs['button1'] = ('unschedule', "Don't Record {0}".format(util.LOCALIZED_AIRING_TYPES[self.show.type]))
-        #     kwargs['title_indicator'] = 'indicators/rec_pill_hd.png'
-        # elif airing.conflicted:
-        #     kwargs['button1'] = ('unschedule', "Don't Record {0}".format(util.LOCALIZED_AIRING_TYPES[self.show.type]))
-        #     kwargs['title_indicator'] = 'indicators/conflict_pill_hd.png'
-        # elif airing.airingNow():
-        #     kwargs['button1'] = ('watch', 'Watch')
-        #     kwargs['button2'] = ('record', 'Record {0}'.format(util.LOCALIZED_AIRING_TYPES[self.show.type]))
-        # else:
-        #     kwargs['button1'] = ('record', 'Record {0}'.format(util.LOCALIZED_AIRING_TYPES[self.show.type]))
-
-        secs = airing.secondsToStart()
-
-        if secs < 1:
-            start = 'Started {0} ago'.format(util.durationToText(secs*-1))
+        if airing.ended():
+            secs = airing.secondsSinceEnd()
+            start = 'Ended {0} ago'.format(util.durationToText(secs))
+            kwargs['button1'] = None
+            kwargs['button2'] = None
         else:
-            start = 'Starts in {0}'.format(util.durationToText(secs))
+            secs = airing.secondsToStart()
+
+            if secs < 1:
+                start = 'Started {0} ago'.format(util.durationToText(secs*-1))
+            else:
+                start = 'Starts in {0}'.format(util.durationToText(secs))
 
         actiondialog.openDialog(
             airing.title or self.show.title,
@@ -650,12 +694,14 @@ class GuideShowWindow(kodigui.BaseWindow):
                 self.show.update()
                 grid.addPending(airing=airing)
 
+        self.setDialogButtons(airing, changes)
+
         if airing.ended():
             secs = airing.secondsSinceEnd()
             changes['start'] = 'Ended {0} ago'.format(util.durationToText(secs))
+            changes['button1'] = None
+            changes['button2'] = None
         else:
-            self.setDialogButtons(airing, changes)
-
             secs = airing.secondsToStart()
 
             if secs < 1:

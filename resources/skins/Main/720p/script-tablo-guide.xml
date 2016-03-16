@@ -134,22 +134,44 @@
             </control>
 
             <control type="group" id="300">
-                <animation effect="slide" start="0,0" end="0,-200" time="200" condition="!IsEmpty(Container(301).ListItem.Property(after.firstrow))">Conditional</animation>
+                <animation effect="slide" start="0,0" end="0,-200" time="200" condition="!IsEmpty(Container(301).ListItem.Property(after.firstrow)) + IsEmpty(Window.Property(busy))">Conditional</animation>
                 <posx>320</posx>
                 <posy>0</posy>
                 <defaultcontrol always="true">301</defaultcontrol>
 
-                <control type="label">
-                    <visible>IsEmpty(Window.Property(empty.message))</visible>
-                    <posx>20</posx>
-                    <posy>100</posy>
-                    <width>400</width>
+                <control type="grouplist">
+                    <animation effect="slide" start="0,0" end="586,0" condition="!IsEmpty(Window.Property(empty.message))">Conditional</animation>
+                    <left>20</left>
+                    <top>100</top>
                     <height>50</height>
-                    <font>font30</font>
-                    <textcolor>FFFFFFFF</textcolor>
-                    <align>left</align>
-                    <aligny>center</aligny>
-                    <label>[B]$INFO[Window(10000).property(script.tablo.section)][/B]$INFO[Window(10000).Property(script.tablo.guide.filter), / ]</label>
+                    <width>600</width>
+                    <orientation>horizontal</orientation>
+                    <itemgap>20</itemgap>
+                    <usecontrolcoords>true</usecontrolcoords>
+                    <control type="label">
+                        <visible>IsEmpty(Window.Property(empty.message))</visible>
+                        <width min="0" max="400">auto</width>
+                        <height>50</height>
+                        <font>font30</font>
+                        <textcolor>FFFFFFFF</textcolor>
+                        <align>left</align>
+                        <aligny>center</aligny>
+                        <label>[B]$INFO[Window(10000).property(script.tablo.section)][/B]$INFO[Window(10000).Property(script.tablo.guide.filter), / ]</label>
+                    </control>
+
+                    <control type="multiimage">
+                        <visible>!IsEmpty(Window.Property(busy))</visible>
+                        <posy>11</posy>
+                        <width>28</width>
+                        <height>28</height>
+                        <imagepath>/home/ruuk/git/script.tablo/resources/skins/Main/media/spinners</imagepath>
+                        <timeperimage>50</timeperimage>
+                        <fadetime>0</fadetime>
+                        <pauseatend>0</pauseatend>
+                        <randomize>false</randomize>
+                        <loop>yes</loop>
+                        <aspectratio>stretch</aspectratio>
+                    </control>
                 </control>
 
                 <control type="panel" id="301">

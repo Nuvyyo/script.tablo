@@ -73,13 +73,20 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
     path = SKIN_PATH
     theme = 'Main'
 
+    usesGenerate = True
+
     GRID_GROUP_ID = 45
     TIME_INDICATOR_ID = 51
 
     @classmethod
     @base.tabloErrorHandler
     def generate(cls):
-        paths = tablo.API.guide.channels.get()
+        try:
+            paths = tablo.API.guide.channels.get()
+        except tablo.ConnectionError:
+            xbmcgui.Dialog().ok('Connection Failure', 'Cannot connect to {0}'.format(tablo.API.device.displayName))
+            return False
+
         gen = EPGXMLGenerator(paths).create()
         new = cls.create()
         new.slotButtons = {}

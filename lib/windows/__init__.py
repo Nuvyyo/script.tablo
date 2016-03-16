@@ -2,6 +2,7 @@ import xbmc
 import xbmcgui
 import kodigui
 from lib import util
+from lib import tablo
 
 import device
 import livetv
@@ -27,17 +28,34 @@ class WindowManager(xbmc.Monitor):
         self.last = self.current
 
         if self.current and self.current.name == window.name:
-            return
+            return True
 
-        if self.current:
-            self.current.doClose()
+        current = self.current
+        if current:
+            current.doClose()
 
         if window.name in self.windows:
             self.current = self.windows[window.name]
             self.windows[window.name].show()
         else:
-            self.current = window.generate() or window.create()
-            self.windows[window.name] = self.current
+            if window.usesGenerate:
+                self.menu.setProperty('busy', '1')
+                try:
+                    self.current = window.generate()
+                finally:
+                    self.menu.setProperty('busy', '')
+            else:
+                self.current = window.create()
+
+            if self.current:
+                self.windows[window.name] = self.current
+            else:
+                self.current = current
+                if self.current:
+                    self.current.show()
+                return False
+
+        return True
 
     def windowWasLast(self, window):
         return window == self.last
@@ -162,9 +180,9 @@ class MenuDialog(kodigui.BaseDialog):
         kodigui.BaseWindow.onAction(self, action)
 
     def openWindow(self, window, hide_menu=True):
-        WM.open(window)
-        if hide_menu:
-            WM.hideMenu()
+        if WM.open(window):
+            if hide_menu:
+                WM.hideMenu()
 
     def loadFirstWindow(self):
         last = util.getSetting('window.last')
