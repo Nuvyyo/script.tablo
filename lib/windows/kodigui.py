@@ -3,6 +3,7 @@ import xbmc
 import xbmcgui
 import time
 import threading
+import traceback
 
 
 class BaseFunctions:
@@ -83,8 +84,11 @@ class BaseWindow(xbmcgui.WindowXML, BaseFunctions):
         if not self._winID:
             self._winID = xbmcgui.getCurrentWindowId()
 
-        xbmcgui.Window(self._winID).setProperty(key, value)
-        xbmcgui.WindowXML.setProperty(self, key, value)
+        try:
+            xbmcgui.Window(self._winID).setProperty(key, value)
+            xbmcgui.WindowXML.setProperty(self, key, value)
+        except RuntimeError:
+            traceback.print_exc()
 
     def doClose(self):
         if not self.isOpen:
@@ -127,8 +131,11 @@ class BaseDialog(xbmcgui.WindowXMLDialog, BaseFunctions):
         if not self._winID:
             self._winID = xbmcgui.getCurrentWindowId()
 
-        xbmcgui.Window(self._winID).setProperty(key, value)
-        xbmcgui.WindowXMLDialog.setProperty(self, key, value)
+        try:
+            xbmcgui.Window(self._winID).setProperty(key, value)
+            xbmcgui.WindowXMLDialog.setProperty(self, key, value)
+        except RuntimeError:
+            traceback.print_exc()
 
     def doClose(self):
         self._closing = True

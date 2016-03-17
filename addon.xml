@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addon id="script.tablo"
        name="Tablo"
-       version="0.0.11a1"
+       version="0.0.11"
        provider-name="Nuvyyo">
     <requires>
         <import addon="xbmc.python" version="2.1.0"/>

@@ -1,3 +1,4 @@
+import xbmcgui
 import kodigui
 from lib import tablo
 from lib import util
@@ -23,10 +24,12 @@ class ConnectWindow(kodigui.BaseWindow):
             self.showDevices()
         elif controlID == 200:
             mli = self.deviceList.getSelectedItem()
-            tablo.API.selectDevice(mli.dataSource.ID)
-            util.saveTabloDeviceID(mli.dataSource.ID)
-            self.exit = False
-            self.doClose()
+            if tablo.API.selectDevice(mli.dataSource.ID):
+                util.saveTabloDeviceID(mli.dataSource.ID)
+                self.exit = False
+                self.doClose()
+            else:
+                xbmcgui.Dialog().ok('Connection Failure', 'Cannot connect to {0}'.format(tablo.API.device.displayName))
 
     def start(self):
         self.showDevices()

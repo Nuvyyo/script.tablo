@@ -504,16 +504,18 @@ class TabloApi(Endpoint):
             info = self.server.info.get()
         except ConnectionError:
             print 'TabloApi.getServerInfo(): Failed to connect'
-            return
+            return False
         except:
             traceback.print_exc()
-            return
+            return False
 
         self.serverInfo = info
         timezone = info.get('timezone')
 
         if timezone:
             self.timezone = pytz.timezone(timezone)
+
+        return True
 
     def foundTablos(self):
         return bool(self.devices and self.devices.tablos)
@@ -529,9 +531,7 @@ class TabloApi(Endpoint):
             else:
                 return False
 
-        self.getServerInfo()
-
-        return True
+        return self.getServerInfo()
 
     def deviceSelected(self):
         return bool(self.device)

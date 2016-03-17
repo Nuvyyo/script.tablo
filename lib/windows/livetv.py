@@ -84,7 +84,9 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
         try:
             paths = tablo.API.guide.channels.get()
         except tablo.ConnectionError:
-            xbmcgui.Dialog().ok('Connection Failure', 'Cannot connect to {0}'.format(tablo.API.device.displayName))
+            msg = 'Cannot connect to {0}'.format(tablo.API.device.displayName)
+            WM.setError(msg)
+            # xbmcgui.Dialog().ok('Connection Failure', msg)
             return False
 
         gen = EPGXMLGenerator(paths).create()
@@ -628,13 +630,17 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
         # while not airing and backgroundthread.BGThreader.working() and not xbmc.abortRequested:
         #     xbmc.sleep(100)
         #     airing = item.dataSource.get('airing')
-        info = 'Channel {0} {1} on {2} from {3} to {4}'.format(
-            airing.gridAiring.displayChannel(),
-            airing.gridAiring.network,
-            airing.gridAiring.displayDay(),
-            airing.gridAiring.displayTimeStart(),
-            airing.gridAiring.displayTimeEnd()
-        )
+        try:
+            info = 'Channel {0} {1} on {2} from {3} to {4}'.format(
+                airing.gridAiring.displayChannel(),
+                airing.gridAiring.network,
+                airing.gridAiring.displayDay(),
+                airing.gridAiring.displayTimeStart(),
+                airing.gridAiring.displayTimeEnd()
+            )
+        except tablo.ConnectionError:
+            xbmcgui.Dialog().ok('Connection Failure', 'Cannot connect to {0}'.format(tablo.API.device.displayName))
+            return
 
         kwargs = {
             'number': airing.gridAiring.number,

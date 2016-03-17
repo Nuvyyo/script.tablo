@@ -33,6 +33,7 @@ def start():
 
             connected = False
 
+        bw.show()
         bw.setProperty('busy', '1')
 
         backgroundthread.BGThreader.shutdown()

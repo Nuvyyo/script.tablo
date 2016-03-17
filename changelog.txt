@@ -1,3 +1,9 @@
+- 0.0.11
+
+FIX:     Missing spinners everywhere in the add-on
+CHANGE:  Failed connection message now replaces current view (instead of showing dialog)
+CHANGE:  Failure to get server info when connecting to a Tablo device now shows a dialog and remains on the connect screen
+
 - 0.0.10
 
 FIX:     When returning to shows from a details screen the same item now remains selected

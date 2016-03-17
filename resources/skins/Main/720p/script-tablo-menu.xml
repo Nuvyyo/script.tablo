@@ -20,7 +20,7 @@
             </control>
 
             <control type="multiimage">
-                <visible>!IsEmpty(Window.Property(busy))</visible>
+                <visible>!IsEmpty(Window(10000).Property(script.tablo.WM.busy))</visible>
                 <posx>786</posx>
                 <posy>346</posy>
                 <width>28</width>
@@ -32,6 +32,19 @@
                 <randomize>false</randomize>
                 <loop>yes</loop>
                 <aspectratio>stretch</aspectratio>
+            </control>
+
+            <control type="label">
+                <visible>!IsEmpty(Window(10000).Property(script.tablo.WM.error))</visible>
+                <posx>320</posx>
+                <posy>330</posy>
+                <width>960</width>
+                <height>60</height>
+                <font>font30</font>
+                <textcolor>FFEBEBEB</textcolor>
+                <align>center</align>
+                <aligny>center</aligny>
+                <label>$INFO[Window(10000).Property(script.tablo.WM.error)]</label>
             </control>
 
             <control type="group" id="100">

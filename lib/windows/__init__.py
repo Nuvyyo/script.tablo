@@ -2,7 +2,6 @@ import xbmc
 import xbmcgui
 import kodigui
 from lib import util
-from lib import tablo
 
 import device
 import livetv
@@ -16,6 +15,8 @@ from connect import ConnectWindow
 
 class WindowManager(xbmc.Monitor):
     def __init__(self):
+        util.setGlobalProperty('WM.error', '')
+        util.setGlobalProperty('WM.busy', '')
         util.setGlobalProperty('menu.visible', '1')
         self.menu = None
         self.current = None
@@ -33,32 +34,38 @@ class WindowManager(xbmc.Monitor):
         current = self.current
         if current:
             current.doClose()
+            current.close()
+
+        util.setGlobalProperty('WM.error', '')
 
         if window.name in self.windows:
             self.current = self.windows[window.name]
             self.windows[window.name].show()
         else:
             if window.usesGenerate:
-                self.menu.setProperty('busy', '1')
+                util.setGlobalProperty('WM.busy', '1')
                 try:
                     self.current = window.generate()
                 finally:
-                    self.menu.setProperty('busy', '')
+                    util.setGlobalProperty('WM.busy', '')
             else:
                 self.current = window.create()
 
             if self.current:
                 self.windows[window.name] = self.current
             else:
-                self.current = current
-                if self.current:
-                    self.current.show()
+                # self.current = current
+                # if self.current:
+                #     self.current.show()
                 return False
 
         return True
 
     def windowWasLast(self, window):
         return window == self.last
+
+    def setError(self, error):
+        util.setGlobalProperty('WM.error', error)
 
     def showMenu(self):
         self.waiting = False
@@ -97,7 +104,9 @@ class WindowManager(xbmc.Monitor):
         self.showMenu()
 
         for key in self.windows.keys():
+            util.DEBUG_LOG('Closing window: {0}'.format(key))
             self.windows[key].doClose()
+            self.windows[key].close()
             del self.windows[key]
 
         util.setGlobalProperty('menu.visible', '')
@@ -117,7 +126,9 @@ class WindowManager(xbmc.Monitor):
         self.current = None
 
         for key in self.windows.keys():
+            util.DEBUG_LOG('Closing window: {0}'.format(key))
             self.windows[key].doClose()
+            self.windows[key].close()
             del self.windows[key]
 
         util.setGlobalProperty('menu.visible', '')

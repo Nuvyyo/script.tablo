@@ -399,12 +399,19 @@ class GuideWindow(kodigui.BaseWindow):
                 keys = tablo.API.views(self.view).shows.get(**args)
         except tablo.ConnectionError:
             self.setProperty('busy', '')
-            xbmcgui.Dialog().ok('Connection Failure', 'Cannot connect to {0}'.format(tablo.API.device.displayName))
+            msg = 'Cannot connect to {0}'.format(tablo.API.device.displayName)
+            self.showList.reset()
+            self.keysList.reset()
+            self.setProperty('empty.message', msg)
+            # xbmcgui.Dialog().ok('Connection Failure', msg)
             return
         except:
             msg = util.ERROR()
+            self.showList.reset()
+            self.keysList.reset()
             self.setProperty('busy', '')
-            xbmcgui.Dialog().ok('Error', 'Error:', msg)
+            self.setProperty('empty.message', u'Error: ' + msg)
+            xbmcgui.Dialog().ok(u'Error', u'Error:', msg)
             return
 
         paths = []
