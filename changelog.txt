@@ -2,7 +2,7 @@
 
 FIX:     When returning to shows from a details screen the same item now remains selected
 ADD:     Busy dialog when shows are initially loading until first update set
-ADD:     Add busy spinners to relavant show detail/detail card buttons
+ADD:     Add busy spinners to relevant show detail/detail card buttons
 ADD:     'Cannot connect to Tablo' dialog on failure to connect when filling a view
 FIX:     Bug causing record button to display when initially showing details dialog for ended airings
 
