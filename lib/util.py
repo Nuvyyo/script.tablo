@@ -211,28 +211,11 @@ def simpleSize(size):
         return '0B'
 
 
-class BusyDialog(xbmcgui.WindowXMLDialog):
-    def __init__(self, *args, **kwargs):
-        self.message = kwargs.get('message') or ''
-
-    def onInit(self):
-        self.setProperty('message', self.message or '')
-
-    def setProperty(self, key, value):
-        winID = xbmcgui.getCurrentWindowId()
-
-        try:
-            xbmcgui.Window(winID).setProperty(key, value)
-            xbmcgui.WindowXML.setProperty(self, key, value)
-        except RuntimeError:
-            traceback.print_exc()
-
-
 def busyDialog(func):
     def inner(*args, **kwargs):
         w = None
         try:
-            w = BusyDialog('script-tablo-busy.xml', ADDON.getAddonInfo('path'), 'Main')
+            w = xbmcgui.WindowXMLDialog('script-tablo-busy.xml', ADDON.getAddonInfo('path'), 'Main')
             w.show()
             return func(*args, **kwargs)
         finally:
@@ -250,7 +233,7 @@ def loadingDialog(func):
     def inner(*args, **kwargs):
         w = None
         try:
-            w = BusyDialog('script-tablo-busy.xml', ADDON.getAddonInfo('path'), 'Main', message='Loading...')
+            w = xbmcgui.WindowXMLDialog('script-tablo-loading.xml', ADDON.getAddonInfo('path'), 'Main')
             w.show()
             return func(*args, **kwargs)
         finally:
