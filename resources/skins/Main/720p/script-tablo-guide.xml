@@ -159,18 +159,13 @@
                         <label>[B]$INFO[Window(10000).property(script.tablo.section)][/B]$INFO[Window(10000).Property(script.tablo.guide.filter), / ]</label>
                     </control>
 
-                    <control type="multiimage">
+                    <control type="image">
                         <visible>!IsEmpty(Window.Property(busy))</visible>
+                        <animation effect="rotate" start="0" end="-360000" center="14,25" time="1000000" reversible="false">Visible</animation>
                         <posy>11</posy>
                         <width>28</width>
                         <height>28</height>
-                        <imagepath>spinners</imagepath>
-                        <timeperimage>50</timeperimage>
-                        <fadetime>0</fadetime>
-                        <pauseatend>0</pauseatend>
-                        <randomize>false</randomize>
-                        <loop>yes</loop>
-                        <aspectratio>stretch</aspectratio>
+                        <texture>spinners/static.png</texture>
                     </control>
                 </control>
 

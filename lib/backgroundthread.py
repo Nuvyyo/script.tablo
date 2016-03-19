@@ -31,8 +31,10 @@ class BackgroundThreader:
     def _runTask(self, task):
         if task._canceled:
             return
-
-        task.run()
+        try:
+            task.run()
+        except:
+            util.ERROR()
 
     def aborted(self):
         return self._abort or xbmc.abortRequested

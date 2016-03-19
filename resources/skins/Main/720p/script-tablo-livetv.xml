@@ -87,7 +87,7 @@
                 <label>$INFO[Window.Property(title)]</label>
                 <shadowcolor>FF000000</shadowcolor>
             </control>
-            <control type="grouplist" id="{ID}">
+            <control type="grouplist">
                 <posx>200</posx>
                 <posy>200</posy>
                 <height>30</height>

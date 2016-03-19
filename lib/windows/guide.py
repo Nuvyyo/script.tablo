@@ -624,12 +624,12 @@ class GuideShowWindow(kodigui.BaseWindow):
             else:
                 arg_dict['button2'] = ('record', 'Record {0}'.format(util.LOCALIZED_AIRING_TYPES[self.show.type]))
         else:
-            if airing.scheduled:
-                arg_dict['button1'] = ('unschedule', "Don't Record {0}".format(util.LOCALIZED_AIRING_TYPES[self.show.type]))
-                arg_dict['title_indicator'] = 'indicators/rec_pill_hd.png'
-            elif airing.conflicted:
+            if airing.conflicted:
                 arg_dict['button1'] = ('unschedule', "Don't Record {0}".format(util.LOCALIZED_AIRING_TYPES[self.show.type]))
                 arg_dict['title_indicator'] = 'indicators/conflict_pill_hd.png'
+            elif airing.scheduled:
+                arg_dict['button1'] = ('unschedule', "Don't Record {0}".format(util.LOCALIZED_AIRING_TYPES[self.show.type]))
+                arg_dict['title_indicator'] = 'indicators/rec_pill_hd.png'
             else:
                 arg_dict['button1'] = ('record', 'Record {0}'.format(util.LOCALIZED_AIRING_TYPES[self.show.type]))
 

@@ -303,6 +303,8 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
 
     def getRow(self, controlID=None):
         controlID = controlID or self.getFocusId()
+        if 99 < controlID <= self.gen.maxEnd:
+            return controlID - 100
         row = ((controlID - self.gen.maxEnd - 1)/(self.gen.ITEMS_PER_ROW + 2))
         return row
 
@@ -611,15 +613,18 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
             self.updateChannelAirings(path)
 
     def setDialogButtons(self, airing, arg_dict):
-        if airing.gridAiring.airingNow():
+        if airing.airingNow():
             arg_dict['button1'] = ('watch', 'Watch')
-            if airing.gridAiring.scheduled:
+            if airing.scheduled:
                 arg_dict['button2'] = ('unschedule', "Don't Record {0}".format(util.LOCALIZED_AIRING_TYPES[airing.type.upper()]))
                 arg_dict['title_indicator'] = 'indicators/rec_pill_hd.png'
             else:
                 arg_dict['button2'] = ('record', 'Record {0}'.format(util.LOCALIZED_AIRING_TYPES[airing.type.upper()]))
         else:
-            if airing.gridAiring.scheduled:
+            if airing.conflicted:
+                arg_dict['button1'] = ('unschedule', "Don't Record {0}".format(util.LOCALIZED_AIRING_TYPES[airing.type.upper()]))
+                arg_dict['title_indicator'] = 'indicators/conflict_pill_hd.png'
+            elif airing.scheduled:
                 arg_dict['button1'] = ('unschedule', "Don't Record {0}".format(util.LOCALIZED_AIRING_TYPES[airing.type.upper()]))
                 arg_dict['title_indicator'] = 'indicators/rec_pill_hd.png'
             else:

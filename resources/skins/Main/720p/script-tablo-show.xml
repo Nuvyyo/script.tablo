@@ -272,18 +272,13 @@
                             <aligny>center</aligny>
                             <label>$INFO[Window.Property(section.action)]</label>
                         </control>
-                        <control type="multiimage">
+                        <control type="image">
                             <visible>!IsEmpty(Window.Property(action.busy))</visible>
+                            <animation effect="rotate" start="0" end="-36000" center="14,30" time="100000" reversible="false">Visible</animation>
                             <posy>16</posy>
                             <width>28</width>
                             <height>28</height>
-                            <imagepath>spinners</imagepath>
-                            <timeperimage>50</timeperimage>
-                            <fadetime>0</fadetime>
-                            <pauseatend>0</pauseatend>
-                            <randomize>false</randomize>
-                            <loop>yes</loop>
-                            <aspectratio>stretch</aspectratio>
+                            <texture>spinners/static.png</texture>
                         </control>
                     </control>
                 </control>

@@ -309,6 +309,11 @@ class RecordingDialog(actiondialog.ActionDialog):
 
         self.setProperty('protected', self.object.protected and '1' or '')
 
+        if self.object.protected:
+            self.getControl(self.DELETE_BUTTON_ID).setEnabled(False)
+        else:
+            self.getControl(self.DELETE_BUTTON_ID).setEnabled(True)
+
     def onReInit(self):
         actiondialog.ActionDialog.onReInit(self)
         player.PLAYER.stopAndWait()
@@ -419,6 +424,11 @@ class RecordingDialog(actiondialog.ActionDialog):
         self.setProperty('indicator', self.indicator)
         self.setProperty('seen', self.seen and '1' or '')
         self.setProperty('protected', self.object.protected and '1' or '')
+        if self.object.protected:
+            self.getControl(self.DELETE_BUTTON_ID).setEnabled(False)
+        else:
+            self.getControl(self.DELETE_BUTTON_ID).setEnabled(True)
+
         self.getControl(self.SEEN_PROGRESS_IMAGE_ID).setWidth(int((self.seenratio or 0)*self.SEEN_PROGRESS_WIDTH))
 
 

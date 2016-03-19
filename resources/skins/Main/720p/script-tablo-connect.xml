@@ -18,6 +18,7 @@
             </control>
 
             <control type="label">
+                <visible>!IsEmpty(Window.Property(updating))</visible>
                 <posx>0</posx>
                 <posy>40</posy>
                 <width>1280</width>
@@ -26,10 +27,11 @@
                 <align>center</align>
                 <aligny>center</aligny>
                 <textcolor>FFFFFFFF</textcolor>
-                <label>Connect to Tablo</label>
+                <label>Updating $INFO[Window.Property(updating)]</label>
             </control>
 
             <control type="group" id="100">
+                <visible>IsEmpty(Window.Property(updating))</visible>
                 <defaultcontrol>200</defaultcontrol>
                 <control type="fixedlist" id="200">
                     <focusposition>1</focusposition>
@@ -123,7 +125,7 @@
         </control>
 
         <control type="group">
-            <visible>!IsEmpty(Window.Property(initialized))</visible>
+            <visible>!IsEmpty(Window.Property(initialized)) + IsEmpty(Window.Property(updating))</visible>
             <posx>500</posx>
             <posy>560</posy>
             <control type="button" id="300">
@@ -143,19 +145,14 @@
                 <textoffsety>0</textoffsety>
                 <label></label>
             </control>
-            <control type="multiimage">
+            <control type="image">
                 <visible>IsEmpty(Window.Property(tablo.found)) + !IsEmpty(Window.Property(initialized))</visible>
+                <animation effect="rotate" start="0" end="-360000" center="24,30" time="1000000" reversible="false">Visible</animation>
                 <posx>10</posx>
                 <posy>16</posy>
                 <width>28</width>
                 <height>28</height>
-                <imagepath>spinners</imagepath>
-                <timeperimage>50</timeperimage>
-                <fadetime>0</fadetime>
-                <pauseatend>0</pauseatend>
-                <randomize>false</randomize>
-                <loop>yes</loop>
-                <aspectratio>stretch</aspectratio>
+                <texture>spinners/static.png</texture>
             </control>
             <control type="label">
                 <visible>Control.HasFocus(300)</visible>
@@ -184,6 +181,7 @@
         </control>
 
         <control type="label">
+            <visible>IsEmpty(Window.Property(updating))</visible>
             <posx>0</posx>
             <posy>40</posy>
             <width>1280</width>
@@ -194,6 +192,31 @@
             <textcolor>FFFFFFFF</textcolor>
             <label>Connect to Tablo</label>
         </control>
+
+        <control type="group">
+            <control type="label">
+                <visible>!IsEmpty(Window.Property(updating))</visible>
+                <posx>0</posx>
+                <posy>40</posy>
+                <width>1280</width>
+                <height>80</height>
+                <font>WeatherTemp</font>
+                <align>center</align>
+                <aligny>center</aligny>
+                <textcolor>FFFFFFFF</textcolor>
+                <label>Updating $INFO[Window.Property(updating)]</label>
+            </control>
+            <control type="image">
+                <visible>!IsEmpty(Window.Property(updating))</visible>
+                <animation effect="rotate" start="0" end="-360000" center="640,474" time="1000000" reversible="false">Visible</animation>
+                <posx>626</posx>
+                <posy>460</posy>
+                <width>28</width>
+                <height>28</height>
+                <texture>spinners/static.png</texture>
+            </control>
+        </control>
+
         <control type="image">
             <visible>!IsEmpty(Window.Property(tablo.found))</visible>
             <posx>275</posx>
@@ -202,19 +225,16 @@
             <height>242</height>
             <texture>tablo/tablo_render_hd.png</texture>
         </control>
-        <control type="multiimage">
+
+        <control type="image">
             <visible>IsEmpty(Window.Property(initialized))</visible>
+            <animation effect="rotate" start="0" end="-360000" center="640,360" time="1000000" reversible="false">Visible</animation>
             <posx>626</posx>
             <posy>346</posy>
             <width>28</width>
             <height>28</height>
-            <imagepath>spinners</imagepath>
-            <timeperimage>50</timeperimage>
-            <fadetime>0</fadetime>
-            <pauseatend>0</pauseatend>
-            <randomize>false</randomize>
-            <loop>yes</loop>
-            <aspectratio>stretch</aspectratio>
+            <texture>spinners/static.png</texture>
         </control>
+
     </controls>
 </window>

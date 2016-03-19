@@ -19,12 +19,29 @@ def start():
 
         while True:
             if not connected:
-                w = windows.ConnectWindow.open()
+                if connected is None:
+                    w = windows.ConnectWindow.open(updating=True)
+                    del w
+                    connected = False
+                    if ID:
+                        tablo.API.discover()
+                        connected = tablo.API.selectDevice(ID)
+                    continue
+                else:
+                    w = windows.ConnectWindow.open()
+                    if w.exit or not tablo.API.deviceSelected():
+                        return
+                    del w
 
-                if w.exit or not tablo.API.deviceSelected():
-                    return
-
-                del w
+            try:
+                tablo.API.server.tuners.get()
+            except tablo.APIError, e:
+                if e.code == 503:
+                    util.DEBUG_LOG('Updating ({0})'.format(tablo.API.device.name))
+                    connected = None
+                    continue
+            except:
+                util.ERROR()
 
             windows.WM.start()
 

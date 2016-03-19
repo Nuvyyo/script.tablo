@@ -230,7 +230,7 @@ class TabloPlayer(xbmc.Player):
         self.reset()
         self.airing = airing
 
-        watch = airing.watch()
+        watch = util.withLaodingDialog(airing.watch)
         if watch.error:
             return watch.error
 

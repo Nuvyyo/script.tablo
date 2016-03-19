@@ -330,18 +330,13 @@
                                 <aligny>center</aligny>
                                 <label>$INFO[Window.Property(button2)]</label>
                             </control>
-                            <control type="multiimage">
+                            <control type="image">
                                 <visible>!IsEmpty(Window.Property(button2.busy))</visible>
+                                <animation effect="rotate" start="0" end="-36000" center="14,30" time="100000" reversible="false">Visible</animation>
                                 <posy>16</posy>
                                 <width>28</width>
                                 <height>28</height>
-                                <imagepath>spinners</imagepath>
-                                <timeperimage>50</timeperimage>
-                                <fadetime>0</fadetime>
-                                <pauseatend>0</pauseatend>
-                                <randomize>false</randomize>
-                                <loop>yes</loop>
-                                <aspectratio>stretch</aspectratio>
+                                <texture>spinners/static.png</texture>
                             </control>
                         </control>
                     </control>
@@ -407,18 +402,13 @@
                                 <aligny>center</aligny>
                                 <label>$INFO[Window.Property(button3)]</label>
                             </control>
-                            <control type="multiimage">
+                            <control type="image">
                                 <visible>!IsEmpty(Window.Property(button3.busy))</visible>
+                                <animation effect="rotate" start="0" end="-36000" center="14,30" time="100000" reversible="false">Visible</animation>
                                 <posy>16</posy>
                                 <width>28</width>
                                 <height>28</height>
-                                <imagepath>spinners</imagepath>
-                                <timeperimage>50</timeperimage>
-                                <fadetime>0</fadetime>
-                                <pauseatend>0</pauseatend>
-                                <randomize>false</randomize>
-                                <loop>yes</loop>
-                                <aspectratio>stretch</aspectratio>
+                                <texture>spinners/static.png</texture>
                             </control>
                         </control>
                     </control>
@@ -465,7 +455,7 @@
                                 <label>[B]Delete..[/B]</label>
                             </control>
                             <control type="label">
-                                <visible>!Control.HasFocus(403)</visible>
+                                <visible>!Control.HasFocus(403) + Control.IsEnabled(403)</visible>
                                 <width>auto</width>
                                 <height>60</height>
                                 <font>font30</font>
@@ -474,18 +464,23 @@
                                 <aligny>center</aligny>
                                 <label>Delete...</label>
                             </control>
-                            <control type="multiimage">
+                            <control type="label">
+                                <visible>!Control.IsEnabled(403)</visible>
+                                <width>auto</width>
+                                <height>60</height>
+                                <font>font30</font>
+                                <textcolor>80EBEBEB</textcolor>
+                                <align>center</align>
+                                <aligny>center</aligny>
+                                <label>Delete...</label>
+                            </control>
+                            <control type="image">
                                 <visible>!IsEmpty(Window.Property(delete.busy))</visible>
+                                <animation effect="rotate" start="0" end="-36000" center="14,30" time="100000" reversible="false">Visible</animation>
                                 <posy>16</posy>
                                 <width>28</width>
                                 <height>28</height>
-                                <imagepath>spinners</imagepath>
-                                <timeperimage>50</timeperimage>
-                                <fadetime>0</fadetime>
-                                <pauseatend>0</pauseatend>
-                                <randomize>false</randomize>
-                                <loop>yes</loop>
-                                <aspectratio>stretch</aspectratio>
+                                <texture>spinners/static.png</texture>
                             </control>
                         </control>
                     </control>

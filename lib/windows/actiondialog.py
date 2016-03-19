@@ -13,6 +13,8 @@ class ActionDialog(kodigui.BaseWindow, util.CronReceiver):
 
     def __init__(self, *args, **kwargs):
         kodigui.BaseWindow.__init__(self, *args, **kwargs)
+        util.setGlobalProperty('action.button1.busy', '')
+        util.setGlobalProperty('action.button2.busy', '')
         self.number = kwargs.get('number')
         self.title = kwargs.get('title')
         self.info = kwargs.get('info')
@@ -61,9 +63,11 @@ class ActionDialog(kodigui.BaseWindow, util.CronReceiver):
 
         if self.action != 'watch':
             if self.button1 and self.button1[0] == self.action:
-                self.setProperty('button1.busy', '1')
+                util.setGlobalProperty('action.button1.busy', '1')
+                import xbmc
+                xbmc.sleep(4000)
             elif self.button2 and self.button2[0] == self.action:
-                self.setProperty('button2.busy', '1')
+                util.setGlobalProperty('action.button2.busy', '1')
 
         action = self.action
         self.action = None
@@ -71,8 +75,8 @@ class ActionDialog(kodigui.BaseWindow, util.CronReceiver):
         try:
             changes = self.callback(self.object, action)
         finally:
-            self.setProperty('button1.busy', '')
-            self.setProperty('button2.busy', '')
+            util.setGlobalProperty('action.button1.busy', '')
+            util.setGlobalProperty('action.button2.busy', '')
 
         if not changes:
             return False
