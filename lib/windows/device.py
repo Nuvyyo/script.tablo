@@ -27,6 +27,9 @@ class DeviceWindow(kodigui.BaseWindow):
         if hdinfo:
             controlID = 200
             for i, drive in enumerate(hdinfo):
+                if not drive.get('connected'):
+                    continue
+
                 if controlID > 200:
                     break
 

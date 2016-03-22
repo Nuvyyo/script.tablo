@@ -25,6 +25,7 @@
             <itemgap>20</itemgap>
             <usecontrolcoords>true</usecontrolcoords>
             <control type="label">
+                <visible>IsEmpty(Window.Property(abort))</visible>
                 <width min="0" max="600">auto</width>
                 <height>50</height>
                 <font>font30</font>
@@ -32,6 +33,16 @@
                 <align>left</align>
                 <aligny>center</aligny>
                 <label>Loading</label>
+            </control>
+            <control type="label">
+                <visible>!IsEmpty(Window.Property(abort))</visible>
+                <width min="0" max="600">auto</width>
+                <height>50</height>
+                <font>font30</font>
+                <textcolor>FFFFFFFF</textcolor>
+                <align>left</align>
+                <aligny>center</aligny>
+                <label>Canceling</label>
             </control>
             <control type="image">
                 <animation effect="rotate" start="0" end="-360000" center="14,25" time="1000000" reversible="false">WindowOpen</animation>

@@ -211,6 +211,71 @@ def simpleSize(size):
         return '0B'
 
 
+class LoadingDialogWindow(xbmcgui.WindowXMLDialog):
+    def __init__(self, *args, **kwargs):
+        self.abort = False
+        self._winID = None
+
+    def onInit(self):
+        self._winID = xbmcgui.getCurrentWindowDialogId()
+
+    def onAction(self, action):
+        try:
+            if action == xbmcgui.ACTION_NAV_BACK or action == xbmcgui.ACTION_PREVIOUS_MENU:
+                self.abort = True
+                self.setProperty('abort', '1')
+                return
+        except:
+            ERROR()
+
+        xbmcgui.xbmcgui.WindowXMLDialog.onAction(self, action)
+
+    def setProperty(self, key, value):
+        try:
+            xbmcgui.WindowXMLDialog.setProperty(self, key, value)
+            xbmcgui.Window(self._winID).setProperty(key, value)
+        except RuntimeError:
+            import traceback
+            traceback.print_exc()
+
+
+class LoadingDialog(object):
+    def __init__(self):
+        self.w = None
+        self._event = threading.Event()
+
+    def __enter__(self):
+        return self.show()
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
+
+    def show(self):
+        self.w = LoadingDialogWindow('script-tablo-loading.xml', ADDON.getAddonInfo('path'), 'Main')
+        self.w.show()
+        self._event.clear()
+        return self
+
+    def close(self):
+        self._event.set()
+
+        if self.w:
+            self.w.close()
+            del self.w
+
+        self.w = None
+
+    @property
+    def canceled(self):
+        if self.w:
+            return self.w.abort
+        else:
+            return False
+
+    def wait(self):
+        self._event.wait()
+
+
 def busyDialog(func):
     def inner(*args, **kwargs):
         w = None

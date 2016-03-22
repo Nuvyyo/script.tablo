@@ -148,7 +148,17 @@ class Airing(object):
         self.setType(type_)
 
     def setType(self, type_):
-        self.type = type_
+        print self.data
+        if type_:
+            self.type = type_
+        elif 'series' in self.path:
+            self.type = 'episode'
+        elif 'movies' in self.path:
+            self.type = 'schedule'
+        elif 'sports' in self.path:
+            self.type = 'event'
+        elif 'programs' in self.path:
+            self.type = 'airing'
 
     def __getattr__(self, name):
         return self.data[self.type].get(name)

@@ -1,9 +1,17 @@
+- 0.0.13
+
+FIX:     Error caused on 'Tablo' view after a device is removed
+FIX:     Loading now displays until video is playing
+CHANGE:  Pressing esc/back on loading screen now aborts playback
+
+
 - 0.0.12
 
 FIX:     Spinners were displaying inconsistently
 FIX:     Episode airing detail now shows the conflict indicator on Live TV
 FIX:     Delete button is now disabled when a recording is protected
 FIX:     Live TV navigation was jumping to bottom row when navigating past the end of a row or holding a right press
+ADD:     Loading screen before live TV plays
 ADD:     When connecting, now tests if device is updating and shows a updating screen or dialog depending on whether there is only 1 device
 
 - 0.0.11

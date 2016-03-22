@@ -189,6 +189,7 @@ class TrickModeWindow(kodigui.BaseWindow):
 class TabloPlayer(xbmc.Player):
     def init(self):
         self.playlistFilename = os.path.join(util.PROFILE, 'pl.m3u8')
+        self.loadingDialog = None
         self.reset()
         return self
 
@@ -205,6 +206,9 @@ class TabloPlayer(xbmc.Player):
         self.segments = None
         self.trickWindow = None
         self.item = None
+        self.hasFullScreened = False
+
+        self.closeLoadingDialog()
 
     @property
     def absolutePosition(self):
@@ -230,7 +234,14 @@ class TabloPlayer(xbmc.Player):
         self.reset()
         self.airing = airing
 
-        watch = util.withLaodingDialog(airing.watch)
+        self.loadingDialog = util.LoadingDialog().show()
+
+        threading.Thread(target=self._playAiringChannel).start()
+
+    def _playAiringChannel(self):
+        airing = self.airing
+
+        watch = airing.watch()
         if watch.error:
             return watch.error
 
@@ -240,8 +251,16 @@ class TabloPlayer(xbmc.Player):
         li = xbmcgui.ListItem(title, title, thumbnailImage=thumb, path=watch.url)
         li.setInfo('video', {'title': title, 'tvshowtitle': title})
         li.setIconImage(thumb)
-        util.DEBUG_LOG('Player (LiveTV): Playing channel')
+
+        if self.loadingDialog.canceled:
+            util.DEBUG_LOG('Player (LiveTV): Canceled before start')
+            self.closeLoadingDialog()
+            return
+        else:
+            util.DEBUG_LOG('Player (LiveTV): Playing channel')
+
         self.play(watch.url, li, False, 0)
+        self.loadingDialog.wait()
 
         return None
 
@@ -277,6 +296,11 @@ class TabloPlayer(xbmc.Player):
 
         return None
 
+    def closeLoadingDialog(self):
+        if self.loadingDialog:
+            self.loadingDialog.close()
+        self.loadingDialog = None
+
     def playAtPosition(self, position):
         self.seeking = False
         self.startPosition = position
@@ -305,8 +329,10 @@ class TabloPlayer(xbmc.Player):
                     util.DEBUG_LOG('Player (Recording): Forcing resume at {0}'.format(self.position))
                     self.pause()
 
-                if not xbmc.getCondVisibility('VideoPlayer.IsFullscreen'):
-                    util.DEBUG_LOG('Player (Recording): Video closed')
+                if xbmc.getCondVisibility('VideoPlayer.IsFullscreen'):
+                    self.hasFullScreened = True
+                elif self.hasFullScreened:
+                    util.DEBUG_LOG('Player (LiveTV): Video closed')
                     break
 
             if self.position and self.isPlayingRecording:
@@ -330,7 +356,9 @@ class TabloPlayer(xbmc.Player):
             while self.isPlayingVideo() and not xbmc.abortRequested:
                 xbmc.sleep(100)
 
-                if not xbmc.getCondVisibility('VideoPlayer.IsFullscreen'):
+                if xbmc.getCondVisibility('VideoPlayer.IsFullscreen'):
+                    self.hasFullScreened = True
+                elif self.hasFullScreened:
                     util.DEBUG_LOG('Player (LiveTV): Video closed')
                     break
 
@@ -343,11 +371,19 @@ class TabloPlayer(xbmc.Player):
             self._waiting.set()
 
     def onPlayBackStarted(self):
+        self.closeLoadingDialog()
+
         if self.isPlayingRecording:
             self.trickWindow.setPosition(self.absolutePosition)
             self.trickWindow.blank()
 
         self.wait()
+
+    def onPlayBackStopped(self):
+        self.closeLoadingDialog()
+
+    def onPlayBackEnded(self):
+        self.closeLoadingDialog()
 
     def onPlayBackSeek(self, time, offset):
         if not self.isPlayingRecording:

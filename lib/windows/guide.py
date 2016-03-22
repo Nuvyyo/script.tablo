@@ -166,7 +166,7 @@ class GuideWindow(kodigui.BaseWindow):
         if controlID == self.MENU_LIST_ID:
             item = self.typeList.getSelectedItem()
             if item:
-                if self.setFilter(item.dataSource) or not self.showList.size():
+                if self.setFilter(item.dataSource) or not xbmc.getCondVisibility('Control.IsVisible(601)'):
                     self.fillShows(reset=True)
 
             self.setShowFocus()
@@ -368,6 +368,7 @@ class GuideWindow(kodigui.BaseWindow):
 
     @base.tabloErrorHandler
     def fillShows(self, reset=False):
+        self.setProperty('show.recent', '')
         self.cancelTasks()
 
         self.setProperty('busy', '1')
