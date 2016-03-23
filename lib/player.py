@@ -273,7 +273,7 @@ class TabloPlayer(xbmc.Player):
             return watch.error
 
         self.watch = watch
-        title = rec.title or (show and show.title or '')
+        title = rec.title or (show and show.title or '{0} {1}'.format(rec.displayChannel(), rec.network))
         thumb = show and show.thumb or ''
         self.item = xbmcgui.ListItem(title, title, thumbnailImage=thumb, path=watch.url)
         self.item.setInfo('video', {'title': title, 'tvshowtitle': title})

@@ -134,7 +134,8 @@
             </control>
 
             <control type="group" id="300">
-                <animation effect="slide" start="0,0" end="0,-200" time="200" condition="!IsEmpty(Container(301).ListItem.Property(after.firstrow)) + IsEmpty(Window.Property(busy))">Conditional</animation>
+                <animation effect="slide" start="0,0" end="0,-180" time="200" condition="!IsEmpty(Container(301).ListItem.Property(after.firstrow)) + IsEmpty(Window.Property(busy))">Conditional</animation>
+                <animation effect="slide" start="0,0" end="0,-160" time="200" condition="!IsEmpty(Container(500).ListItem.Property(after.firstrow)) + IsEmpty(Window.Property(busy))">Conditional</animation>
                 <posx>320</posx>
                 <posy>0</posy>
                 <defaultcontrol always="true">301</defaultcontrol>
@@ -430,18 +431,18 @@
                         <control type="fixedlist" id="500">
                             <visible>!IsEmpty(Window.Property(show.recent))</visible>
                             <posx>10</posx>
-                            <posy>0</posy>
-                            <width>1200</width>
+                            <posy>160</posy>
+                            <width>1250</width>
                             <height>720</height>
-                            <focusposition>3</focusposition>
-                            <movement>4</movement>
+                            <focusposition>2</focusposition>
+                            <movement>3</movement>
                             <scrolltime>200</scrolltime>
                             <orientation>vertical</orientation>
                             <onleft>100</onleft>
                             <onright>51</onright>
                             <onup>501</onup>
                             <ondown>501</ondown>
-                            <itemlayout height="90">
+                            <itemlayout height="110">
                                 <control type="group">
                                     <posx>26</posx>
                                     <posy>0</posy>
@@ -451,9 +452,9 @@
                                         <posy>0</posy>
                                         <control type="label">
                                             <left>0</left>
-                                            <top>0</top>
-                                            <width>1100</width>
-                                            <height>80</height>
+                                            <top>60</top>
+                                            <width>1160</width>
+                                            <height>40</height>
                                             <font>font_MainMenu</font>
                                             <textcolor>FFEBEBEB</textcolor>
                                             <align>left</align>
@@ -468,10 +469,18 @@
                                         <control type="image">
                                             <posx>0</posx>
                                             <posy>0</posy>
-                                            <width>1100</width>
-                                            <height>80</height>
+                                            <width>1160</width>
+                                            <height>100</height>
                                             <texture>script-tablo-white_square.png</texture>
                                             <colordiffuse>FF102C3D</colordiffuse>
+                                        </control>
+                                        <control type="image">
+                                            <posx>0</posx>
+                                            <posy>0</posy>
+                                            <width>67</width>
+                                            <height>100</height>
+                                            <texture>$INFO[ListItem.Thumb]</texture>
+                                            <aspectratio>scale</aspectratio>
                                         </control>
 
                                         <control type="label">
@@ -571,7 +580,7 @@
                                 </control>
                             </itemlayout>
 
-                            <focusedlayout height="90">
+                            <focusedlayout height="110">
                                 <control type="group">
                                     <posx>26</posx>
                                     <posy>0</posy>
@@ -581,9 +590,9 @@
                                         <posy>0</posy>
                                         <control type="label">
                                             <left>0</left>
-                                            <top>0</top>
+                                            <top>60</top>
                                             <width>1100</width>
-                                            <height>80</height>
+                                            <height>40</height>
                                             <font>font_MainMenu</font>
                                             <textcolor>FFEBEBEB</textcolor>
                                             <align>left</align>
@@ -598,17 +607,25 @@
                                         <control type="image">
                                             <posx>-26</posx>
                                             <posy>-26</posy>
-                                            <width>1172</width>
-                                            <height>142</height>
+                                            <width>1232</width>
+                                            <height>162</height>
                                             <texture border="30">shadows/high_bold.png</texture>
                                         </control>
                                         <control type="image">
                                             <posx>0</posx>
                                             <posy>0</posy>
-                                            <width>1120</width>
-                                            <height>90</height>
+                                            <width>1180</width>
+                                            <height>110</height>
                                             <texture>script-tablo-white_square.png</texture>
                                             <colordiffuse>FFEBEBEB</colordiffuse>
+                                        </control>
+                                        <control type="image">
+                                            <posx>0</posx>
+                                            <posy>0</posy>
+                                            <width>73</width>
+                                            <height>110</height>
+                                            <texture>$INFO[ListItem.Thumb]</texture>
+                                            <aspectratio>scale</aspectratio>
                                         </control>
 
                                         <control type="label">
@@ -765,7 +782,7 @@
         </control>
 
         <control type="label">
-            <animation effect="slide" start="0,0" end="0,-200" time="200" condition="!IsEmpty(Container(301).ListItem.Property(after.firstrow))">Conditional</animation>
+            <animation effect="slide" start="0,0" end="0,-200" time="200" condition="!IsEmpty(Container(301).ListItem.Property(after.firstrow)) | !IsEmpty(Container(500).ListItem.Property(after.firstrow))">Conditional</animation>
             <description>Time</description>
             <right>30</right>
             <top>30</top>

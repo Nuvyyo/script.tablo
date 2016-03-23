@@ -10,6 +10,7 @@ Movie = api.Movie
 Sport = api.Sport
 Program = api.Program
 GridAiring = api.GridAiring
+processDate = api.processDate
 
 APIError = api.APIError
 ConnectionError = api.ConnectionError

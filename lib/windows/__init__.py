@@ -40,7 +40,7 @@ class WindowManager(xbmc.Monitor):
 
         if window.name in self.windows:
             self.current = self.windows[window.name]
-            self.windows[window.name].show()
+            self.current.show()
         else:
             if window.usesGenerate:
                 util.setGlobalProperty('WM.busy', '1')

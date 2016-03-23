@@ -1,3 +1,4 @@
+import time
 import xbmc
 import xbmcgui
 import kodigui
@@ -12,201 +13,10 @@ from lib import tablo
 import guide
 
 
-class RecordingsWindow(guide.GuideWindow):
-    name = 'RECORDINGS'
-    view = 'recordings'
-    section = 'Recordings'
-
-    types = (
-        (None, 'All'),
-        ('RECENT', 'Recent'),
-        ('SERIES', 'TV Shows'),
-        ('MOVIES', 'Movies'),
-        ('SPORTS', 'Sports')
-    )
-
-    emptyMessage = ('No Recordings', 'You can schedule recordings from the Guide screen.')
-    emptyMessageTVShows = ('No Recorded TV Shows', 'You can schedule recordings from the Guide screen.')
-    emptyMessageMovies = ('No Recorded Movies', 'You can schedule recordings from the Guide screen.')
-    emptyMessageSports = ('No Recorded Sports', 'You can schedule recordings from the Guide screen.')
-
-    RECENT_LIST_ID = 500
-
-    def onFirstInit(self):
-        self.recentList = kodigui.ManagedControlList(self, self.RECENT_LIST_ID, 11)
-        guide.GuideWindow.onFirstInit(self)
-
-    def onAction(self, action):
-        try:
-            controlID = self.getFocusId()
-            if controlID == self.RECENT_LIST_ID:
-                if self.updateRecentSelection(action):
-                    return
-        except:
-            util.ERROR()
-
-        guide.GuideWindow.onAction(self, action)
-
-    def onClick(self, controlID):
-        if controlID == self.RECENT_LIST_ID:
-            return self.showClicked()
-
-        guide.GuideWindow.onClick(self, controlID)
-
-    @base.dialogFunction
-    def showClicked(self):
-        if self.getFocusId() == self.RECENT_LIST_ID:
-            item = self.recentList.getSelectedItem()
-        else:
-            item = self.showList.getSelectedItem()
-        if not item:
-            return
-
-        show = item.dataSource.get('show')
-
-        if not show:
-            self.getSingleShowData(item.dataSource['path'])
-            while not show and backgroundthread.BGThreader.working() and not xbmc.abortRequested:
-                xbmc.sleep(100)
-                show = item.dataSource.get('show')
-
-        if self.closing():
-            return
-
-        w = RecordingShowWindow.open(show=show)
-        if w.modified:
-            self.fillShows()
-        del w
-
-    def updateRecentSelection(self, action=None):
-        item = self.recentList.getSelectedItem()
-        if not item:
-            return False
-
-        if item.getProperty('header'):
-            pos = item.pos()
-            if action == xbmcgui.ACTION_MOVE_UP or action == xbmcgui.ACTION_PAGE_UP:
-                if pos < 2:
-                    self.recentList.selectItem(2)
-                    return True
-
-                for i in range(pos-1, 1, -1):
-                    nextItem = self.recentList.getListItem(i)
-                    if not nextItem.getProperty('header'):
-                        self.recentList.selectItem(nextItem.pos())
-                        return True
-            else:  # action == xbmcgui.ACTION_MOVE_DOWN or action == xbmcgui.ACTION_PAGE_DOWN:
-                for i in range(pos+1, self.recentList.size()):
-                    nextItem = self.recentList.getListItem(i)
-                    if not nextItem.getProperty('header'):
-                        self.recentList.selectItem(nextItem.pos())
-                        return True
-        else:
-            return False
-
-    def fillShows(self, reset=False):
-        if self.filter == 'RECENT':
-            return self.fillRecent()
-
-        self.setProperty('show.recent', '')
-        self.recentList.reset()
-        guide.GuideWindow.fillShows(self, reset=reset)
-
-    @util.busyDialog
-    @base.tabloErrorHandler
-    def fillRecent(self):
-        self.setProperty('show.recent', '1')
-        self.showList.reset()
-        self.recentList.reset()
-        self.showItems = {}
-        airings = []
-
-        recentDates = tablo.API.views.recordings.recent.get()
-
-        first = True
-        for date in recentDates:
-            item = kodigui.ManagedListItem('', data_source={'path': None, 'airing': None})
-            item.setProperty('header', '1')
-            self.recentList.addItem(item)
-
-            item = kodigui.ManagedListItem(date['key'], data_source={'path': None, 'airing': None})
-            item.setProperty('header', '1')
-            item.setProperty('top', '1')
-            self.recentList.addItem(item)
-
-            for airingPath in date['contents']:
-                airings.append(airingPath)
-                item = kodigui.ManagedListItem('', data_source={'path': airingPath, 'airing': None})
-                if first:
-                    first = False
-                    item.setProperty('top', '1')
-                self.showItems[airingPath] = item
-                self.recentList.addItem(item)
-
-        self.getAiringData(airings)
-
-    def updateItemIndicators(self, item):
-        airing = item.dataSource['airing']
-        if not airing:
-            return
-
-        if airing.data['video_details']['state'] == 'failed':
-            item.setProperty('indicator', 'recordings/recording_failed_small_dark_hd.png')
-        elif airing.watched:
-            item.setProperty('indicator', '')
-        else:
-            if airing.data['user_info']['position']:
-                item.setProperty('indicator', 'recordings/seen_small_partial_hd.png')
-            else:
-                item.setProperty('indicator', 'recordings/seen_small_unwatched_hd.png')
-
-        item.setProperty('protected', airing.protected and '1' or '')
-
-        if airing.deleted:
-            item.setProperty('disabled', '1')
-
-    def updateIndicators(self):
-        for item in self.recentList:
-            self.updateItemIndicators(item)
-
-    def updateAiringItem(self, airing):
-        item = self.showItems[airing.path]
-        item.dataSource['airing'] = airing
-
-        label = airing.title
-
-        if not label:
-            label = 'Ch. {0} {1} at {2} - {3}'.format(
-                airing.displayChannel(),
-                airing.network,
-                airing.displayTimeStart(),
-                airing.displayTimeEnd()
-            )
-
-        item.setLabel(label)
-        item.setLabel2(airing.displayDay())
-
-        self.updateItemIndicators(item)
-
-    def getAiringData(self, paths):
-        self.cancelTasks()
-
-        while paths:
-            current50 = paths[:50]
-            paths = paths[50:]
-            t = guide.AiringsTask()
-            self._tasks.append(t)
-            t.setup(current50, self.updateAiringItem, None)  # self.show.airingType)
-
-        backgroundthread.BGThreader.addTasks(self._tasks)
-
-
-class RecordingShowWindow(guide.GuideShowWindow):
-    sectionAction = 'Delete...'
-
-    def setDialogIndicators(self, airing, arg_dict):
+class RecordingShowBase:
+    def setDialogIndicators(self, airing, show, arg_dict):
         if airing.type == 'schedule':
-            description = self.show.description or ''
+            description = show.description or ''
         else:
             description = airing.description or ''
 
@@ -250,6 +60,8 @@ class RecordingShowWindow(guide.GuideShowWindow):
             xbmc.sleep(100)
             airing = item.dataSource.get('airing')
 
+        show = self._show or airing.getShow()
+
         info = 'Channel {0} {1} on {2} from {3} to {4}'.format(
             airing.displayChannel(),
             airing.network,
@@ -259,20 +71,20 @@ class RecordingShowWindow(guide.GuideShowWindow):
         )
 
         kwargs = {
-            'background': self.show.background,
+            'background': show.background,
             'callback': self.actionDialogCallback,
             'obj': airing,
-            'show': self.show
+            'show': show
         }
 
         if airing.type == 'schedule':
-            title = self.show.title
+            title = show.title
         else:
-            title = airing.title or self.show.title
+            title = airing.title or show.title
 
         failed = airing.data['video_details']['state'] == 'failed'
 
-        self.setDialogIndicators(airing, kwargs)
+        self.setDialogIndicators(airing, show, kwargs)
 
         openDialog(
             title,
@@ -292,10 +104,18 @@ class RecordingShowWindow(guide.GuideShowWindow):
 
         if action:
             if action == 'watch':
-                player.PLAYER.playRecording(airing, show=self.show, resume=False)
+                try:
+                    show = self._show or airing.getShow()
+                except:
+                    show = None
+                player.PLAYER.playRecording(airing, show=show, resume=False)
                 # xbmc.Player().play(airing.watch().url)
             elif action == 'resume':
-                player.PLAYER.playRecording(airing, show=self.show)
+                try:
+                    show = self._show or airing.getShow()
+                except:
+                    show = None
+                player.PLAYER.playRecording(airing, show=show)
             elif action == 'toggle':
                 airing.markWatched(not airing.watched)
                 self.modified = True
@@ -310,30 +130,9 @@ class RecordingShowWindow(guide.GuideShowWindow):
             elif action == 'protect':
                 changes['button3'] = airing.protected and 'Unprotect' or 'Protect'
 
-            self.setDialogIndicators(airing, changes)
+            self.setDialogIndicators(airing, self._show, changes)
 
         return changes
-
-    def scheduleButtonClicked(self, controlID):
-        action = self.scheduleButtonActions.get(controlID)
-        if not action or action != 'delete':
-            return
-
-        self.setProperty('action.busy', '1')
-        try:
-            for item in self.airingsList:
-                airing = item.dataSource.get('airing')
-                if not airing or airing.deleted:
-                    continue
-                airing.delete()
-        except tablo.APIError:
-            util.ERROR()
-        finally:
-            self.setProperty('action.busy', '')
-
-        self.modified = True
-
-        self.updateIndicators()
 
     def updateItemIndicators(self, item):
         airing = item.dataSource['airing']
@@ -359,12 +158,17 @@ class RecordingShowWindow(guide.GuideShowWindow):
         for item in self.airingsList:
             self.updateItemIndicators(item)
 
+    def getAiringItem(self, airing):
+        return self.airingItems[airing.path]
+
     def updateAiringItem(self, airing):
-        item = self.airingItems[airing.path]
+        item = self.getAiringItem(airing)
+
         item.dataSource['airing'] = airing
+        show = self._show or airing.getShow()
 
         if airing.type == 'schedule':
-            label = self.show.title
+            label = show.title
         else:
             label = airing.title
 
@@ -378,13 +182,201 @@ class RecordingShowWindow(guide.GuideShowWindow):
 
         item.setLabel(label)
         item.setLabel2(airing.displayDay())
+        item.setThumbnailImage(show.thumb)
+        item.swetPropety('show.title', show.title)
 
         self.updateItemIndicators(item)
+
+
+class RecordingsWindow(guide.GuideWindow, RecordingShowBase):
+    name = 'RECORDINGS'
+    view = 'recordings'
+    section = 'Recordings'
+
+    types = (
+        (None, 'All'),
+        ('RECENT', 'Recent'),
+        ('SERIES', 'TV Shows'),
+        ('MOVIES', 'Movies'),
+        ('SPORTS', 'Sports')
+    )
+
+    emptyMessage = ('No Recordings', 'You can schedule recordings from the Guide screen.')
+    emptyMessageTVShows = ('No Recorded TV Shows', 'You can schedule recordings from the Guide screen.')
+    emptyMessageMovies = ('No Recorded Movies', 'You can schedule recordings from the Guide screen.')
+    emptyMessageSports = ('No Recorded Sports', 'You can schedule recordings from the Guide screen.')
+
+    RECENT_LIST_ID = 500
+
+    def onFirstInit(self):
+        self._show = None  # Dummy for recent stuff
+        self.airingsList = kodigui.ManagedControlList(self, self.RECENT_LIST_ID, 11)
+        guide.GuideWindow.onFirstInit(self)
+
+    def onAction(self, action):
+        try:
+            controlID = self.getFocusId()
+            if controlID == self.RECENT_LIST_ID:
+                if self.updateRecentSelection(action):
+                    return
+        except:
+            util.ERROR()
+
+        guide.GuideWindow.onAction(self, action)
+
+    def onClick(self, controlID):
+        if controlID == self.RECENT_LIST_ID:
+            return self.showClicked()
+
+        guide.GuideWindow.onClick(self, controlID)
+
+    @base.dialogFunction
+    def showClicked(self):
+        if self.getFocusId() == self.RECENT_LIST_ID:
+            return self.airingsListClicked()
+        else:
+            item = self.showList.getSelectedItem()
+        if not item:
+            return
+
+        show = item.dataSource.get('show')
+
+        if not show:
+            self.getSingleShowData(item.dataSource['path'])
+            while not show and backgroundthread.BGThreader.working() and not xbmc.abortRequested:
+                xbmc.sleep(100)
+                show = item.dataSource.get('show')
+
+        if self.closing():
+            return
+
+        w = RecordingShowWindow.open(show=show)
+        if w.modified:
+            self.fillShows()
+        del w
+
+    def updateRecentSelection(self, action=None):
+        item = self.airingsList.getSelectedItem()
+        if not item:
+            return False
+
+        if item.getProperty('header'):
+            pos = item.pos()
+            if action == xbmcgui.ACTION_MOVE_UP or action == xbmcgui.ACTION_PAGE_UP:
+                if pos < 1:
+                    self.airingsList.selectItem(1)
+                    return True
+
+                for i in range(pos-1, 0, -1):
+                    nextItem = self.airingsList.getListItem(i)
+                    if not nextItem.getProperty('header'):
+                        self.airingsList.selectItem(nextItem.pos())
+                        return True
+            else:  # action == xbmcgui.ACTION_MOVE_DOWN or action == xbmcgui.ACTION_PAGE_DOWN:
+                for i in range(pos+1, self.airingsList.size()):
+                    nextItem = self.airingsList.getListItem(i)
+                    if not nextItem.getProperty('header'):
+                        self.airingsList.selectItem(nextItem.pos())
+                        return True
+        else:
+            return False
+
+    def fillShows(self, reset=False):
+        if self.filter == 'RECENT':
+            return self.fillRecent()
+
+        self.setProperty('show.recent', '')
+        self.airingsList.reset()
+        guide.GuideWindow.fillShows(self, reset=reset)
+
+    @util.busyDialog
+    @base.tabloErrorHandler
+    def fillRecent(self):
+        self.setProperty('show.recent', '1')
+        self.showList.reset()
+        self.airingsList.reset()
+        self.showItems = {}
+        airings = []
+
+        recentDates = tablo.API.views.recordings.recent.get()
+
+        first = True
+        now = time.localtime()
+        for date in recentDates:
+            tt = time.strptime(date['key'], '%Y-%m-%d')
+            label = None
+            if tt.tm_year == now.tm_year:
+                if tt.tm_yday == now.tm_yday:
+                    label = 'Today'
+                elif tt.tm_yday == now.tm_yday - 1:
+                    label = 'Yesterday'
+            label = label or time.strftime('%A, %B %d', tt)
+
+            item = kodigui.ManagedListItem(label, data_source={'path': None, 'airing': None})
+            item.setProperty('header', '1')
+            item.setProperty('top', '1')
+            if not first:
+                item.setProperty('after.firstrow', '1')
+
+            self.airingsList.addItem(item)
+
+            for airingPath in date['contents']:
+                airings.append(airingPath)
+                item = kodigui.ManagedListItem('', data_source={'path': airingPath, 'airing': None})
+                if first:
+                    first = False
+                    item.setProperty('top', '1')
+                else:
+                    item.setProperty('after.firstrow', '1')
+                self.showItems[airingPath] = item
+                self.airingsList.addItem(item)
+
+        self.getAiringData(airings)
+
+    def getAiringItem(self, airing):
+        return self.showItems[airing.path]
+
+    def getAiringData(self, paths):
+        self.cancelTasks()
+
+        while paths:
+            current50 = paths[:50]
+            paths = paths[50:]
+            t = guide.AiringsTask()
+            self._tasks.append(t)
+            t.setup(current50, self.updateAiringItem, None)  # self._show.airingType)
+
+        backgroundthread.BGThreader.addTasks(self._tasks)
+
+
+class RecordingShowWindow(RecordingShowBase, guide.GuideShowWindow):
+    sectionAction = 'Delete...'
+
+    def scheduleButtonClicked(self, controlID):
+        action = self.scheduleButtonActions.get(controlID)
+        if not action or action != 'delete':
+            return
+
+        self.setProperty('action.busy', '1')
+        try:
+            for item in self.airingsList:
+                airing = item.dataSource.get('airing')
+                if not airing or airing.deleted:
+                    continue
+                airing.delete()
+        except tablo.APIError:
+            util.ERROR()
+        finally:
+            self.setProperty('action.busy', '')
+
+        self.modified = True
+
+        self.updateIndicators()
 
     def setupScheduleDialog(self):
         self.setProperty(
             'schedule.message', 'Permanently delete the following {0}?'.format(
-                util.LOCALIZED_AIRING_TYPES_PLURAL[self.show.type].lower()
+                util.LOCALIZED_AIRING_TYPES_PLURAL[self._show.type].lower()
             )
         )
 
@@ -392,7 +384,7 @@ class RecordingShowWindow(guide.GuideShowWindow):
 
         self.scheduleButtonActions[self.SCHEDULE_BUTTON_TOP_ID] = 'delete'
         self.scheduleButtonActions[self.SCHEDULE_BUTTON_BOT_ID] = 'cancel'
-        self.setProperty('schedule.top', 'Delete All {0}'.format(util.LOCALIZED_AIRING_TYPES_PLURAL[self.show.type]))
+        self.setProperty('schedule.top', 'Delete All {0}'.format(util.LOCALIZED_AIRING_TYPES_PLURAL[self._show.type]))
         self.setProperty('schedule.bottom', 'Cancel')
         # self.setProperty('title.indicator', 'indicators/rec_all_pill_hd.png')
 
@@ -433,7 +425,7 @@ class RecordingDialog(actiondialog.ActionDialog):
         self.background = kwargs.get('background')
         self.callback = kwargs.get('callback')
         self.object = kwargs.get('object')
-        self.show = kwargs.get('show')
+        self._show = kwargs.get('show')
         self.button2 = kwargs.get('button2')
         self.button3 = kwargs.get('button3')
         self.action = None
@@ -540,7 +532,7 @@ class RecordingDialog(actiondialog.ActionDialog):
                 self.setProperty('button3.busy', '')
             return
         elif controlID == self.DELETE_BUTTON_ID:
-            self.setProperty('dialog.message', 'Permanently delete this {0}?'.format(util.LOCALIZED_AIRING_TYPES[self.show.type].lower()))
+            self.setProperty('dialog.message', 'Permanently delete this {0}?'.format(util.LOCALIZED_AIRING_TYPES[self._show.type].lower()))
             self.setProperty('dialog.top', 'Delete')
             self.setProperty('dialog.bottom', 'Cancel')
             self.parentAction = 'delete'

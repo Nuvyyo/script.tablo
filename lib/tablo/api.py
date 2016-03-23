@@ -51,12 +51,12 @@ def requestHandler(f):
     return wrapper
 
 
-def processDate(date):
+def processDate(date, format_='%Y-%m-%dT%H:%M'):
         if not date:
             return None
 
         try:
-            return API.timezone.fromutc(compat.datetime.datetime.strptime(date.rsplit('Z', 1)[0], '%Y-%m-%dT%H:%M'))
+            return API.timezone.fromutc(compat.datetime.datetime.strptime(date.rsplit('Z', 1)[0], format_))
         except:
             traceback.print_exc()
 
@@ -148,7 +148,6 @@ class Airing(object):
         self.setType(type_)
 
     def setType(self, type_):
-        print self.data
         if type_:
             self.type = type_
         elif 'series' in self.path:
@@ -159,6 +158,20 @@ class Airing(object):
             self.type = 'event'
         elif 'programs' in self.path:
             self.type = 'airing'
+
+    @property
+    def showPath(self):
+        if self.type == 'episode':
+            return self.data['series_path']
+        elif self.type == 'schedule':
+            return self.data['movie_path']
+        elif self.type == 'event':
+            return self.data['sport_path']
+        elif self.type == 'airing':
+            return self.data['program_path']
+
+    def getShow(self):
+        return Show.newFromData(API(self.showPath).get())
 
     def __getattr__(self, name):
         return self.data[self.type].get(name)

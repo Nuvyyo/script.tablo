@@ -522,7 +522,7 @@ class GuideShowWindow(kodigui.BaseWindow):
 
     def __init__(self, *args, **kwargs):
         kodigui.BaseWindow.__init__(self, *args, **kwargs)
-        self.show = kwargs.get('show')
+        self._show = kwargs.get('show')
         self.scheduleButtonActions = {}
         self.modified = False
 
@@ -531,40 +531,40 @@ class GuideShowWindow(kodigui.BaseWindow):
         self.seasonCount = 0
         self.airingItems = {}
 
-        self.setProperty('thumb', self.show.thumb)
-        self.setProperty('background', self.show.background)
-        self.setProperty('title', self.show.title)
-        self.setProperty('plot', self.show.plot or self.show.description)
-        self.setProperty('airing.label', util.LOCALIZED_AIRING_TYPES_PLURAL[self.show.type])
+        self.setProperty('thumb', self._show.thumb)
+        self.setProperty('background', self._show.background)
+        self.setProperty('title', self._show.title)
+        self.setProperty('plot', self._show.plot or self._show.description)
+        self.setProperty('airing.label', util.LOCALIZED_AIRING_TYPES_PLURAL[self._show.type])
         self.setProperty('section.action', self.sectionAction)
-        self.setProperty('is.movie', self.show.type == 'MOVIE' and '1' or '')
+        self.setProperty('is.movie', self._show.type == 'MOVIE' and '1' or '')
 
-        if self.show.type == 'MOVIE' and self.show.quality_rating:
+        if self._show.type == 'MOVIE' and self._show.quality_rating:
             info = []
-            if self.show.film_rating:
-                info.append(self.show.film_rating.upper())
-            if self.show.release_year:
-                info.append(str(self.show.release_year))
+            if self._show.film_rating:
+                info.append(self._show.film_rating.upper())
+            if self._show.release_year:
+                info.append(str(self._show.release_year))
 
             self.setProperty('info', u' / '.join(info) + u' / ')
-            self.setProperty('stars', str(self.show.quality_rating/2))
-            self.setProperty('half.star', str(self.show.quality_rating % 2))
-        elif self.show.type == 'SPORT':
-            if self.show.showCounts.get('airing_count'):
-                self.setProperty('info', '{0} Event{1}'.format(self.show.showCounts['airing_count'], self.show.showCounts['airing_count'] > 1 and 's' or ''))
-            self.setProperty('plot', self.show.title)
+            self.setProperty('stars', str(self._show.quality_rating/2))
+            self.setProperty('half.star', str(self._show.quality_rating % 2))
+        elif self._show.type == 'SPORT':
+            if self._show.showCounts.get('airing_count'):
+                self.setProperty('info', '{0} Event{1}'.format(self._show.showCounts['airing_count'], self._show.showCounts['airing_count'] > 1 and 's' or ''))
+            self.setProperty('plot', self._show.title)
 
         self.airingsList = kodigui.ManagedControlList(self, self.AIRINGS_LIST_ID, 20)
 
         self.setupScheduleDialog()
         self.fillAirings()
 
-        if self.show.type == 'SERIES':
+        if self._show.type == 'SERIES':
             info = []
             if self.seasonCount:
                 info.append('{0} Season{1}'.format(self.seasonCount, self.seasonCount > 1 and 's' or ''))
-            if self.show.showCounts.get('airing_count'):
-                info.append('{0} Episode{1}'.format(self.show.showCounts['airing_count'], self.show.showCounts['airing_count'] > 1 and 's' or ''))
+            if self._show.showCounts.get('airing_count'):
+                info.append('{0} Episode{1}'.format(self._show.showCounts['airing_count'], self._show.showCounts['airing_count'] > 1 and 's' or ''))
 
             self.setProperty('info', u' / '.join(info))
 
@@ -605,7 +605,7 @@ class GuideShowWindow(kodigui.BaseWindow):
             return
         self.setProperty('action.busy', '1')
         try:
-            self.show.schedule(action)
+            self._show.schedule(action)
         finally:
             self.setProperty('action.busy', '')
 
@@ -620,19 +620,19 @@ class GuideShowWindow(kodigui.BaseWindow):
         if airing.airingNow():
             arg_dict['button1'] = ('watch', 'Watch')
             if airing.scheduled:
-                arg_dict['button2'] = ('unschedule', "Don't Record {0}".format(util.LOCALIZED_AIRING_TYPES[self.show.type]))
+                arg_dict['button2'] = ('unschedule', "Don't Record {0}".format(util.LOCALIZED_AIRING_TYPES[self._show.type]))
                 arg_dict['title_indicator'] = 'indicators/rec_pill_hd.png'
             else:
-                arg_dict['button2'] = ('record', 'Record {0}'.format(util.LOCALIZED_AIRING_TYPES[self.show.type]))
+                arg_dict['button2'] = ('record', 'Record {0}'.format(util.LOCALIZED_AIRING_TYPES[self._show.type]))
         else:
             if airing.conflicted:
-                arg_dict['button1'] = ('unschedule', "Don't Record {0}".format(util.LOCALIZED_AIRING_TYPES[self.show.type]))
+                arg_dict['button1'] = ('unschedule', "Don't Record {0}".format(util.LOCALIZED_AIRING_TYPES[self._show.type]))
                 arg_dict['title_indicator'] = 'indicators/conflict_pill_hd.png'
             elif airing.scheduled:
-                arg_dict['button1'] = ('unschedule', "Don't Record {0}".format(util.LOCALIZED_AIRING_TYPES[self.show.type]))
+                arg_dict['button1'] = ('unschedule', "Don't Record {0}".format(util.LOCALIZED_AIRING_TYPES[self._show.type]))
                 arg_dict['title_indicator'] = 'indicators/rec_pill_hd.png'
             else:
-                arg_dict['button1'] = ('record', 'Record {0}'.format(util.LOCALIZED_AIRING_TYPES[self.show.type]))
+                arg_dict['button1'] = ('record', 'Record {0}'.format(util.LOCALIZED_AIRING_TYPES[self._show.type]))
 
     def airingsListClicked(self):
         item = self.airingsList.getSelectedItem()
@@ -655,7 +655,7 @@ class GuideShowWindow(kodigui.BaseWindow):
 
         kwargs = {
             'number': airing.number,
-            'background': self.show.background,
+            'background': self._show.background,
             'callback': self.actionDialogCallback,
             'obj': airing
         }
@@ -676,7 +676,7 @@ class GuideShowWindow(kodigui.BaseWindow):
                 start = 'Starts in {0}'.format(util.durationToText(secs))
 
         actiondialog.openDialog(
-            airing.title or self.show.title,
+            airing.title or self._show.title,
             info, airing.description,
             start,
             **kwargs
@@ -695,11 +695,11 @@ class GuideShowWindow(kodigui.BaseWindow):
                     xbmcgui.Dialog().ok('Failed', 'Failed to play channel:', ' ', str(error))
             elif action == 'record':
                 airing.schedule()
-                self.show.update()
+                self._show.update()
                 grid.addPending(airing=airing)
             elif action == 'unschedule':
                 airing.schedule(False)
-                self.show.update()
+                self._show.update()
                 grid.addPending(airing=airing)
 
         self.setDialogButtons(airing, changes)
@@ -763,7 +763,7 @@ class GuideShowWindow(kodigui.BaseWindow):
             paths = paths[50:]
             t = AiringsTask()
             self._tasks.append(t)
-            t.setup(current50, self.updateAiringItem, self.show.airingType)
+            t.setup(current50, self.updateAiringItem, self._show.airingType)
 
         backgroundthread.BGThreader.addTasks(self._tasks)
 
@@ -789,7 +789,7 @@ class GuideShowWindow(kodigui.BaseWindow):
         item.dataSource['airing'] = airing
 
         if airing.type == 'schedule':
-            label = self.show.title
+            label = self._show.title
         else:
             label = airing.title
 
@@ -811,20 +811,20 @@ class GuideShowWindow(kodigui.BaseWindow):
     def setupScheduleDialog(self):
         self.setProperty(
             'schedule.message', 'Automatically schedule {0} for this {1}?'.format(
-                util.LOCALIZED_AIRING_TYPES_PLURAL[self.show.type].lower(),
-                util.LOCALIZED_SHOW_TYPES[self.show.type].lower(),
+                util.LOCALIZED_AIRING_TYPES_PLURAL[self._show.type].lower(),
+                util.LOCALIZED_SHOW_TYPES[self._show.type].lower(),
             )
         )
 
         self.scheduleButtonActions = {}
 
-        if self.show.scheduleRule == 'all':
+        if self._show.scheduleRule == 'all':
             self.scheduleButtonActions[self.SCHEDULE_BUTTON_TOP_ID] = 'none'
             self.scheduleButtonActions[self.SCHEDULE_BUTTON_BOT_ID] = 'new'
             self.setProperty('schedule.top', 'Unschedule Show')
             self.setProperty('schedule.bottom', 'Record New')
             self.setProperty('title.indicator', 'indicators/rec_all_pill_hd.png')
-        elif self.show.scheduleRule == 'new':
+        elif self._show.scheduleRule == 'new':
             self.scheduleButtonActions[self.SCHEDULE_BUTTON_TOP_ID] = 'none'
             self.scheduleButtonActions[self.SCHEDULE_BUTTON_BOT_ID] = 'all'
             self.setProperty('schedule.top', 'Unschedule Show')
@@ -847,8 +847,8 @@ class GuideShowWindow(kodigui.BaseWindow):
         self.airingItems = {}
         airings = []
 
-        if isinstance(self.show, tablo.Series):
-            seasons = self.show.seasons()
+        if isinstance(self._show, tablo.Series):
+            seasons = self._show.seasons()
             seasonsData = tablo.API.batch.post(seasons)
 
             first = True
@@ -878,7 +878,7 @@ class GuideShowWindow(kodigui.BaseWindow):
                     self.airingItems[p] = item
                     self.airingsList.addItem(item)
         else:
-            airings = self.show.airings()
+            airings = self._show.airings()
 
             item = kodigui.ManagedListItem('', data_source={'path': None, 'airing': None})
             item.setProperty('header', '1')
