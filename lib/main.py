@@ -33,15 +33,10 @@ def start():
                         return
                     del w
 
-            try:
-                tablo.API.server.tuners.get()
-            except tablo.APIError, e:
-                if e.code == 503:
-                    util.DEBUG_LOG('Updating ({0})'.format(tablo.API.device.name))
-                    connected = None
-                    continue
-            except:
-                util.ERROR()
+            if tablo.API.getUpdateStatus():
+                util.DEBUG_LOG('Updating ({0})'.format(tablo.API.device.name))
+                connected = None
+                continue
 
             windows.WM.start()
 

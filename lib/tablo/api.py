@@ -516,6 +516,8 @@ class TabloApi(Endpoint):
         Endpoint.__init__(self)
         self.device = None
         self.devices = None
+        self._hasUpdateStatus = False
+        self._wasUpdating = False
         self.timezone = pytz.UTC
         self.serverInfo = {}
 
@@ -544,6 +546,8 @@ class TabloApi(Endpoint):
         return bool(self.devices and self.devices.tablos)
 
     def selectDevice(self, selection):
+        self._hasUpdateStatus = False
+        self._wasUpdating = False
         if isinstance(selection, int):
             self.device = self.devices.tablos[selection]
         else:
@@ -561,6 +565,50 @@ class TabloApi(Endpoint):
 
     def images(self, ID):
         return 'http://{0}/images/{1}'.format(self.device.address(), ID)
+
+    def getUpdateDownloadProgress(self):
+        try:
+            prog = self.server.update.progress.get()
+            return prog.get('download_progress')
+        except:
+            traceback.print_exc()
+
+        return None
+
+    def getUpdateStatus(self):
+        try:
+            status = self.server.update.info.get()
+            self._hasUpdateStatus = True
+            state = status.get('state')
+            if state in ('downloading', 'installing', 'rebooting', 'error'):
+                self._wasUpdating = True
+                if state == 'downloading':
+                    return (state, self.getUpdateDownloadProgress())
+                else:
+                    return (state, None)
+            return None
+        except APIError, e:
+            if self._hasUpdateStatus:
+                traceback.print_exc()
+                return ('error', None)
+
+            if e.code == 404:
+                try:
+                    self.server.tuners.get()
+                except APIError, e:
+                    if e.code == 503:
+                        self._wasUpdating = True
+                        return ('updating', None)
+                except ConnectionError:
+                    if self._wasUpdating:
+                        return ('rebooting', None)
+                except:
+                    traceback.print_exc()
+        except ConnectionError:
+            if self._wasUpdating:
+                return ('rebooting', None)
+
+        return None
 
 
 API = TabloApi()

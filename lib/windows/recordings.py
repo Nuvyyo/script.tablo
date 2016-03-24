@@ -167,6 +167,8 @@ class RecordingShowBase:
         item.dataSource['airing'] = airing
         show = self._show or airing.getShow()
 
+        self.setProperty('busy', '')
+
         if airing.type == 'schedule':
             label = show.title
         else:
@@ -183,7 +185,8 @@ class RecordingShowBase:
         item.setLabel(label)
         item.setLabel2(airing.displayDay())
         item.setThumbnailImage(show.thumb)
-        item.swetPropety('show.title', show.title)
+        item.setProperty('show.title', show.title)
+        item.setProperty('duration', util.durationToText(airing.data['video_details']['duration']))
 
         self.updateItemIndicators(item)
 
@@ -289,7 +292,6 @@ class RecordingsWindow(guide.GuideWindow, RecordingShowBase):
         self.airingsList.reset()
         guide.GuideWindow.fillShows(self, reset=reset)
 
-    @util.busyDialog
     @base.tabloErrorHandler
     def fillRecent(self):
         self.setProperty('show.recent', '1')
@@ -297,6 +299,8 @@ class RecordingsWindow(guide.GuideWindow, RecordingShowBase):
         self.airingsList.reset()
         self.showItems = {}
         airings = []
+
+        self.setProperty('busy', '1')
 
         recentDates = tablo.API.views.recordings.recent.get()
 
@@ -331,7 +335,18 @@ class RecordingsWindow(guide.GuideWindow, RecordingShowBase):
                 self.showItems[airingPath] = item
                 self.airingsList.addItem(item)
 
-        self.getAiringData(airings)
+        if self.airingsList.size():
+            self.setProperty('empty.message', '')
+            self.setProperty('empty.message2', '')
+
+            if self.getFocusId() in (51, 400):
+                self.setFocusId(self.RECENT_LIST_ID)
+
+            self.getAiringData(airings)
+        else:
+            self.setProperty('busy', '')
+
+            self.setProperty('empty.message', 'No Recent Recordings')
 
     def getAiringItem(self, airing):
         return self.showItems[airing.path]

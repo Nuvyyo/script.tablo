@@ -690,9 +690,7 @@ class GuideShowWindow(kodigui.BaseWindow):
 
         if action:
             if action == 'watch':
-                error = player.PLAYER.playAiringChannel(airing.gridAiring or airing)
-                if error:
-                    xbmcgui.Dialog().ok('Failed', 'Failed to play channel:', ' ', str(error))
+                player.PLAYER.playAiringChannel(airing.gridAiring or airing)
             elif action == 'record':
                 airing.schedule()
                 self._show.update()

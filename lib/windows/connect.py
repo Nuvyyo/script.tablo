@@ -50,17 +50,14 @@ class ConnectWindow(kodigui.BaseWindow):
                 util.DEBUG_LOG('Exited while waiting for update')
                 break
 
-            try:
-                tablo.API.server.tuners.get()
-                break
-            except tablo.APIError, e:
-                if e.code == 503:
-                    continue
-                break
-            except tablo.ConnectionError:
+            status = tablo.API.getUpdateStatus()
+            if status and status[0] != 'error':
+                disp = status[0].title()
+                if status[0] == 'downloading' and status[1] is not None:
+                    disp = '{0} {1}%'.format(disp, int(status[1]*100))
+                self.setProperty('update.status', disp)
                 continue
-            except:
-                util.ERROR()
+            else:
                 break
         else:
             util.DEBUG_LOG('Shutdown while waiting for update')

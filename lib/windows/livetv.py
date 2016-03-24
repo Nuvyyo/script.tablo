@@ -677,9 +677,7 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
 
         if action:
             if action == 'watch':
-                error = player.PLAYER.playAiringChannel(airing.gridAiring)
-                if error:
-                    xbmcgui.Dialog().ok('Failed', 'Failed to play channel:', ' ', str(error))
+                player.PLAYER.playAiringChannel(airing.gridAiring)
             elif action == 'record':
                 airing.schedule()
                 self.grid.updateChannelAiringData(path=airing.gridAiring.channel['path'])

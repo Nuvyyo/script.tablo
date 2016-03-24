@@ -228,7 +228,7 @@ class LoadingDialogWindow(xbmcgui.WindowXMLDialog):
         except:
             ERROR()
 
-        xbmcgui.xbmcgui.WindowXMLDialog.onAction(self, action)
+        xbmcgui.WindowXMLDialog.onAction(self, action)
 
     def setProperty(self, key, value):
         try:

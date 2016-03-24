@@ -186,6 +186,37 @@ class TrickModeWindow(kodigui.BaseWindow):
         self.imageList.addItems(items)
 
 
+class ThreadedWatch(object):
+    def __init__(self, airing, dialog):
+        self.dialog = dialog
+        self.airing = airing
+        self.watch = None
+        self.thread = None
+
+    def __enter__(self):
+        return self.start()
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        pass
+
+    def start(self):
+        self.thread = threading.Thread(target=self.watchThread)
+        self.thread.start()
+        return self
+
+    def watchThread(self):
+        util.DEBUG_LOG('ThreadedWatch: Started')
+        self.watch = self.airing.watch()
+        util.DEBUG_LOG('ThreadedWatch: Finished')
+
+    def getWatch(self):
+        util.DEBUG_LOG('ThreadedWatch: getWatch - Started')
+        while self.thread.isAlive() and not self.dialog.canceled:
+            self.thread.join(0.1)
+        util.DEBUG_LOG('ThreadedWatch: getWatch - Finished')
+        return self.watch
+
+
 class TabloPlayer(xbmc.Player):
     def init(self):
         self.playlistFilename = os.path.join(util.PROFILE, 'pl.m3u8')
@@ -241,9 +272,19 @@ class TabloPlayer(xbmc.Player):
     def _playAiringChannel(self):
         airing = self.airing
 
-        watch = airing.watch()
-        if watch.error:
-            return watch.error
+        with ThreadedWatch(airing, self.loadingDialog) as tw:
+            watch = tw.getWatch()
+            if watch:
+                if watch.error:
+                    util.DEBUG_LOG('Player (LiveTV): Watch error: {0}'.format(watch.error))
+                    xbmcgui.Dialog().ok('Failed', 'Failed to play channel:', ' ', str(watch.error))
+                    self.closeLoadingDialog()
+                    return watch.error
+                util.DEBUG_LOG('Player (LiveTV): Watch URL: {0}'.format(watch.url))
+            else:
+                util.DEBUG_LOG('Player (LiveTV): Canceled before start')
+                self.closeLoadingDialog()
+                return
 
         self.watch = watch
         title = '{0} {1}'.format(airing.displayChannel(), airing.network)
@@ -252,12 +293,7 @@ class TabloPlayer(xbmc.Player):
         li.setInfo('video', {'title': title, 'tvshowtitle': title})
         li.setIconImage(thumb)
 
-        if self.loadingDialog.canceled:
-            util.DEBUG_LOG('Player (LiveTV): Canceled before start')
-            self.closeLoadingDialog()
-            return
-        else:
-            util.DEBUG_LOG('Player (LiveTV): Playing channel')
+        util.DEBUG_LOG('Player (LiveTV): Playing channel')
 
         self.play(watch.url, li, False, 0)
         self.loadingDialog.wait()
@@ -325,9 +361,14 @@ class TabloPlayer(xbmc.Player):
                     self.position = self.getTime()
                 xbmc.sleep(100)
 
-                if xbmc.getCondVisibility('Player.Caching') and self.position < 1:
-                    util.DEBUG_LOG('Player (Recording): Forcing resume at {0}'.format(self.position))
-                    self.pause()
+                if xbmc.getCondVisibility('Player.Caching') and self.position - self.startPosition < 10:
+                    if not xbmc.getCondVisibility('IntegerGreaterThan(Player.CacheLevel,10)'):
+                        xbmc.sleep(100)
+                        if xbmc.getCondVisibility('Player.Caching'):
+                            util.DEBUG_LOG(
+                                'Player (Recording): Forcing resume at {0} - cache level: {1}'.format(self.position, xbmc.getInfoLabel('Player.CacheLevel'))
+                            )
+                            self.pause()
 
                 if xbmc.getCondVisibility('VideoPlayer.IsFullscreen'):
                     self.hasFullScreened = True

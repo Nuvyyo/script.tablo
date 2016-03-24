@@ -452,7 +452,7 @@
                                         <posy>0</posy>
                                         <control type="label">
                                             <left>0</left>
-                                            <top>60</top>
+                                            <top>55</top>
                                             <width>1160</width>
                                             <height>40</height>
                                             <font>font_MainMenu</font>
@@ -484,12 +484,24 @@
                                         </control>
 
                                         <control type="label">
+                                            <left>87</left>
+                                            <top>5</top>
+                                            <width>800</width>
+                                            <height>40</height>
+                                            <font>font16</font>
+                                            <textcolor>C8EBEBEB</textcolor>
+                                            <align>left</align>
+                                            <aligny>center</aligny>
+                                            <label>$INFO[ListItem.Property(show.title)]</label>
+                                        </control>
+
+                                        <control type="label">
                                             <visible>IsEmpty(ListItem.Property(airing)) + IsEmpty(ListItem.Property(indicator))</visible>
-                                            <left>20</left>
-                                            <top>0</top>
+                                            <left>77</left>
+                                            <top>30</top>
                                             <width>60</width>
                                             <height>80</height>
-                                            <font>font14</font>
+                                            <font>font13</font>
                                             <textcolor>FFFFFFFF</textcolor>
                                             <align>right</align>
                                             <aligny>center</aligny>
@@ -497,16 +509,16 @@
                                         </control>
                                         <control type="image">
                                             <visible>!IsEmpty(ListItem.Property(airing))</visible>
-                                            <posx>59</posx>
-                                            <posy>29</posy>
+                                            <posx>116</posx>
+                                            <posy>59</posy>
                                             <width>21</width>
                                             <height>22</height>
                                             <texture>indicators/guide_airing_cell_now_playing_indicator_hd.png</texture>
                                         </control>
                                         <control type="image">
                                             <visible>!IsEmpty(ListItem.Property(indicator))</visible>
-                                            <posx>27</posx>
-                                            <posy>27</posy>
+                                            <posx>84</posx>
+                                            <posy>57</posy>
                                             <width>26</width>
                                             <height>26</height>
                                             <texture>$INFO[ListItem.Property(indicator)]</texture>
@@ -514,11 +526,11 @@
 
                                         <control type="label">
                                             <visible>IsEmpty(ListItem.Property(protected))</visible>
-                                            <left>100</left>
-                                            <top>0</top>
+                                            <left>157</left>
+                                            <top>30</top>
                                             <width>700</width>
                                             <height>80</height>
-                                            <font>font16</font>
+                                            <font>font14</font>
                                             <textcolor>C8EBEBEB</textcolor>
                                             <align>left</align>
                                             <aligny>center</aligny>
@@ -527,8 +539,8 @@
 
                                         <control type="group">
                                             <visible>!IsEmpty(ListItem.Property(protected))</visible>
-                                            <left>100</left>
-                                            <top>0</top>
+                                            <left>157</left>
+                                            <top>30</top>
                                             <control type="image">
                                                 <posx>0</posx>
                                                 <posy>30</posy>
@@ -541,7 +553,7 @@
                                                 <top>0</top>
                                                 <width>675</width>
                                                 <height>80</height>
-                                                <font>font16</font>
+                                                <font>font14</font>
                                                 <textcolor>C8EBEBEB</textcolor>
                                                 <align>left</align>
                                                 <aligny>center</aligny>
@@ -550,15 +562,15 @@
                                         </control>
 
                                         <control type="label">
-                                            <left>820</left>
+                                            <left>880</left>
                                             <top>0</top>
                                             <width>260</width>
-                                            <height>80</height>
+                                            <height>100</height>
                                             <font>font14</font>
                                             <textcolor>C8EBEBEB</textcolor>
                                             <align>right</align>
                                             <aligny>center</aligny>
-                                            <label>$INFO[ListItem.Label2]</label>
+                                            <label>$INFO[ListItem.Property(duration)]</label>
                                         </control>
                                         <control type="image">
                                             <posx>1070</posx>
@@ -590,7 +602,7 @@
                                         <posy>0</posy>
                                         <control type="label">
                                             <left>0</left>
-                                            <top>60</top>
+                                            <top>55</top>
                                             <width>1100</width>
                                             <height>40</height>
                                             <font>font_MainMenu</font>
@@ -629,12 +641,24 @@
                                         </control>
 
                                         <control type="label">
+                                            <left>93</left>
+                                            <top>10</top>
+                                            <width>800</width>
+                                            <height>40</height>
+                                            <font>font16</font>
+                                            <textcolor>FF000000</textcolor>
+                                            <align>left</align>
+                                            <aligny>center</aligny>
+                                            <label>$INFO[ListItem.Property(show.title)]</label>
+                                        </control>
+
+                                        <control type="label">
                                             <visible>IsEmpty(ListItem.Property(airing)) + IsEmpty(ListItem.Property(indicator))</visible>
-                                            <left>20</left>
-                                            <top>0</top>
+                                            <left>83</left>
+                                            <top>35</top>
                                             <width>60</width>
-                                            <height>90</height>
-                                            <font>font14</font>
+                                            <height>80</height>
+                                            <font>font13</font>
                                             <textcolor>FF000000</textcolor>
                                             <align>right</align>
                                             <aligny>center</aligny>
@@ -642,16 +666,16 @@
                                         </control>
                                         <control type="image">
                                             <visible>!IsEmpty(ListItem.Property(airing))</visible>
-                                            <posx>59</posx>
-                                            <posy>34</posy>
+                                            <posx>122</posx>
+                                            <posy>64</posy>
                                             <width>21</width>
                                             <height>22</height>
                                             <texture>indicators/guide_airing_cell_now_playing_indicator_hd.png</texture>
                                         </control>
                                         <control type="image">
                                             <visible>!IsEmpty(ListItem.Property(indicator))</visible>
-                                            <posx>32</posx>
-                                            <posy>32</posy>
+                                            <posx>90</posx>
+                                            <posy>62</posy>
                                             <width>26</width>
                                             <height>26</height>
                                             <texture>$INFO[ListItem.Property(indicator)]</texture>
@@ -659,11 +683,11 @@
 
                                         <control type="label">
                                             <visible>IsEmpty(ListItem.Property(protected))</visible>
-                                            <left>100</left>
-                                            <top>0</top>
-                                            <width>720</width>
-                                            <height>90</height>
-                                            <font>font30</font>
+                                            <left>163</left>
+                                            <top>35</top>
+                                            <width>700</width>
+                                            <height>80</height>
+                                            <font>font14</font>
                                             <textcolor>FF000000</textcolor>
                                             <align>left</align>
                                             <aligny>center</aligny>
@@ -672,21 +696,21 @@
 
                                         <control type="group">
                                             <visible>!IsEmpty(ListItem.Property(protected))</visible>
-                                            <left>100</left>
-                                            <top>0</top>
+                                            <left>163</left>
+                                            <top>35</top>
                                             <control type="image">
                                                 <posx>0</posx>
-                                                <posy>35</posy>
+                                                <posy>30</posy>
                                                 <width>15</width>
                                                 <height>19</height>
-                                                <texture>recordings/protected_small_dark_hd.png</texture>
+                                                <texture>recordings/protected_small_hd.png</texture>
                                             </control>
                                             <control type="label">
-                                                <posx>25</posx>
-                                                <posy>0</posy>
-                                                <width>695</width>
-                                                <height>90</height>
-                                                <font>font30</font>
+                                                <left>25</left>
+                                                <top>0</top>
+                                                <width>675</width>
+                                                <height>80</height>
+                                                <font>font14</font>
                                                 <textcolor>FF000000</textcolor>
                                                 <align>left</align>
                                                 <aligny>center</aligny>
@@ -695,15 +719,15 @@
                                         </control>
 
                                         <control type="label">
-                                            <left>840</left>
+                                            <left>900</left>
                                             <top>0</top>
                                             <width>260</width>
-                                            <height>90</height>
+                                            <height>110</height>
                                             <font>font14</font>
                                             <textcolor>FF000000</textcolor>
                                             <align>right</align>
                                             <aligny>center</aligny>
-                                            <label>$INFO[ListItem.Label2]</label>
+                                            <label>$INFO[ListItem.Property(duration)]</label>
                                         </control>
                                         <control type="image">
                                             <posx>1090</posx>

@@ -204,7 +204,7 @@
                 <align>center</align>
                 <aligny>center</aligny>
                 <textcolor>FFFFFFFF</textcolor>
-                <label>Updating $INFO[Window.Property(updating)]</label>
+                <label>$INFO[Window.Property(updating)]: $INFO[Window.Property(update.status)]</label>
             </control>
             <control type="image">
                 <visible>!IsEmpty(Window.Property(updating))</visible>

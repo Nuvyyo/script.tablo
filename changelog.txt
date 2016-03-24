@@ -3,7 +3,7 @@
 FIX:     Error caused on 'Tablo' view after a device is removed
 FIX:     Loading now displays until video is playing
 CHANGE:  Pressing esc/back on loading screen now aborts playback
-
+CHANGE:  Drives are now updated when returning to info screen
 
 - 0.0.12
 

@@ -233,6 +233,7 @@
                         <orientation>horizontal</orientation>
                         <itemgap>10</itemgap>
                         <align>center</align>
+                        <usecontrolcoords>true</usecontrolcoords>
                         <control type="label">
                             <visible>Control.HasFocus(401)</visible>
                             <width>auto</width>
