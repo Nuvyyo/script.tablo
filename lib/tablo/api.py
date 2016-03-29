@@ -153,28 +153,31 @@ class Airing(object):
         elif 'series' in self.path:
             self.type = 'episode'
         elif 'movies' in self.path:
-            self.type = 'schedule'
+            self.type = 'movie_airing'
         elif 'sports' in self.path:
             self.type = 'event'
         elif 'programs' in self.path:
-            self.type = 'airing'
+            self.type = 'program'
 
     @property
     def showPath(self):
         if self.type == 'episode':
             return self.data['series_path']
-        elif self.type == 'schedule':
+        elif self.type == 'movie_airing':
             return self.data['movie_path']
         elif self.type == 'event':
             return self.data['sport_path']
-        elif self.type == 'airing':
+        elif self.type == 'program':
             return self.data['program_path']
 
     def getShow(self):
         return Show.newFromData(API(self.showPath).get())
 
     def __getattr__(self, name):
-        return self.data[self.type].get(name)
+        try:
+            return self.data[self.type].get(name)
+        except KeyError:
+            return None
 
     def watch(self):
         if 'recording' in self.path:
@@ -335,12 +338,12 @@ class GridAiring(Airing):
             data = API(self.path).get()
             if 'episode' in data:
                 self._gridAiring = Airing(data, 'episode')
-            elif 'schedule' in data:
-                self._gridAiring = Airing(data, 'schedule')
+            elif 'movie_airing' in data:
+                self._gridAiring = Airing(data, 'movie_airing')
             elif 'event' in data:
                 self._gridAiring = Airing(data, 'event')
-            elif 'airing' in data:
-                self._gridAiring = Airing(data, 'airing')
+            elif 'program' in data:
+                self._gridAiring = Airing(data, 'program')
 
         return self._gridAiring
 

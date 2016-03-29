@@ -81,7 +81,7 @@
                     <posx>50</posx>
                     <posy>170</posy>
                     <width>250</width>
-                    <height>400</height>
+                    <height>420</height>
                     <scrolltime>200</scrolltime>
                     <orientation>vertical</orientation>
                     <onleft>50</onleft>
@@ -583,8 +583,8 @@
                                             <visible>!IsEmpty(ListItem.Property(disabled))</visible>
                                             <posx>0</posx>
                                             <posy>0</posy>
-                                            <width>1100</width>
-                                            <height>80</height>
+                                            <width>1160</width>
+                                            <height>100</height>
                                             <texture>script-tablo-white_square.png</texture>
                                             <colordiffuse>A0404040</colordiffuse>
                                         </control>
@@ -740,8 +740,8 @@
                                             <visible>!IsEmpty(ListItem.Property(disabled))</visible>
                                             <posx>0</posx>
                                             <posy>0</posy>
-                                            <width>1120</width>
-                                            <height>90</height>
+                                            <width>1180</width>
+                                            <height>110</height>
                                             <texture>script-tablo-white_square.png</texture>
                                             <colordiffuse>A0404040</colordiffuse>
                                         </control>

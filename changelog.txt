@@ -1,3 +1,9 @@
+- 0.0.14
+
+FIX:     Errors when 'Manual' recorded programs are present
+ADD:     Manual option on recordings view
+
+
 - 0.0.13
 
 FIX:     Error caused on 'Tablo' view after a device is removed

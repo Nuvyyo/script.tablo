@@ -201,13 +201,15 @@ class RecordingsWindow(guide.GuideWindow, RecordingShowBase):
         ('RECENT', 'Recent'),
         ('SERIES', 'TV Shows'),
         ('MOVIES', 'Movies'),
-        ('SPORTS', 'Sports')
+        ('SPORTS', 'Sports'),
+        ('MANUAL', 'Manual')
     )
 
     emptyMessage = ('No Recordings', 'You can schedule recordings from the Guide screen.')
     emptyMessageTVShows = ('No Recorded TV Shows', 'You can schedule recordings from the Guide screen.')
     emptyMessageMovies = ('No Recorded Movies', 'You can schedule recordings from the Guide screen.')
     emptyMessageSports = ('No Recorded Sports', 'You can schedule recordings from the Guide screen.')
+    emptyMessageProgram = ('No Manual Recordings',)
 
     RECENT_LIST_ID = 500
 

@@ -396,6 +396,8 @@ class GuideWindow(kodigui.BaseWindow):
                 keys = tablo.API.views(self.view).movies.get(**args)
             elif self.filter == 'SPORTS':
                 keys = tablo.API.views(self.view).sports.get(**args)
+            elif self.filter == 'MANUAL':
+                keys = tablo.API.views(self.view).programs.get(**args)
             else:
                 keys = tablo.API.views(self.view).shows.get(**args)
         except tablo.ConnectionError:
