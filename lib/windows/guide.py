@@ -809,33 +809,51 @@ class GuideShowWindow(kodigui.BaseWindow):
         self.updateItemIndicators(item)
 
     def setupScheduleDialog(self):
-        self.setProperty(
-            'schedule.message', 'Automatically schedule {0} for this {1}?'.format(
-                util.LOCALIZED_AIRING_TYPES_PLURAL[self._show.type].lower(),
-                util.LOCALIZED_SHOW_TYPES[self._show.type].lower(),
-            )
-        )
-
         self.scheduleButtonActions = {}
 
-        if self._show.scheduleRule == 'all':
-            self.scheduleButtonActions[self.SCHEDULE_BUTTON_TOP_ID] = 'none'
-            self.scheduleButtonActions[self.SCHEDULE_BUTTON_BOT_ID] = 'new'
-            self.setProperty('schedule.top', 'Unschedule Show')
-            self.setProperty('schedule.bottom', 'Record New')
-            self.setProperty('title.indicator', 'indicators/rec_all_pill_hd.png')
-        elif self._show.scheduleRule == 'new':
-            self.scheduleButtonActions[self.SCHEDULE_BUTTON_TOP_ID] = 'none'
-            self.scheduleButtonActions[self.SCHEDULE_BUTTON_BOT_ID] = 'all'
-            self.setProperty('schedule.top', 'Unschedule Show')
-            self.setProperty('schedule.bottom', 'Record All')
-            self.setProperty('title.indicator', 'indicators/rec_new_pill_hd.png')
+        if self._show.type == 'PROGRAM':
+            self.setProperty(
+                'schedule.message', 'Automatically schedule times for this manual program?'
+            )
+
+            if self._show.scheduleRule == 'all':
+                self.scheduleButtonActions[self.SCHEDULE_BUTTON_TOP_ID] = 'none'
+                self.scheduleButtonActions[self.SCHEDULE_BUTTON_BOT_ID] = None
+                self.setProperty('schedule.top', 'Unschedule Times')
+                self.setProperty('schedule.bottom', 'Cancel')
+                self.setProperty('title.indicator', 'indicators/rec_all_pill_hd.png')
+            else:
+                self.scheduleButtonActions[self.SCHEDULE_BUTTON_TOP_ID] = 'all'
+                self.scheduleButtonActions[self.SCHEDULE_BUTTON_BOT_ID] = None
+                self.setProperty('schedule.top', 'Record All')
+                self.setProperty('schedule.bottom', 'Cancel')
+                self.setProperty('title.indicator', '')
         else:
-            self.scheduleButtonActions[self.SCHEDULE_BUTTON_TOP_ID] = 'all'
-            self.scheduleButtonActions[self.SCHEDULE_BUTTON_BOT_ID] = 'new'
-            self.setProperty('schedule.top', 'Record All')
-            self.setProperty('schedule.bottom', 'Record New')
-            self.setProperty('title.indicator', '')
+            self.setProperty(
+                'schedule.message', 'Automatically schedule {0} for this {1}?'.format(
+                    util.LOCALIZED_AIRING_TYPES_PLURAL[self._show.type].lower(),
+                    util.LOCALIZED_SHOW_TYPES[self._show.type].lower(),
+                )
+            )
+
+            if self._show.scheduleRule == 'all':
+                self.scheduleButtonActions[self.SCHEDULE_BUTTON_TOP_ID] = 'none'
+                self.scheduleButtonActions[self.SCHEDULE_BUTTON_BOT_ID] = 'new'
+                self.setProperty('schedule.top', 'Unschedule Show')
+                self.setProperty('schedule.bottom', 'Record New')
+                self.setProperty('title.indicator', 'indicators/rec_all_pill_hd.png')
+            elif self._show.scheduleRule == 'new':
+                self.scheduleButtonActions[self.SCHEDULE_BUTTON_TOP_ID] = 'none'
+                self.scheduleButtonActions[self.SCHEDULE_BUTTON_BOT_ID] = 'all'
+                self.setProperty('schedule.top', 'Unschedule Show')
+                self.setProperty('schedule.bottom', 'Record All')
+                self.setProperty('title.indicator', 'indicators/rec_new_pill_hd.png')
+            else:
+                self.scheduleButtonActions[self.SCHEDULE_BUTTON_TOP_ID] = 'all'
+                self.scheduleButtonActions[self.SCHEDULE_BUTTON_BOT_ID] = 'new'
+                self.setProperty('schedule.top', 'Record All')
+                self.setProperty('schedule.bottom', 'Record New')
+                self.setProperty('title.indicator', '')
 
     def updateAirings(self):
         self.getAiringData(self.airingItems.keys())

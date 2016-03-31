@@ -1,3 +1,8 @@
+- 0.0.15
+
+CHANGE:  Use 1080p image assets
+FIX:     Change schedule buttons for Program items
+
 - 0.0.14
 
 FIX:     Errors when 'Manual' recorded programs are present

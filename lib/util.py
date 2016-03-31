@@ -33,14 +33,14 @@ LOCALIZED_AIRING_TYPES = {  # TODO: Actually localize these :)
     'SERIES': 'Episode',
     'MOVIE': 'Movie',
     'SPORT': 'Event',
-    'PROGRAM': 'Program',
+    'PROGRAM': 'Time',
 }
 
 LOCALIZED_AIRING_TYPES_PLURAL = {  # TODO: Actually localize these :)
     'SERIES': 'Episodes',
     'MOVIE': 'Airings',
     'SPORT': 'Events',
-    'PROGRAM': 'Programs',
+    'PROGRAM': 'Times',
 }
 
 

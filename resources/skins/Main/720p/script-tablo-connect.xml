@@ -224,6 +224,7 @@
             <width>662</width>
             <height>242</height>
             <texture>tablo/tablo_render_hd.png</texture>
+            <aspectratio>keep</aspectratio>
         </control>
 
         <control type="image">
