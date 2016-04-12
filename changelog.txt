@@ -1,3 +1,8 @@
+- 0.0.16
+
+ADD:     Now checks for subscription status and shows a message instead of Guide if no subscription
+ADD:     Now shows subscription info on info screen
+
 - 0.0.15
 
 CHANGE:  Use 1080p image assets

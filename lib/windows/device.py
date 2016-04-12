@@ -18,6 +18,25 @@ class DeviceWindow(kodigui.BaseWindow):
 
     def onFirstInit(self):
         self.setProperty('device.name', tablo.API.device.displayName)
+
+        if tablo.API.hasSubscription():
+            if tablo.API.subscription.get('state') == 'trial':
+                expDT = tablo.api.processDate(tablo.API.subscription.get('expires'))
+                interval = expDT - tablo.api.now()
+                intervalDisp = util.longDurationToText(tablo.api.compat.timedelta_total_seconds(interval))
+                expDisp = expDT.strftime('%B %d, %Y')
+                self.setProperty('subscription.title', 'Trial Subscription')
+                self.setProperty(
+                    'subscription.description',
+                    'Your trial expires in {interval}. Subscribe before {expiration}.'.format(interval=intervalDisp, expiration=expDisp)
+                )
+            elif tablo.subscription.get('state') == 'subscribed':
+                self.setProperty('subscription.title', 'Active Subscription')
+                self.setProperty('subscription.description', 'Your Tablo has full access to guide data and all features.')
+        else:
+            self.setProperty('subscription.title', 'No Subscription')
+            self.setProperty('subscription.description', 'Subscribe now to receive guide data and enable more features.')
+
         try:
             hdinfo = tablo.API.server.harddrives.get()
         except:
@@ -55,7 +74,6 @@ class DeviceWindow(kodigui.BaseWindow):
         self.setProperty('addon.version', util.ADDON.getAddonInfo('version'))
 
     def onWindowFocus(self):
-        print 'tttttesdfsf'
         try:
             hdinfo = tablo.API.server.harddrives.get()
         except:

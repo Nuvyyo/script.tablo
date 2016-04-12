@@ -6,11 +6,14 @@ from lib import util
 import device
 import livetv
 import recordings
+import message
 import guide
 import scheduled
 
 from background import BackgroundWindow
 from connect import ConnectWindow
+
+from lib import tablo
 
 
 class WindowManager(xbmc.Monitor):
@@ -173,7 +176,10 @@ class MenuDialog(kodigui.BaseDialog):
         elif controlID == 103:
             self.openWindow(RecordingsWindow)
         elif controlID == 104:
-            self.openWindow(GuideWindow)
+            if tablo.API.hasSubscription():
+                self.openWindow(GuideWindow)
+            else:
+                self.openWindow(GuideNoSubscriptionWindow)
         elif controlID == 105:
             self.openWindow(ScheduledWindow)
 
@@ -198,10 +204,11 @@ class MenuDialog(kodigui.BaseDialog):
     def loadFirstWindow(self):
         last = util.getSetting('window.last')
         if last:
-            for window, ID in ((DeviceWindow, 101), (LiveTVWindow, 102), (RecordingsWindow, 103), (GuideWindow, 104), (ScheduledWindow, 105)):
-                if window.name == last:
-                    self.setFocusId(ID)
-                    return self.openWindow(window, hide_menu=False)
+            if last != 'GUIDE' or tablo.API.hasSubscription():
+                for window, ID in ((DeviceWindow, 101), (LiveTVWindow, 102), (RecordingsWindow, 103), (GuideWindow, 104), (ScheduledWindow, 105)):
+                    if window.name == last:
+                        self.setFocusId(ID)
+                        return self.openWindow(window, hide_menu=False)
 
         self.setFocusId(102)
         self.openWindow(LiveTVWindow, hide_menu=False)
@@ -211,11 +218,13 @@ livetv.WM = WM
 recordings.WM = WM
 guide.WM = WM
 scheduled.WM = WM
+message.WM = WM
 
 DeviceWindow = device.DeviceWindow
 LiveTVWindow = livetv.LiveTVWindow
 RecordingsWindow = recordings.RecordingsWindow
 GuideWindow = guide.GuideWindow
+GuideNoSubscriptionWindow = guide.GuideNoSubscriptionWindow
 ScheduledWindow = scheduled.ScheduledWindow
 
 ConnectWindow  # Hides IDE warnings

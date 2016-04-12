@@ -144,6 +144,18 @@ def sortTitle(title):
     return title.startswith('The ') and title[4:] or title
 
 
+def longDurationToText(seconds):
+    """
+    Converts seconds to a short user friendly string
+    Example: 143 -> 2m 23s
+    """
+    years = int(seconds/31536000)
+    if years:
+        return '{0} year{1}'.format(years, years > 1 and 's' or '')
+
+    return durationToText(seconds)
+
+
 def durationToText(seconds):
     """
     Converts seconds to a short user friendly string

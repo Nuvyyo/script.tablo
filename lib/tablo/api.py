@@ -519,6 +519,7 @@ class TabloApi(Endpoint):
         Endpoint.__init__(self)
         self.device = None
         self.devices = None
+        self.subscription = None
         self._hasUpdateStatus = False
         self._wasUpdating = False
         self.timezone = pytz.UTC
@@ -545,6 +546,15 @@ class TabloApi(Endpoint):
 
         return True
 
+    def _getSubscription(self):
+        try:
+            self.subscription = self.server.subscription.get()
+        except:
+            traceback.print_exc()
+
+    def hasSubscription(self):
+        return self.subscription and self.subscription.get('state') != "none"
+
     def foundTablos(self):
         return bool(self.devices and self.devices.tablos)
 
@@ -560,6 +570,8 @@ class TabloApi(Endpoint):
                     break
             else:
                 return False
+
+        self._getSubscription()
 
         return self.getServerInfo()
 

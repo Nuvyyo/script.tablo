@@ -2,6 +2,7 @@ import xbmc
 import xbmcgui
 import kodigui
 import base
+import message
 import actiondialog
 import time
 import threading
@@ -78,6 +79,15 @@ class DelayedShowUpdater(object):
 
     def abort(self):
         self._abort = True
+
+
+class GuideNoSubscriptionWindow(message.MessageWindow):
+    name = 'GUIDE_NO_SUBSCRIPTION'
+
+    def __init__(self, *args, **kwargs):
+        kodigui.BaseWindow.__init__(self, *args, **kwargs)
+        self.title = 'Guide'
+        self.message = 'This screen requires a Tablo Guide Data Subscription.[CR]Go to www.tablotv.com/subscription for details.'
 
 
 class GuideWindow(kodigui.BaseWindow):
