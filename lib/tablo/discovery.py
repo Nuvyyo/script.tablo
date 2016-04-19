@@ -35,6 +35,9 @@ class TabloDevice:
         self.inserted = self.processDate(data.get('inserted'))
         self.modified = self.processDate(data.get('modified'))
 
+    def __repr__(self):
+        return '<TabloDevice:{0}:{1}>'.format(self.ID, self.IP)
+
     def __ne__(self, other):
         return not self.__eq__(other)
 

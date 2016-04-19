@@ -87,17 +87,28 @@ class ConnectWindow(kodigui.BaseWindow):
     def start(self):
         self.showDevices()
 
+    def deviceVersionAllowed(self, device):
+        try:
+            return util.Version(device.version) >= util.Version('2.2.9')
+        except:
+            util.ERROR()
+
+        return True
+
     def showDevices(self):
         self.setProperty('tablo.found', '')
         self.deviceList.reset()
         tablo.API.discover()
         for device in tablo.API.devices.tablos:
+            if not self.deviceVersionAllowed(device):
+                util.DEBUG_LOG('Skipping device because of low version: {0}'.format(device))
+                continue
             self.deviceList.addItem(kodigui.ManagedListItem(device.displayName, data_source=device))
 
         self.setProperty('initialized', '1')
 
-        if tablo.API.foundTablos():
-            self.setProperty('tablo.found', '1')
+        self.setProperty('tablo.found', '1')
+        if self.deviceList.size():
             self.setFocusId(200)
         else:
             self.setFocusId(300)
