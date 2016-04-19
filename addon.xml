@@ -13,7 +13,8 @@
     </extension>
     <extension point="xbmc.addon.metadata">
         <summary lang="en">Tablo TV - Live TV and DVR</summary>
-        <description lang="en">Tablo is a DVR that connects to your HDTV antenna to discover, record and stream live HDTV programs that are available Over-The-Air (OTA) for free. And since Tablo connects to your home WiFi network instead of your TV, it lets you watch, pause and record free OTA TV on your Kodi device. Enjoy live sports, local news and your favorite network broadcast TV shows in HD through the Tablo Channel. All without the cost or commitment of a cable or satellite contract. Tablo also works with your iPad or Android Tablet, smartphone or computer to stream your gorgeous HDTV content anywhere you roam. Additional Tablo DVR hardware purchase required: TabloTV.com/tablo-products</description>
+        <description lang="en">Tablo is a DVR that lets you watch, pause and record free OTA TV with Kodi. Enjoy live sports, local news and your favorite network broadcast TV shows in HD through the Tablo add-on. No cable or satellite subscription required. Additional hardware purchase required. For more information visit www.TabloTV.com.
+</description>
         <disclaimer lang="en">Requires a Tablo device</disclaimer>
         <license></license>
         <forum></forum>
