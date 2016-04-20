@@ -174,6 +174,8 @@ def durationToText(seconds):
     mins = int(left/60)
     if mins:
         return hours + '{0} min{1}'.format(mins, mins > 1 and 's' or '')
+    elif hours:
+        return hours
     secs = int(left % 60)
     if secs:
         return '{0} sec{1}'.format(secs, secs > 1 and 's' or '')
@@ -198,6 +200,8 @@ def durationToShortText(seconds):
     mins = int(left/60)
     if mins:
         return hours + '{0}m'.format(mins)
+    elif hours:
+        return hours
     secs = int(left % 60)
     if secs:
         return '{0}s'.format(secs)
