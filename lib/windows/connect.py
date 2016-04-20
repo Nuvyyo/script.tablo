@@ -1,3 +1,4 @@
+import os
 import threading
 import xbmc
 import xbmcgui
@@ -87,6 +88,23 @@ class ConnectWindow(kodigui.BaseWindow):
     def start(self):
         self.showDevices()
 
+    def addTestDevice(self):
+        testPath = os.path.join(util.PROFILE, 'test.server')
+        if not os.path.exists(testPath):
+            return
+
+        util.DEBUG_LOG('TEST SERVER DATA FOUND - ADDING TO DEVICES')
+
+        with open(testPath, 'r') as f:
+            ip, port = f.read().strip().split(':', 1)
+
+        device = tablo.discovery.TabloDevice({'private_ip': ip})
+        device.port = port
+        device.name = 'TEST'
+        device.updateInfoFromDevice()
+
+        tablo.API.devices.tablos.append(device)
+
     def deviceVersionAllowed(self, device):
         try:
             return util.Version(device.version) >= util.Version('2.2.9')
@@ -99,6 +117,7 @@ class ConnectWindow(kodigui.BaseWindow):
         self.setProperty('tablo.found', '')
         self.deviceList.reset()
         tablo.API.discover()
+        self.addTestDevice()
         for device in tablo.API.devices.tablos:
             if not self.deviceVersionAllowed(device):
                 util.DEBUG_LOG('Skipping device because of low version: {0}'.format(device))

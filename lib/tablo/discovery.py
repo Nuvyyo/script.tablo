@@ -75,6 +75,7 @@ class TabloDevice:
 
         self.name = data['name']
         self.version = data['version']
+        self.ID = self.ID or data.get('server_id')
 
     @property
     def displayName(self):

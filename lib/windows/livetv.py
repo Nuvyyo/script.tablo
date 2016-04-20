@@ -727,7 +727,7 @@ class EPGXMLGenerator(object):
                         <onleft>50</onleft>
                         <onright>50</onright>
                         <height>52</height>
-                        <width>1500</width>
+                        <width>1300</width>
                         <orientation>horizontal</orientation>
                         <align>left</align>
                         <itemgap>0</itemgap>
