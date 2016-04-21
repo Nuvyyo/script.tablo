@@ -24,6 +24,10 @@ def now():
     return compat.datetime.datetime.now(API.timezone)
 
 
+def UTCNow():
+    return compat.datetime.datetime.now(pytz.timezone('UTC'))
+
+
 def UTC():
     return pytz.timezone('UTC')
 

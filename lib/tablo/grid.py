@@ -27,9 +27,9 @@ class ChannelTask(backgroundthread.Task):
         self.callback = callback
 
     def run(self):
-        n = tablo.api.now()
+        n = tablo.api.UTCNow()
         start = n - tablo.compat.datetime.timedelta(minutes=n.minute % 30, seconds=n.second, microseconds=n.microsecond)
-        data = tablo.API.views.livetv.channels(self.channel.object_id).get(start=start.isoformat(), duration=86400+(3600*INTERVAL_HOURS))
+        data = tablo.API.views.livetv.channels(self.channel.object_id).get(start=start.isoformat(), duration=86400+(5400*INTERVAL_HOURS))
         if self.isCanceled():
             return
 
