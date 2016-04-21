@@ -421,6 +421,12 @@ class Show(object):
             print 'Show.airings() failed: {0}'.format(e.message)
             return []
 
+    def deleteAll(self, delete_protected=False):
+        if delete_protected:
+            return API(self.path)('delete').post()
+        else:
+            return API(self.path)('delete').post(filter='unprotected')
+
 
 class Series(Show):
     type = 'SERIES'

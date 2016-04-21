@@ -225,6 +225,7 @@
                     <posx>700</posx>
                     <posy>270</posy>
                     <control type="button" id="401">
+                        <enable>IsEmpty(Window.Property(section.action.disabled))</enable>
                         <posx>0</posx>
                         <posy>0</posy>
                         <width>280</width>
@@ -253,7 +254,7 @@
                         <align>center</align>
                         <usecontrolcoords>true</usecontrolcoords>
                         <control type="label">
-                            <visible>Control.HasFocus(401)</visible>
+                            <visible>Control.HasFocus(401) + IsEmpty(Window.Property(section.action.disabled))</visible>
                             <width>auto</width>
                             <height>60</height>
                             <font>font30</font>
@@ -263,11 +264,31 @@
                             <label>[B]$INFO[Window.Property(section.action)][/B]</label>
                         </control>
                         <control type="label">
-                            <visible>!Control.HasFocus(401)</visible>
+                            <visible>!Control.HasFocus(401) + IsEmpty(Window.Property(section.action.disabled))</visible>
                             <width>auto</width>
                             <height>60</height>
                             <font>font30</font>
                             <textcolor>FFFFFFFF</textcolor>
+                            <align>center</align>
+                            <aligny>center</aligny>
+                            <label>$INFO[Window.Property(section.action)]</label>
+                        </control>
+                        <control type="label">
+                            <visible>Control.HasFocus(401) + !IsEmpty(Window.Property(section.action.disabled))</visible>
+                            <width>auto</width>
+                            <height>60</height>
+                            <font>font30</font>
+                            <textcolor>FFA0A0A0</textcolor>
+                            <align>center</align>
+                            <aligny>center</aligny>
+                            <label>[B]$INFO[Window.Property(section.action)][/B]</label>
+                        </control>
+                        <control type="label">
+                            <visible>!Control.HasFocus(401) + !IsEmpty(Window.Property(section.action.disabled))</visible>
+                            <width>auto</width>
+                            <height>60</height>
+                            <font>font30</font>
+                            <textcolor>FFA0A0A0</textcolor>
                             <align>center</align>
                             <aligny>center</aligny>
                             <label>$INFO[Window.Property(section.action)]</label>

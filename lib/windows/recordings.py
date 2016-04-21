@@ -150,11 +150,14 @@ class RecordingShowBase:
                 item.setProperty('indicator', 'recordings/seen_small_unwatched_hd.png')
 
         item.setProperty('protected', airing.protected and '1' or '')
+        if not airing.protected:
+            self.setProperty('section.action.disabled', '')
 
         if airing.deleted:
             item.setProperty('disabled', '1')
 
     def updateIndicators(self):
+        self.setProperty('section.action.disabled', '1')
         for item in self.airingsList:
             self.updateItemIndicators(item)
 
@@ -376,11 +379,17 @@ class RecordingShowWindow(RecordingShowBase, guide.GuideShowWindow):
 
         self.setProperty('action.busy', '1')
         try:
+            self._show.deleteAll()
+            # Check if we have protected airings. If so don't close
             for item in self.airingsList:
                 airing = item.dataSource.get('airing')
-                if not airing or airing.deleted:
+                if not airing:
                     continue
-                airing.delete()
+                if not airing.deleted and airing.protected:
+                    self.fillAirings()
+                    break
+            else:
+                self.doClose()
         except tablo.APIError:
             util.ERROR()
         finally:
@@ -406,6 +415,7 @@ class RecordingShowWindow(RecordingShowBase, guide.GuideShowWindow):
         # self.setProperty('title.indicator', 'indicators/rec_all_pill_hd.png')
 
     def fillAirings(self):
+        self.setProperty('section.action.disabled', '1')
         guide.GuideShowWindow.fillAirings(self)
         self.setProperty('hide.menu', not self.airingsList.size() and '1' or '')
 
