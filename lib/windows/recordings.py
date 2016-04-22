@@ -40,7 +40,11 @@ class RecordingShowBase:
                 arg_dict['seenratio'] = airing.data['user_info']['position'] / float(total)
                 arg_dict['seen'] = airing.data['user_info']['position']
             else:
-                description += '[CR][CR]Length: {0}'.format(util.durationToText(airing.data['video_details']['duration']))
+                if airing.data['video_details']['state'] == 'recording':
+                    description += '[CR][CR]Recording Now...'
+                else:
+                    description += '[CR][CR]Length: {0}'.format(util.durationToText(airing.data['video_details']['duration']))
+
                 arg_dict['seenratio'] = None
                 arg_dict['seen'] = None
 
@@ -189,7 +193,11 @@ class RecordingShowBase:
         item.setLabel2(airing.displayDay())
         item.setThumbnailImage(show.thumb)
         item.setProperty('show.title', show.title)
-        item.setProperty('duration', util.durationToText(airing.data['video_details']['duration']))
+
+        if airing.data['video_details']['state'] == 'recording':
+            item.setProperty('duration', 'Recording Now...')
+        else:
+            item.setProperty('duration', util.durationToText(airing.data['video_details']['duration']))
 
         self.updateItemIndicators(item)
 
