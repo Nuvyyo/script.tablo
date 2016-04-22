@@ -58,8 +58,15 @@ class DeviceWindow(kodigui.BaseWindow):
                 control = self.getControl(controlID)
                 w = int((drive['usage'] / float(drive['size'])) * self.DRIVE_WIDTH)
                 control.setWidth(w)
-                control = self.getControl(controlID+1)
-                control.setWidth(w - 10)
+                if self.DRIVE_WIDTH - w < 200:
+                    self.setProperty('drive.{0}.almost_full'.format(i), '1')
+                    control = self.getControl(controlID+1)
+                    control.setWidth((w / 2) - 15)
+                    control = self.getControl(controlID+2)
+                    control.setWidth((w / 2) - 15)
+                else:
+                    control = self.getControl(controlID+1)
+                    control.setWidth(w-10)
                 controlID += 100
 
         if not tablo.API.serverInfo:

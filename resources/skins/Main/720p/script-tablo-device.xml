@@ -164,11 +164,22 @@
                             <label>$INFO[Window.Property(drive.0.used)]</label>
                         </control>
                         <control type="label">
+                            <visible>IsEmpty(Window.Property(drive.0.almost_full))</visible>
                             <width min="0" max="660">auto</width>
                             <height>50</height>
                             <font>font14</font>
                             <textcolor>FF000000</textcolor>
                             <align>left</align>
+                            <aligny>center</aligny>
+                            <label>$INFO[Window.Property(drive.0.left)]</label>
+                        </control>
+                        <control type="label" id="202">
+                            <visible>!IsEmpty(Window.Property(drive.0.almost_full))</visible>
+                            <width>1</width>
+                            <height>50</height>
+                            <font>font14</font>
+                            <textcolor>FFE8E8E8</textcolor>
+                            <align>right</align>
                             <aligny>center</aligny>
                             <label>$INFO[Window.Property(drive.0.left)]</label>
                         </control>
@@ -230,11 +241,22 @@
                             <label>$INFO[Window.Property(drive.1.used)]</label>
                         </control>
                         <control type="label">
+                            <visible>IsEmpty(Window.Property(drive.1.almost_full))</visible>
                             <width min="0" max="660">auto</width>
                             <height>50</height>
                             <font>font14</font>
                             <textcolor>FF000000</textcolor>
                             <align>left</align>
+                            <aligny>center</aligny>
+                            <label>$INFO[Window.Property(drive.1.left)]</label>
+                        </control>
+                        <control type="label" id="302">
+                            <visible>!IsEmpty(Window.Property(drive.1.almost_full))</visible>
+                            <width>1</width>
+                            <height>50</height>
+                            <font>font14</font>
+                            <textcolor>FFE8E8E8</textcolor>
+                            <align>right</align>
                             <aligny>center</aligny>
                             <label>$INFO[Window.Property(drive.1.left)]</label>
                         </control>
