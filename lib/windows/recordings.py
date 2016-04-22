@@ -13,6 +13,16 @@ from lib import tablo
 import guide
 
 
+RECORDING_FAILED_MESSAGES = {
+    "no_hard_drive": 'Recording failed because no hard drive was detected.',
+    "full_hard_drive": 'Recording failed because the hard drive was full.',
+    "no_tuner_available": 'Recording failed because no tuner was available.',
+    "weak_signal": 'Recording failed due to weak signal.',
+    "internal_error": 'Recording failed due to an unknown error. This is usually caused by poor reception.',
+    None: 'Recording failed due to an unknown error.'
+}
+
+
 class RecordingShowBase:
     def setDialogIndicators(self, airing, show, arg_dict):
         if airing.type == 'schedule':
@@ -23,7 +33,8 @@ class RecordingShowBase:
         failed = airing.data['video_details']['state'] == 'failed'
 
         if failed:
-            description += u'[CR][CR][COLOR FFC81010]Recording failed due to: {0}[/COLOR]'.format(airing.data['video_details']['error']['details'])
+            msg = RECORDING_FAILED_MESSAGES.get(airing.data['video_details']['error']['details'], RECORDING_FAILED_MESSAGES.get(None))
+            description += u'[CR][CR][COLOR FFC81010]{0}[/COLOR]'.format(msg)
         else:
             if airing.watched:
                 arg_dict['indicator'] = ''
