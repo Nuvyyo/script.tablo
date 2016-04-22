@@ -93,9 +93,10 @@
                 <height>30</height>
                 <width>920</width>
                 <orientation>horizontal</orientation>
-                <itemgap>2</itemgap>
+                <itemgap>10</itemgap>
                 <control type="label">
-                    <width min="20" max="920">auto</width>
+                    <visible>!IsEmpty(Window.Property(info))</visible>
+                    <width min="0" max="920">auto</width>
                     <height>30</height>
                     <font>font16</font>
                     <textcolor>FFFFFFFF</textcolor>
@@ -139,6 +140,14 @@
                     <width>25</width>
                     <height>26</height>
                     <texture>stars/half_star_hd.png</texture>
+                </control>
+                <control type="image">
+                    <visible>!IsEmpty(Window.Property(indicator))</visible>
+                    <posy>35</posy>
+                    <width>63</width>
+                    <height>29</height>
+                    <texture>$INFO[Window.Property(indicator)]</texture>
+                    <aspectratio align="left">keep</aspectratio>
                 </control>
             </control>
             <control type="label">

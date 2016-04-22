@@ -342,7 +342,7 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
             if airing.release_year:
                 info.append(str(airing.release_year))
 
-            self.setProperty('info', u' / '.join(info) + u' / ')
+            self.setProperty('info', u' / '.join(info) + u' /')
             self.setProperty('stars', str(airing.quality_rating/2))
             self.setProperty('half.star', str(airing.quality_rating % 2))
         else:
@@ -370,6 +370,13 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
                 start = 'Started {0} ago'.format(util.durationToText(secs*-1))
             else:
                 start = 'Starts in {0}'.format(util.durationToText(secs))
+
+        if airing.conflicted:
+            self.setProperty('indicator', 'indicators/conflict_pill_hd.png')
+        elif airing.scheduled:
+            self.setProperty('indicator', 'indicators/rec_pill_hd.png')
+        else:
+            self.setProperty('indicator', '')
 
         self.setProperty('start', start)
 
