@@ -225,18 +225,24 @@ class TabloPlayer(xbmc.Player):
         return self
 
     def reset(self):
-        self._waiting = threading.Event()
-        self._waiting.set()
         self.airing = None
         self.watch = None
+        self.trickWindow = None
+        self.item = None
+        self.liveRecording = False
+        self.softReset()
+
+    def softReset(self):
+        self._waiting = threading.Event()
+        self._waiting.set()
+        self.nextPlay = None
+        self.ended = False
         self.startPosition = 0
         self.position = 0
         self.isPlayingRecording = False
         self.seeking = False
         self.playlist = None
         self.segments = None
-        self.trickWindow = None
-        self.item = None
         self.hasFullScreened = False
 
         self.closeLoadingDialog()
@@ -260,6 +266,17 @@ class TabloPlayer(xbmc.Player):
 
     def setupTrickMode(self, watch):
         self.trickWindow = TrickModeWindow.create(url=watch.bifHD, callback=self.playAtPosition, playlist=self.playlist)
+
+    def checkForNext(self):
+        if not self.ended or not self.nextPlay:
+            return
+
+        util.DEBUG_LOG('Player (Recording): Playing live portion')
+        url = self.nextPlay
+        self.nextPlay = None
+
+        self.softReset()
+        self.play(url, self.item, False, 0)
 
     def playAiringChannel(self, airing):
         self.reset()
@@ -300,9 +317,10 @@ class TabloPlayer(xbmc.Player):
 
         return None
 
-    def playRecording(self, rec, show=None, resume=True):
+    def playRecording(self, rec, show=None, resume=True, live=False):
         self.reset()
         self.isPlayingRecording = True
+        self.liveRecording = live
         self.airing = rec
         watch = rec.watch()
         if watch.error:
@@ -328,7 +346,7 @@ class TabloPlayer(xbmc.Player):
         else:
             util.DEBUG_LOG('Player (Recording): Playing from beginning')
             self.playAtPosition(0)
-            # self.play(watch.url, li, False, 0)
+            # self.play(watch.url, self.item, False, 0)
 
         return None
 
@@ -343,6 +361,12 @@ class TabloPlayer(xbmc.Player):
         self.position = 0
         self.makeSeekedPlaylist(position)
         self.trickWindow.setPosition(self.absolutePosition)
+
+        if self.liveRecording:
+            with open(self.playlistFilename, 'a') as f:
+                f.write('\n#EXT-X-ENDLIST')
+            self.nextPlay = self.watch.url
+
         self.play(self.playlistFilename, self.item, False, 0)
 
     def wait(self):
@@ -354,6 +378,7 @@ class TabloPlayer(xbmc.Player):
     def _waitRecording(self):
         self._waiting.clear()
         try:
+            cacheCount = 0
             while self.isPlayingVideo() and not xbmc.abortRequested:
                 if xbmc.getCondVisibility('Player.Seeking'):
                     self.onPlayBackSeek(self.position, 0)
@@ -362,18 +387,20 @@ class TabloPlayer(xbmc.Player):
                 xbmc.sleep(100)
 
                 if xbmc.getCondVisibility('Player.Caching') and self.position - self.startPosition < 10:
-                    if not xbmc.getCondVisibility('IntegerGreaterThan(Player.CacheLevel,10)'):
-                        xbmc.sleep(100)
-                        if xbmc.getCondVisibility('Player.Caching'):
-                            util.DEBUG_LOG(
-                                'Player (Recording): Forcing resume at {0} - cache level: {1}'.format(self.position, xbmc.getInfoLabel('Player.CacheLevel'))
-                            )
-                            self.pause()
+                    cacheCount += 1
+                    if cacheCount > 4 and not xbmc.getCondVisibility('IntegerGreaterThan(Player.CacheLevel,0)'):
+                        util.DEBUG_LOG(
+                            'Player (Recording): Forcing resume at {0} - cache level: {1}'.format(self.position, xbmc.getInfoLabel('Player.CacheLevel'))
+                        )
+                        xbmc.executebuiltin('PlayerControl(play)')
+                        cacheCount = 0
+                else:
+                    cacheCount = 0
 
                 if xbmc.getCondVisibility('VideoPlayer.IsFullscreen'):
                     self.hasFullScreened = True
                 elif self.hasFullScreened:
-                    util.DEBUG_LOG('Player (LiveTV): Video closed')
+                    util.DEBUG_LOG('Player (Recording): Video closed')
                     break
 
             if self.position and self.isPlayingRecording:
@@ -390,6 +417,8 @@ class TabloPlayer(xbmc.Player):
                 self.finish()
         finally:
             self._waiting.set()
+
+        self.checkForNext()
 
     def _waitLiveTV(self):
         self._waiting.clear()
@@ -408,6 +437,9 @@ class TabloPlayer(xbmc.Player):
                 self.stop()
 
             util.DEBUG_LOG('Player (LiveTV): Played for {0} seconds'.format(self.position))
+
+            if self.liveRecording:
+                self.finish(force=True)
         finally:
             self._waiting.set()
 
@@ -424,6 +456,7 @@ class TabloPlayer(xbmc.Player):
         self.closeLoadingDialog()
 
     def onPlayBackEnded(self):
+        self.ended = True
         self.closeLoadingDialog()
 
     def onPlayBackSeek(self, time, offset):
@@ -441,10 +474,12 @@ class TabloPlayer(xbmc.Player):
             self.stop()
             self._waiting.wait()
 
-    def finish(self):
-        if not self.isPlayingRecording:
-            return
+    def finish(self, force=False):
+        if not force:
+            if not self.isPlayingRecording or self.liveRecording:
+                return
 
+        util.DEBUG_LOG('Player: Closing trick window')
         self.trickWindow.doClose()
         del self.trickWindow
         self.trickWindow = None

@@ -44,14 +44,14 @@ class RecordingShowBase:
                 else:
                     arg_dict['indicator'] = 'indicators/seen_unwatched_hd.png'
 
-            if airing.data['user_info']['position'] and airing.data['video_details']['state'] != 'recording':
+            if airing.data['user_info']['position'] and not airing.recording():
                 left = airing.data['video_details']['duration'] - airing.data['user_info']['position']
                 total = airing.data['video_details']['duration']
                 description += '[CR][CR]Remaining: {0} of {1}'.format(util.durationToText(left), util.durationToText(total))
                 arg_dict['seenratio'] = airing.data['user_info']['position'] / float(total)
                 arg_dict['seen'] = airing.data['user_info']['position']
             else:
-                if airing.data['video_details']['state'] == 'recording':
+                if airing.recording():
                     description += '[CR][CR]Recording Now...'
                     if airing.data['user_info']['position']:
                         arg_dict['seen'] = airing.data['user_info']['position']
@@ -125,14 +125,14 @@ class RecordingShowBase:
                     show = self._show or airing.getShow()
                 except:
                     show = None
-                player.PLAYER.playRecording(airing, show=show, resume=False)
+                player.PLAYER.playRecording(airing, show=show, resume=False, live=airing.recording())
                 # xbmc.Player().play(airing.watch().url)
             elif action == 'resume':
                 try:
                     show = self._show or airing.getShow()
                 except:
                     show = None
-                player.PLAYER.playRecording(airing, show=show)
+                player.PLAYER.playRecording(airing, show=show, live=airing.recording())
             elif action == 'toggle':
                 airing.markWatched(not airing.watched)
                 self.modified = True
@@ -207,7 +207,7 @@ class RecordingShowBase:
         item.setThumbnailImage(show.thumb)
         item.setProperty('show.title', show.title)
 
-        if airing.data['video_details']['state'] == 'recording':
+        if airing.recording():
             item.setProperty('duration', 'Recording Now...')
         else:
             item.setProperty('duration', util.durationToText(airing.data['video_details']['duration']))

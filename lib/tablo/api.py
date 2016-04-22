@@ -105,18 +105,11 @@ class Watch(object):
         self.getPlaylistURL(data.get('playlist_url'))
 
     def getPlaylistURL(self, url):
+        self.originalPlaylistUrl = url
         p = urlparse.urlparse(url)
         self.base = '{0}://{1}{2}'.format(p.scheme, p.netloc, p.path.rsplit('/', 1)[0])
         text = requests.get(url).text
-        # print repr(text)
         m = m3u8.loads(text)
-        # for line in reversed(requests.get(url).text.strip().splitlines()):
-        #     if line.startswith('#'):
-        #         continue
-        #     fromPL = line
-        #     break
-        # else:
-        #     return
 
         self.url = '{0}://{1}{2}'.format(p.scheme, p.netloc, m.playlists[0].uri)
 
@@ -306,6 +299,9 @@ class Airing(object):
     def delete(self):
         self.deleted = True
         return API(self.path).delete()
+
+    def recording(self):
+        return self.data['video_details']['state'] == 'recording'
 
     @property
     def watched(self):
