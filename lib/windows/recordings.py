@@ -33,7 +33,7 @@ class RecordingShowBase:
                 else:
                     arg_dict['indicator'] = 'indicators/seen_unwatched_hd.png'
 
-            if airing.data['user_info']['position']:
+            if airing.data['user_info']['position'] and airing.data['video_details']['state'] != 'recording':
                 left = airing.data['video_details']['duration'] - airing.data['user_info']['position']
                 total = airing.data['video_details']['duration']
                 description += '[CR][CR]Remaining: {0} of {1}'.format(util.durationToText(left), util.durationToText(total))
@@ -42,11 +42,13 @@ class RecordingShowBase:
             else:
                 if airing.data['video_details']['state'] == 'recording':
                     description += '[CR][CR]Recording Now...'
+                    if airing.data['user_info']['position']:
+                        arg_dict['seen'] = airing.data['user_info']['position']
                 else:
                     description += '[CR][CR]Length: {0}'.format(util.durationToText(airing.data['video_details']['duration']))
+                    arg_dict['seen'] = None
 
                 arg_dict['seenratio'] = None
-                arg_dict['seen'] = None
 
         arg_dict['plot'] = description
 
@@ -474,7 +476,7 @@ class RecordingDialog(actiondialog.ActionDialog):
         self.setProperty('plot', self.plot)
         self.setProperty('preview', self.preview)
         self.setProperty('failed', self.failed and '1' or '')
-        self.setProperty('seen', self.seen and '1' or '')
+        self.setProperty('seen', self.seenratio and '1' or '')
         self.setProperty('indicator', self.indicator)
         self.setProperty('background', self.background)
         self.setProperty('button2', self.button2)
