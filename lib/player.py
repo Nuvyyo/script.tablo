@@ -277,7 +277,7 @@ class TabloPlayer(xbmc.Player):
             if watch:
                 if watch.error:
                     util.DEBUG_LOG('Player (LiveTV): Watch error: {0}'.format(watch.error))
-                    xbmcgui.Dialog().ok('Failed', 'Failed to play channel:', ' ', str(watch.error))
+                    xbmcgui.Dialog().ok('Failed', 'Failed to play channel:', ' ', str(watch.errorDisplay))
                     self.closeLoadingDialog()
                     return watch.error
                 util.DEBUG_LOG('Player (LiveTV): Watch URL: {0}'.format(watch.url))

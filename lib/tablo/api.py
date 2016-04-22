@@ -67,13 +67,24 @@ def processDate(date, format_='%Y-%m-%dT%H:%M'):
         return None
 
 
+WATCH_ERROR_MESSAGES = {
+    'disk_unavailable': 'No Hard Drive Connected',
+    'no_video': 'Video Cannot be Found',
+    'no_tuner_available': 'No Tuner Available',
+    'no_signal_lock': 'Weak Signal',
+    None: 'A Playback Error Occurred'
+}
+
+
 class Watch(object):
     def __init__(self, path):
         try:
             data = API(path).watch.post()
             self.error = None
+            self.errorDisplay = ''
         except APIError, e:
-            self.error = e.message.get('description', 'Unknown')
+            self.error = e.message.get('details', 'Unknown')
+            self.errorDisplay = WATCH_ERROR_MESSAGES.get(self.error, WATCH_ERROR_MESSAGES.get(None))
 
         self.base = ''
         self.url = ''
