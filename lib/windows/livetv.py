@@ -465,6 +465,7 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
                 util.setGlobalProperty('badge.color.{0}'.format(ID), 'FFFF8000')
             control.setSelected(True)
         else:
+            util.setGlobalProperty('badge.color.{0}'.format(ID), '')
             control.setSelected(False)
 
     def updateChannelAirings(self, path):
@@ -499,6 +500,7 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
                     util.setGlobalProperty('badge.color.{0}'.format(ID), 'FFFF8000')
                 control.setSelected(True)
             else:
+                util.setGlobalProperty('badge.color.{0}'.format(ID), '')
                 control.setSelected(False)
 
             if airing.airingNow(self.hhData.halfHour):
