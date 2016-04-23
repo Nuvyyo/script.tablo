@@ -532,6 +532,15 @@ class GuideShowWindow(kodigui.BaseWindow):
 
     sectionAction = 'Schedule...'
 
+    EMPTY_MESSAGES = {
+        'SERIES': ('No Episodes', 'There are no upcoming episodes for this show.'),
+        'MOVIE': ('No Airings', 'There are no upcoming airings for this movie.'),
+        'PROGRAM': ('No Airings', 'There are no upcoming airings for this program.'),
+        'SPORT': ('No Events', 'There are no upcoming events for this sport.'),
+        None: ('', '')
+
+    }
+
     def __init__(self, *args, **kwargs):
         kodigui.BaseWindow.__init__(self, *args, **kwargs)
         self._show = kwargs.get('show')
@@ -579,6 +588,11 @@ class GuideShowWindow(kodigui.BaseWindow):
                 info.append('{0} Episode{1}'.format(self._show.showCounts['airing_count'], self._show.showCounts['airing_count'] > 1 and 's' or ''))
 
             self.setProperty('info', u' / '.join(info))
+
+    def setEmptyMessage(self, clear=False):
+        emptyMessages = not clear and self.EMPTY_MESSAGES.get(self._show.type) or self.EMPTY_MESSAGES[None]
+        self.setProperty('empty.message', emptyMessages[0])
+        self.setProperty('empty.message2', emptyMessages[1])
 
     def onClick(self, controlID):
         if controlID == self.AIRINGS_LIST_ID:
@@ -869,6 +883,7 @@ class GuideShowWindow(kodigui.BaseWindow):
     @util.busyDialog
     @base.tabloErrorHandler
     def fillAirings(self):
+        self.setEmptyMessage(clear=True)
         self.airingsList.reset()
         self.airingItems = {}
         airings = []
@@ -918,5 +933,8 @@ class GuideShowWindow(kodigui.BaseWindow):
                     item.setProperty('top', '1')
                 self.airingItems[p] = item
                 self.airingsList.addItem(item)
+
+        if not self.airingsList.size():
+            self.setEmptyMessage()
 
         self.getAiringData(airings)

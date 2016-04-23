@@ -744,6 +744,49 @@
                         </control>
                     </focusedlayout>
                 </control>
+                <control type="group">
+                    <visible>!IntegerGreaterThan(Container(30).NumItems,0)</visible>
+                    <posx>0</posx>
+                    <posy>325</posy>
+                    <width>1280</width>
+                    <height>70</height>
+                    <control type="label">
+                        <posx>0</posx>
+                        <posy>0</posy>
+                        <width>1280</width>
+                        <height>40</height>
+                        <font>font30</font>
+                        <textcolor>C8EBEBEB</textcolor>
+                        <align>center</align>
+                        <aligny>center</aligny>
+                        <label>$INFO[Window.Property(empty.message)]</label>
+                    </control>
+                    <control type="label">
+                        <posx>0</posx>
+                        <posy>40</posy>
+                        <width>1280</width>
+                        <height>30</height>
+                        <font>font13</font>
+                        <textcolor>C8EBEBEB</textcolor>
+                        <align>center</align>
+                        <aligny>center</aligny>
+                        <label>$INFO[Window.Property(empty.message2)]</label>
+                    </control>
+                    <control type="button" id="250">
+                        <posx>0</posx>
+                        <posy>70</posy>
+                        <width>10</width>
+                        <height>10</height>
+                        <onup>100</onup>
+                        <font>font30</font>
+                        <textcolor>00FFFFFF</textcolor>
+                        <focusedcolor>00FFFFFF</focusedcolor>
+                        <texturefocus>-</texturefocus>
+                        <texturenofocus>-</texturenofocus>
+                        <label> </label>
+                        <onclick>SetFocus(100)</onclick>
+                    </control>
+                </control>
             </control>
         </control>
     </controls>
