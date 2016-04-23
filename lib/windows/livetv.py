@@ -624,20 +624,18 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
     def setDialogButtons(self, airing, arg_dict):
         if airing.airingNow():
             arg_dict['button1'] = ('watch', 'Watch')
-            if airing.scheduled:
-                arg_dict['button2'] = ('unschedule', "Don't Record {0}".format(util.LOCALIZED_AIRING_TYPES[airing.type.upper()]))
-                arg_dict['title_indicator'] = 'indicators/rec_pill_hd.png'
-            else:
-                arg_dict['button2'] = ('record', 'Record {0}'.format(util.LOCALIZED_AIRING_TYPES[airing.type.upper()]))
+            button = 'button2'
         else:
-            if airing.conflicted:
-                arg_dict['button1'] = ('unschedule', "Don't Record {0}".format(util.LOCALIZED_AIRING_TYPES[airing.type.upper()]))
-                arg_dict['title_indicator'] = 'indicators/conflict_pill_hd.png'
-            elif airing.scheduled:
-                arg_dict['button1'] = ('unschedule', "Don't Record {0}".format(util.LOCALIZED_AIRING_TYPES[airing.type.upper()]))
-                arg_dict['title_indicator'] = 'indicators/rec_pill_hd.png'
-            else:
-                arg_dict['button1'] = ('record', 'Record {0}'.format(util.LOCALIZED_AIRING_TYPES[airing.type.upper()]))
+            button = 'button1'
+
+        if airing.conflicted:
+            arg_dict[button] = ('unschedule', "Don't Record {0}".format(util.LOCALIZED_AIRING_TYPES[airing.type.upper()]))
+            arg_dict['title_indicator'] = 'indicators/conflict_pill_hd.png'
+        elif airing.scheduled:
+            arg_dict[button] = ('unschedule', "Don't Record {0}".format(util.LOCALIZED_AIRING_TYPES[airing.type.upper()]))
+            arg_dict['title_indicator'] = 'indicators/rec_pill_hd.png'
+        else:
+            arg_dict[button] = ('record', 'Record {0}'.format(util.LOCALIZED_AIRING_TYPES[airing.type.upper()]))
 
     @base.dialogFunction
     def airingClicked(self, airing):

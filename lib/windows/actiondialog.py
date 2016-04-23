@@ -64,8 +64,6 @@ class ActionDialog(kodigui.BaseWindow, util.CronReceiver):
         if self.action != 'watch':
             if self.button1 and self.button1[0] == self.action:
                 util.setGlobalProperty('action.button1.busy', '1')
-                import xbmc
-                xbmc.sleep(4000)
             elif self.button2 and self.button2[0] == self.action:
                 util.setGlobalProperty('action.button2.busy', '1')
 
