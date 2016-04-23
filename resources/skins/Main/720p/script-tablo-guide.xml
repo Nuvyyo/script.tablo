@@ -196,13 +196,13 @@
                                         <colordiffuse>FF101924</colordiffuse>
                                     </control>
                                     <control type="textbox">
-                                        <posx>0</posx>
+                                        <posx>10</posx>
                                         <posy>0</posy>
-                                        <width>180</width>
+                                        <width>160</width>
                                         <height>246</height>
                                         <font>font30</font>
                                         <textcolor>FFFFFFFF</textcolor>
-                                        <align>center</align>
+                                        <align>left</align>
                                         <aligny>center</aligny>
                                         <label>$INFO[ListItem.Label]</label>
                                     </control>
@@ -269,13 +269,13 @@
                                         <colordiffuse>FF101924</colordiffuse>
                                     </control>
                                     <control type="textbox">
-                                        <left>10</left>
+                                        <left>20</left>
                                         <top>8</top>
-                                        <width>180</width>
+                                        <width>160</width>
                                         <height>250</height>
                                         <font>font30</font>
                                         <textcolor>FFFFFFFF</textcolor>
-                                        <align>center</align>
+                                        <align>left</align>
                                         <aligny>center</aligny>
                                         <label>$INFO[ListItem.Label]</label>
                                     </control>
