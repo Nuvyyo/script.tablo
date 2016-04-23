@@ -212,6 +212,7 @@
                                         <width>180</width>
                                         <height>246</height>
                                         <texture>$INFO[ListItem.Thumb]</texture>
+                                        <aspectratio>scale</aspectratio>
                                     </control>
                                     <control type="image">
                                         <posx>0</posx>
@@ -284,6 +285,7 @@
                                         <width>190</width>
                                         <height>260</height>
                                         <texture>$INFO[ListItem.Thumb]</texture>
+                                        <aspectratio>scale</aspectratio>
                                     </control>
                                     <control type="image">
                                         <posx>135</posx>

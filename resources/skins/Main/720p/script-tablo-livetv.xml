@@ -65,6 +65,7 @@
                 <width>180</width>
                 <height>240</height>
                 <texture>$INFO[Window.Property(thumb)]</texture>
+                <aspectratio>scale</aspectratio>
                 <fadetime>500</fadetime>
             </control>
             <control type="image">

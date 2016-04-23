@@ -67,6 +67,7 @@
                     <width>270</width>
                     <height>360</height>
                     <texture>$INFO[Window.Property(thumb)]</texture>
+                    <aspectratio>scale</aspectratio>
                 </control>
 
                 <control type="grouplist">
