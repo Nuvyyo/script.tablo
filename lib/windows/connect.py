@@ -118,7 +118,7 @@ class ConnectWindow(kodigui.BaseWindow):
         self.deviceList.reset()
         tablo.API.discover()
         self.addTestDevice()
-        for device in tablo.API.devices.tablos:
+        for device in sorted(tablo.API.devices.tablos, key=lambda x: x.displayName):
             if not self.deviceVersionAllowed(device):
                 util.DEBUG_LOG('Skipping device because of low version: {0}'.format(device))
                 continue
