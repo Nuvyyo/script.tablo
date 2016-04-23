@@ -33,14 +33,28 @@ LOCALIZED_AIRING_TYPES = {  # TODO: Actually localize these :)
     'SERIES': 'Episode',
     'MOVIE': 'Movie',
     'SPORT': 'Event',
-    'PROGRAM': 'Time',
+    'PROGRAM': 'Airing',
 }
 
 LOCALIZED_AIRING_TYPES_PLURAL = {  # TODO: Actually localize these :)
     'SERIES': 'Episodes',
     'MOVIE': 'Airings',
     'SPORT': 'Events',
-    'PROGRAM': 'Times',
+    'PROGRAM': 'Airings',
+}
+
+LOCALIZED_RECORDING_TYPES = {  # TODO: Actually localize these :)
+    'SERIES': 'Episode',
+    'MOVIE': 'Movie',
+    'SPORT': 'Event',
+    'PROGRAM': 'Recording',
+}
+
+LOCALIZED_RECORDING_TYPES_PLURAL = {  # TODO: Actually localize these :)
+    'SERIES': 'Episodes',
+    'MOVIE': 'Airings',
+    'SPORT': 'Events',
+    'PROGRAM': 'Recordings',
 }
 
 

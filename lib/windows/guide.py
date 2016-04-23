@@ -556,9 +556,10 @@ class GuideShowWindow(kodigui.BaseWindow):
         self.setProperty('background', self._show.background)
         self.setProperty('title', self._show.title)
         self.setProperty('plot', self._show.plot or self._show.description)
-        self.setProperty('airing.label', util.LOCALIZED_AIRING_TYPES_PLURAL[self._show.type])
         self.setProperty('section.action', self.sectionAction)
         self.setProperty('is.movie', self._show.type == 'MOVIE' and '1' or '')
+
+        self.setAiringLabel()
 
         if self._show.type == 'MOVIE' and self._show.quality_rating:
             info = []
@@ -588,11 +589,6 @@ class GuideShowWindow(kodigui.BaseWindow):
                 info.append('{0} Episode{1}'.format(self._show.showCounts['airing_count'], self._show.showCounts['airing_count'] > 1 and 's' or ''))
 
             self.setProperty('info', u' / '.join(info))
-
-    def setEmptyMessage(self, clear=False):
-        emptyMessages = not clear and self.EMPTY_MESSAGES.get(self._show.type) or self.EMPTY_MESSAGES[None]
-        self.setProperty('empty.message', emptyMessages[0])
-        self.setProperty('empty.message2', emptyMessages[1])
 
     def onClick(self, controlID):
         if controlID == self.AIRINGS_LIST_ID:
@@ -641,6 +637,14 @@ class GuideShowWindow(kodigui.BaseWindow):
 
         self.setupScheduleDialog()
         self.updateAirings()
+
+    def setEmptyMessage(self, clear=False):
+        emptyMessages = not clear and self.EMPTY_MESSAGES.get(self._show.type) or self.EMPTY_MESSAGES[None]
+        self.setProperty('empty.message', emptyMessages[0])
+        self.setProperty('empty.message2', emptyMessages[1])
+
+    def setAiringLabel(self):
+        self.setProperty('airing.label', util.LOCALIZED_AIRING_TYPES_PLURAL[self._show.type])
 
     def setDialogButtons(self, airing, arg_dict):
         if airing.airingNow():
@@ -835,13 +839,13 @@ class GuideShowWindow(kodigui.BaseWindow):
 
         if self._show.type == 'PROGRAM':
             self.setProperty(
-                'schedule.message', 'Automatically schedule times for this manual program?'
+                'schedule.message', 'Automatically schedule airings for this manual program?'
             )
 
             if self._show.scheduleRule == 'all':
                 self.scheduleButtonActions[self.SCHEDULE_BUTTON_TOP_ID] = 'none'
                 self.scheduleButtonActions[self.SCHEDULE_BUTTON_BOT_ID] = None
-                self.setProperty('schedule.top', 'Unschedule Times')
+                self.setProperty('schedule.top', 'Unschedule Airings')
                 self.setProperty('schedule.bottom', 'Cancel')
                 self.setProperty('title.indicator', 'indicators/rec_all_pill_hd.png')
             else:

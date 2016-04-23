@@ -393,6 +393,9 @@ class RecordingsWindow(guide.GuideWindow, RecordingShowBase):
 class RecordingShowWindow(RecordingShowBase, guide.GuideShowWindow):
     sectionAction = 'Delete...'
 
+    def setAiringLabel(self):
+        self.setProperty('airing.label', util.LOCALIZED_RECORDING_TYPES_PLURAL[self._show.type])
+
     def scheduleButtonClicked(self, controlID):
         action = self.scheduleButtonActions.get(controlID)
         if not action or action != 'delete':
@@ -423,7 +426,7 @@ class RecordingShowWindow(RecordingShowBase, guide.GuideShowWindow):
     def setupScheduleDialog(self):
         self.setProperty(
             'schedule.message', 'Permanently delete the following {0}?'.format(
-                util.LOCALIZED_AIRING_TYPES_PLURAL[self._show.type].lower()
+                util.LOCALIZED_RECORDING_TYPES_PLURAL[self._show.type].lower()
             )
         )
 
@@ -431,7 +434,7 @@ class RecordingShowWindow(RecordingShowBase, guide.GuideShowWindow):
 
         self.scheduleButtonActions[self.SCHEDULE_BUTTON_TOP_ID] = 'delete'
         self.scheduleButtonActions[self.SCHEDULE_BUTTON_BOT_ID] = 'cancel'
-        self.setProperty('schedule.top', 'Delete All {0}'.format(util.LOCALIZED_AIRING_TYPES_PLURAL[self._show.type]))
+        self.setProperty('schedule.top', 'Delete All {0}'.format(util.LOCALIZED_RECORDING_TYPES_PLURAL[self._show.type]))
         self.setProperty('schedule.bottom', 'Cancel')
         # self.setProperty('title.indicator', 'indicators/rec_all_pill_hd.png')
 
@@ -580,7 +583,7 @@ class RecordingDialog(actiondialog.ActionDialog):
                 self.setProperty('button3.busy', '')
             return
         elif controlID == self.DELETE_BUTTON_ID:
-            self.setProperty('dialog.message', 'Permanently delete this {0}?'.format(util.LOCALIZED_AIRING_TYPES[self._show.type].lower()))
+            self.setProperty('dialog.message', 'Permanently delete this {0}?'.format(util.LOCALIZED_RECORDING_TYPES[self._show.type].lower()))
             self.setProperty('dialog.top', 'Delete')
             self.setProperty('dialog.bottom', 'Cancel')
             self.parentAction = 'delete'
