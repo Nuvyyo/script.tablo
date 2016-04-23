@@ -472,7 +472,7 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
                 util.setGlobalProperty('badge.color.{0}'.format(ID), 'FFFF8000')
             control.setSelected(True)
         else:
-            util.setGlobalProperty('badge.color.{0}'.format(ID), '')
+            util.setGlobalProperty('badge.color.{0}'.format(ID), '00FFFFFF')
             control.setSelected(False)
 
     def updateChannelAirings(self, path):
@@ -507,7 +507,7 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
                     util.setGlobalProperty('badge.color.{0}'.format(ID), 'FFFF8000')
                 control.setSelected(True)
             else:
-                util.setGlobalProperty('badge.color.{0}'.format(ID), '')
+                util.setGlobalProperty('badge.color.{0}'.format(ID), '00FFFFFF')
                 control.setSelected(False)
 
             if airing.airingNow(self.hhData.halfHour):
@@ -553,7 +553,7 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
             slot += 1
             ID = genData['slots'][slot]
 
-            util.setGlobalProperty('badge.color.{0}'.format(ID), '')
+            util.setGlobalProperty('badge.color.{0}'.format(ID), '00FFFFFF')
 
             control = self.getControl(ID)
 
@@ -571,7 +571,7 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
         for slot in range(slot+1, self.gen.ITEMS_PER_ROW):
             ID = genData['slots'][slot]
 
-            self.setProperty('badge.color.{0}'.format(ID), '')
+            self.setProperty('badge.color.{0}'.format(ID), '00FFFFFF')
 
             control = self.getControl(ID)
             control.setSelected(False)
@@ -783,8 +783,8 @@ class EPGXMLGenerator(object):
                         <texturenofocus colordiffuse="FF101924" border="2">script-tablo-epg_slot.png</texturenofocus>
                         <textureradioonfocus colordiffuse="$INFO[Window(10000).Property(script.tablo.badge.color.{ID})]">livetv/livetv_badge_blank_hd.png</textureradioonfocus>
                         <textureradioonnofocus colordiffuse="$INFO[Window(10000).Property(script.tablo.badge.color.{ID})]">livetv/livetv_badge_blank_hd.png</textureradioonnofocus>
-                        <textureradioofffocus>-</textureradioofffocus>
-                        <textureradiooffnofocus>-</textureradiooffnofocus>
+                        <textureradioofffocus colordiffuse="$INFO[Window(10000).Property(script.tablo.badge.color.{ID})]">livetv/livetv_badge_blank_hd.png</textureradioofffocus>
+                        <textureradiooffnofocus colordiffuse="$INFO[Window(10000).Property(script.tablo.badge.color.{ID})]">livetv/livetv_badge_blank_hd.png</textureradiooffnofocus>
                         <radiowidth>30</radiowidth>
                         <radioheight>30</radioheight>
                         <textoffsetx>16</textoffsetx>
@@ -858,7 +858,7 @@ class EPGXMLGenerator(object):
                 else:
                     width = 1
                 slots.append(ID)
-                util.setGlobalProperty('badge.color.{0}'.format(ID), '')
+                util.setGlobalProperty('badge.color.{0}'.format(ID), '00FFFFFF')
                 airingsXML += self.AIRING_BASE_XML.format(ID=ID, WIDTH=width)
 
             airingsXML += self.END_BUTTON_XML.format(100+idx)
