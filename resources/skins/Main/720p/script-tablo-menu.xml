@@ -78,7 +78,7 @@
                         <textcolor>FFEBEBEB</textcolor>
                         <align>left</align>
                         <aligny>center</aligny>
-                        <label>[B]Tablo[/B]</label>
+                        <label>[B]$INFO[Window.Property(tablo.name)][/B]</label>
                     </control>
                     <control type="label">
                         <visible>!Control.HasFocus(101)</visible>
@@ -90,7 +90,7 @@
                         <textcolor>C8EBEBEB</textcolor>
                         <align>left</align>
                         <aligny>center</aligny>
-                        <label>Tablo</label>
+                        <label>$INFO[Window.Property(tablo.name)]</label>
                     </control>
                 </control>
 

@@ -158,6 +158,7 @@ class MenuDialog(kodigui.BaseDialog):
     theme = 'Main'
 
     def onFirstInit(self):
+        self.setProperty('tablo.name', tablo.API.device.displayName)
         self.deviceButton = self.getControl(101)
         self.liveTVButton = self.getControl(102)
         self.recordingsButton = self.getControl(103)
