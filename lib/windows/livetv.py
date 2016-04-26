@@ -547,7 +547,10 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
 
             control.setRadioDimension(width-31, 1, 30, 30)
             control.setWidth(width)
-            control.setLabel(label)
+            if width > 34:
+                control.setLabel(label)
+            else:
+                control.setLabel('')
 
         if slot == -1 or (totalwidth < 1110 and not atEnd):
             slot += 1
