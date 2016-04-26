@@ -361,10 +361,16 @@ class GuideWindow(kodigui.BaseWindow):
             if show.scheduleRule == 'conflict':
                 item.setProperty('badge', 'guide/guide_badge_conflict_hd.png')
             else:
-                item.setProperty('badge', 'guide/guide_badge_scheduled_hd.png')
+                if show.type == 'PROGRAM':
+                    item.setProperty('badge', 'guide/guide_badge_scheduled_program_hd.png')
+                else:
+                    item.setProperty('badge', 'guide/guide_badge_scheduled_hd.png')
             item.setProperty('badge.count', '')
         elif show.showCounts and show.showCounts.get('scheduled_count'):
-            item.setProperty('badge', 'guide/guide_badge_recurring_hd.png')
+            if show.type == 'PROGRAM':
+                item.setProperty('badge', 'guide/guide_badge_recurring_program_hd.png')
+            else:
+                item.setProperty('badge', 'guide/guide_badge_recurring_hd.png')
             item.setProperty('badge.count', str(show.showCounts.get('scheduled_count')))
         elif show.showCounts and show.showCounts.get('conflicted_count'):
             item.setProperty('badge', 'guide/guide_badge_conflict_hd.png')
