@@ -431,6 +431,7 @@ class RecordingShowWindow(RecordingShowBase, guide.GuideShowWindow):
 
         self.scheduleButtonActions[self.SCHEDULE_BUTTON_TOP_ID] = 'delete'
         self.scheduleButtonActions[self.SCHEDULE_BUTTON_BOT_ID] = 'cancel'
+        self.setProperty('schedule.top.color', '52FF0000')
         self.setProperty('schedule.top', 'Delete All {0}'.format(util.LOCALIZED_RECORDING_TYPES_PLURAL[self._show.type]))
         self.setProperty('schedule.bottom', 'Cancel')
         # self.setProperty('title.indicator', 'indicators/rec_all_pill_hd.png')
@@ -533,6 +534,7 @@ class RecordingDialog(actiondialog.ActionDialog):
         if controlID == self.WATCH_BUTTON_ID:
             if self.seen:
                 self.setProperty('dialog.message', 'Resume watching at {0}?'.format(util.durationToText(self.seen)))
+                self.setProperty('dialog.top.color', '52FFFFFF')
                 self.setProperty('dialog.top', 'Play From Start')
                 self.setProperty('dialog.bottom', 'Resume')
                 self.parentAction = 'watch'
@@ -581,6 +583,7 @@ class RecordingDialog(actiondialog.ActionDialog):
             return
         elif controlID == self.DELETE_BUTTON_ID:
             self.setProperty('dialog.message', 'Permanently delete this {0}?'.format(util.LOCALIZED_RECORDING_TYPES[self._show.type].lower()))
+            self.setProperty('dialog.top.color', '52FF0000')
             self.setProperty('dialog.top', 'Delete')
             self.setProperty('dialog.bottom', 'Cancel')
             self.parentAction = 'delete'

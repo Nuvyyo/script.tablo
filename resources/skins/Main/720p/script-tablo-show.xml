@@ -108,7 +108,7 @@
                     <label>$INFO[Window.Property(title)]</label>
                 </control>
 
-                <control type="grouplist" id="{ID}">
+                <control type="grouplist">
                     <left>290</left>
                     <top>117</top>
                     <width>810</width>
@@ -365,7 +365,7 @@
                         <focusedcolor>FFFFFFFF</focusedcolor>
                         <align>center</align>
                         <aligny>center</aligny>
-                        <texturefocus colordiffuse="52FFFFFF" border="8">highlights/highlight_focused.png</texturefocus>
+                        <texturefocus colordiffuse="$INFO[Window.Property(schedule.top.color)]" border="8">highlights/highlight_focused.png</texturefocus>
                         <texturenofocus>-</texturenofocus>
                         <textoffsetx>0</textoffsetx>
                         <textoffsety>0</textoffsety>

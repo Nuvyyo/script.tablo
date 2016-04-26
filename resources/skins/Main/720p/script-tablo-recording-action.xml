@@ -546,7 +546,7 @@
                         <focusedcolor>FFFFFFFF</focusedcolor>
                         <align>center</align>
                         <aligny>center</aligny>
-                        <texturefocus colordiffuse="52FFFFFF" border="8">highlights/highlight_focused.png</texturefocus>
+                        <texturefocus colordiffuse="$INFO[Window.Property(dialog.top.color)]" border="8">highlights/highlight_focused.png</texturefocus>
                         <texturenofocus>-</texturenofocus>
                         <textoffsetx>0</textoffsetx>
                         <textoffsety>0</textoffsety>

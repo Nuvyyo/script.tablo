@@ -564,6 +564,8 @@ class GuideShowWindow(kodigui.BaseWindow):
         self.setProperty('plot', self._show.plot or self._show.description)
         self.setProperty('section.action', self.sectionAction)
         self.setProperty('is.movie', self._show.type == 'MOVIE' and '1' or '')
+        self.setProperty('dialog.top.color', '52FFFFFF')
+        self.setProperty('schedule.top.color', '52FFFFFF')
 
         self.setAiringLabel()
 
@@ -855,12 +857,14 @@ class GuideShowWindow(kodigui.BaseWindow):
             if self._show.scheduleRule == 'all':
                 self.scheduleButtonActions[self.SCHEDULE_BUTTON_TOP_ID] = 'none'
                 self.scheduleButtonActions[self.SCHEDULE_BUTTON_BOT_ID] = None
+                self.setProperty('schedule.top.color', '52FFFFFF')
                 self.setProperty('schedule.top', 'Unschedule Airings')
                 self.setProperty('schedule.bottom', 'Cancel')
                 self.setProperty('title.indicator', 'indicators/rec_all_pill_hd.png')
             else:
                 self.scheduleButtonActions[self.SCHEDULE_BUTTON_TOP_ID] = 'all'
                 self.scheduleButtonActions[self.SCHEDULE_BUTTON_BOT_ID] = None
+                self.setProperty('schedule.top.color', '52FFFFFF')
                 self.setProperty('schedule.top', 'Record All')
                 self.setProperty('schedule.bottom', 'Cancel')
                 self.setProperty('title.indicator', '')
@@ -875,18 +879,21 @@ class GuideShowWindow(kodigui.BaseWindow):
             if self._show.scheduleRule == 'all':
                 self.scheduleButtonActions[self.SCHEDULE_BUTTON_TOP_ID] = 'none'
                 self.scheduleButtonActions[self.SCHEDULE_BUTTON_BOT_ID] = 'new'
+                self.setProperty('schedule.top.color', '52FFFFFF')
                 self.setProperty('schedule.top', 'Unschedule Show')
                 self.setProperty('schedule.bottom', 'Record New')
                 self.setProperty('title.indicator', 'indicators/rec_all_pill_hd.png')
             elif self._show.scheduleRule == 'new':
                 self.scheduleButtonActions[self.SCHEDULE_BUTTON_TOP_ID] = 'none'
                 self.scheduleButtonActions[self.SCHEDULE_BUTTON_BOT_ID] = 'all'
+                self.setProperty('schedule.top.color', '52FFFFFF')
                 self.setProperty('schedule.top', 'Unschedule Show')
                 self.setProperty('schedule.bottom', 'Record All')
                 self.setProperty('title.indicator', 'indicators/rec_new_pill_hd.png')
             else:
                 self.scheduleButtonActions[self.SCHEDULE_BUTTON_TOP_ID] = 'all'
                 self.scheduleButtonActions[self.SCHEDULE_BUTTON_BOT_ID] = 'new'
+                self.setProperty('schedule.top.color', '52FFFFFF')
                 self.setProperty('schedule.top', 'Record All')
                 self.setProperty('schedule.bottom', 'Record New')
                 self.setProperty('title.indicator', '')
