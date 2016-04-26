@@ -31,6 +31,7 @@ class TrickModeWindow(kodigui.BaseWindow):
         self.playlist = kwargs.get('playlist')
         self.select = None
         self.maxTimestamp = 0
+        self._duration = 0
 
         self.trickPath = os.path.join(util.PROFILE, 'trick')
         if not os.path.exists(self.trickPath):
@@ -45,13 +46,14 @@ class TrickModeWindow(kodigui.BaseWindow):
 
         self.fillImageList()
 
-        self.setProperty('end', util.durationToShortText(self.maxTimestamp))
+        self.setProperty('end', util.durationToShortText(self.duration))
 
     def onAction(self, action):
         try:
             self.updateProgressSelection()
 
-            if action == xbmcgui.ACTION_STOP:
+            if action in (xbmcgui.ACTION_STOP, xbmcgui.ACTION_NAV_BACK, xbmcgui.ACTION_PREVIOUS_MENU):
+                self.callback(False)
                 self.doClose()
         except:
             util.ERROR()
@@ -79,6 +81,10 @@ class TrickModeWindow(kodigui.BaseWindow):
             self.imageList.selectItem(self.select)
             self.select = None
 
+    @property
+    def duration(self):
+        return self._duration or self.maxTimestamp
+
     def blank(self):
         self.setProperty('show', '')
 
@@ -90,7 +96,7 @@ class TrickModeWindow(kodigui.BaseWindow):
 
         self.setProperty('current', util.durationToShortText(position))
 
-        util.DEBUG_LOG('TrickMode: Setting position at {0} of {1}'.format(position, self.maxTimestamp))
+        util.DEBUG_LOG('TrickMode: Setting position at {0} of {1}'.format(position, self.duration))
 
         if not (self.maxTimestamp):
             return
@@ -121,7 +127,7 @@ class TrickModeWindow(kodigui.BaseWindow):
     def setProgress(self, position):
         if not self.started:
             return
-        w = int((position / float(self.maxTimestamp)) * self.PROGRESS_WIDTH) or 1
+        w = int((position / float(self.duration)) * self.PROGRESS_WIDTH) or 1
         self.progressImage.setWidth(w)
 
     def setProgressSelect(self, position):
@@ -181,7 +187,10 @@ class TrickModeWindow(kodigui.BaseWindow):
                 item.setProperty('timestamp', str(timestamp))
                 self.maxTimestamp = timestamp
                 timestamp += segment.duration
+
                 items.append(item)
+
+            self._duration = self.maxTimestamp
 
         self.imageList.addItems(items)
 
@@ -217,35 +226,69 @@ class ThreadedWatch(object):
         return self.watch
 
 
-class TabloPlayer(xbmc.Player):
+class PlayerHandler(object):
+    def __init__(self, player):
+        self.player = player
+        self._thread = threading.Thread()
+        self.init()
+
+    def init(self):
+        pass
+
+    def play(self):
+        raise NotImplementedError
+
+    def startWait(self):
+        if not self._thread.isAlive():
+            self._thread = threading.Thread(target=self.wait)
+            self._thread.start()
+
+    def onPlayBackStarted(self):
+        pass
+
+    def onPlayBackStopped(self):
+        pass
+
+    def onPlayBackEnded(self):
+        pass
+
+    def onPlayBackSeek(self, time, offset):
+        pass
+
+    def onPlayBackFailed(self):
+        pass
+
+    def onVideoWindowClosed(self):
+        pass
+
+    def onVideoWindowOpened(self):
+        pass
+
+    def waitForStop(self):
+        self._waiting.wait()
+
+
+class RecordingHandler(PlayerHandler):
     def init(self):
         self.playlistFilename = os.path.join(util.PROFILE, 'pl.m3u8')
-        self.loadingDialog = None
         self.reset()
-        return self
 
     def reset(self):
         self.airing = None
         self.watch = None
         self.trickWindow = None
         self.item = None
-        self.liveRecording = False
+        self.finished = False
+        self.startPosition = 0
         self.softReset()
 
     def softReset(self):
         self._waiting = threading.Event()
         self._waiting.set()
-        self.nextPlay = None
-        self.ended = False
-        self.startPosition = 0
         self.position = 0
-        self.isPlayingRecording = False
         self.seeking = False
         self.playlist = None
         self.segments = None
-        self.hasFullScreened = False
-
-        self.closeLoadingDialog()
 
     @property
     def absolutePosition(self):
@@ -265,20 +308,258 @@ class TabloPlayer(xbmc.Player):
         m.dump(self.playlistFilename)
 
     def setupTrickMode(self, watch):
-        self.trickWindow = TrickModeWindow.create(url=watch.bifHD, callback=self.playAtPosition, playlist=self.playlist)
+        self.trickWindow = TrickModeWindow.create(url=watch.bifHD, callback=self.trickWindowCallback, playlist=self.watch.getSegmentedPlaylist())
+
+    def play(self, rec, show=None, resume=True):
+        self.reset()
+        self.airing = rec
+        watch = rec.watch()
+        if watch.error:
+            return watch.error
+
+        self.watch = watch
+        title = rec.title or (show and show.title or '{0} {1}'.format(rec.displayChannel(), rec.network))
+        thumb = show and show.thumb or ''
+        self.item = xbmcgui.ListItem(title, title, thumbnailImage=thumb, path=watch.url)
+        self.item.setInfo('video', {'title': title, 'tvshowtitle': title})
+        self.item.setIconImage(thumb)
+
+        self.playlist = watch.getSegmentedPlaylist()
+        self.segments = copy.copy(self.playlist.segments)
+
+        self.setupTrickMode(watch)
+
+        if rec.position and resume:
+            util.DEBUG_LOG('Player (Recording): Resuming at {0}'.format(rec.position))
+            self.playAtPosition(rec.position)
+        else:
+            util.DEBUG_LOG('Player (Recording): Playing from beginning')
+            self.playAtPosition(0)
+            # self.player.play(watch.url, self.item, False, 0)
+
+        return None
+
+    def trickWindowCallback(self, position):
+        if position is False:
+            return self.finish(force=True)
+        self.playAtPosition(position)
+
+    def playAtPosition(self, position):
+        self.startPosition = position
+        self.position = 0
+        self.makeSeekedPlaylist(position)
+        self.trickWindow.setPosition(self.absolutePosition)
+
+        self.player.play(self.playlistFilename, self.item, False, 0)
+
+    def wait(self):
+        self._waiting.clear()
+        try:
+            cacheCount = 0
+            while (self.player.isPlayingVideo() or self.seeking) and not xbmc.abortRequested:
+                if xbmc.getCondVisibility('Player.Seeking'):
+                    self.onPlayBackSeek(self.position, 0)
+                elif self.player.isPlayingVideo():
+                    self.position = self.player.getTime()
+                xbmc.sleep(100)
+
+                if xbmc.getCondVisibility('Player.Caching') and self.position - self.startPosition < 10:
+                    cacheCount += 1
+                    if cacheCount > 4 and not xbmc.getCondVisibility('IntegerGreaterThan(Player.CacheLevel,0)'):
+                        util.DEBUG_LOG(
+                            'Player (Recording): Forcing resume at {0} - cache level: {1}'.format(self.position, xbmc.getInfoLabel('Player.CacheLevel'))
+                        )
+                        xbmc.executebuiltin('PlayerControl(play)')
+                        cacheCount = 0
+                else:
+                    cacheCount = 0
+
+            if self.position:
+                util.DEBUG_LOG('Player (Recording): Saving position [{0}]'.format(self.absolutePosition))
+                self.airing.setPosition(self.absolutePosition)
+        finally:
+            self._waiting.set()
+
+            self.finish()
+
+    def onPlayBackStarted(self):
+        self.trickWindow.setPosition(self.absolutePosition)
+        self.trickWindow.blank()
+
+        self.startWait()
+
+    def onPlayBackSeek(self, time, offset):
+        if self.seeking:
+            return
+        self.seeking = True
+
+        self.trickWindow.setPosition(self.absolutePosition)
+        self.trickWindow.unBlank()
+        if self.player.isPlayingVideo():
+            util.DEBUG_LOG('Player (Recording): Stopping video for seek')
+            self.player.stop()
+        util.DEBUG_LOG('Player (Recording): Seek started at {0} (absolute: {1})'.format(self.position, self.absolutePosition))
+
+    def onPlaybackFailed(self):
+        self.finish(force=True)
+
+    def onVideoWindowOpened(self):
+        self.seeking = False
+
+    def onVideoWindowClosed(self):
+        if not self.seeking:
+            if self.player.isPlayingVideo():
+                util.DEBUG_LOG('Player (Recording): Stopping video on video window closed')
+                self.player.stop()
+
+    def closeTrickWindow(self):
+        try:
+            if not self.trickWindow:
+                return
+
+            util.DEBUG_LOG('Player (Recording): Closing trick window')
+
+            self.trickWindow.doClose()
+            del self.trickWindow
+        except AttributeError:
+            pass
+
+        self.trickWindow = None
+
+    def finish(self, force=False):
+        if self.finished:
+            return
+
+        self.finished = True
+        self.seeking = False
+
+        util.DEBUG_LOG('Player (Recording): Played for {0} seconds'.format(self.position))
+
+        self.closeTrickWindow()
+
+
+class LiveRecordingHandler(RecordingHandler):
+    def reset(self):
+        self.loadingDialog = None
+        self.seekableEnded = False
+        RecordingHandler.reset(self)
+
+    def softReset(self):
+        self.nextPlay = None
+        RecordingHandler.softReset(self)
 
     def checkForNext(self):
-        if not self.ended or not self.nextPlay:
+        util.DEBUG_LOG('Player (Recording): Checking for remaining live portion')
+        if not self.seekableEnded or not self.nextPlay:
+            self.finish()
             return
 
         util.DEBUG_LOG('Player (Recording): Playing live portion')
         url = self.nextPlay
-        self.nextPlay = None
 
         self.softReset()
-        self.play(url, self.item, False, 0)
 
-    def playAiringChannel(self, airing):
+        self.loadingDialog = util.LoadingDialog().show()
+        self.closeTrickWindow()
+
+        self.startPosition = self.absolutePosition
+        self.position = 0
+
+        self.player.play(url, self.item, False, 0)
+
+    def playAtPosition(self, position):
+        self.startPosition = position
+        self.position = 0
+        self.makeSeekedPlaylist(position)
+        self.trickWindow.setPosition(self.absolutePosition)
+
+        with open(self.playlistFilename, 'a') as f:
+            f.write('\n#EXT-X-ENDLIST')
+        self.nextPlay = self.watch.url
+
+        self.player.play(self.playlistFilename, self.item, False, 0)
+
+    def saveLivePosition(self):
+        if self.position:
+            util.DEBUG_LOG('Player (Recording): Live - saving position [{0}]'.format(self.absolutePosition))
+            self.airing.setPosition(self.absolutePosition)
+
+    def wait(self):
+        RecordingHandler.wait(self)
+        self.checkForNext()
+
+    def waitLive(self):
+        if not self._thread.isAlive():
+            self._thread = threading.Thread(target=self._waitLive)
+            self._thread.start()
+
+    def _waitLive(self):
+        self._waiting.clear()
+        try:
+            while self.player.isPlayingVideo() and not xbmc.abortRequested:
+                self.position = self.player.getTime()
+                xbmc.sleep(100)
+        finally:
+            self._waiting.set()
+
+            self.saveLivePosition()
+
+    def onPlayBackStarted(self):
+        if not self.nextPlay:
+            self.waitLive()
+            return
+        RecordingHandler.onPlayBackStarted(self)
+
+    def onPlayBackEnded(self):
+        if self.nextPlay:
+            self.seeking = False
+            self.seekableEnded = True
+
+    def onPlayBackSeek(self, time, offset):
+        if not self.nextPlay:
+            return
+        RecordingHandler.onPlayBackSeek(self, time, offset)
+
+    def onVideoWindowOpened(self):
+        self.seeking = False
+        if not self.nextPlay:
+            self.closeLoadingDialog()
+
+    def onVideoWindowClosed(self):
+        if not self.nextPlay:
+            self.closeTrickWindow()
+            return
+
+        RecordingHandler.onVideoWindowClosed(self)
+
+    def finish(self, force=False):
+        if not force:
+            if self.seekableEnded:
+                return
+        RecordingHandler.finish(self)
+
+    def closeLoadingDialog(self):
+        if self.loadingDialog:
+            self.loadingDialog.close()
+        self.loadingDialog = None
+
+
+class LiveTVHandler(PlayerHandler):
+    def init(self):
+        self.loadingDialog = None
+        self.reset()
+
+    def reset(self):
+        self.airing = None
+
+        self.closeLoadingDialog()
+        self.softReset()
+
+    def softReset(self):
+        self._waiting = threading.Event()
+        self._waiting.set()
+
+    def play(self, airing):
         self.reset()
         self.airing = airing
 
@@ -312,177 +593,147 @@ class TabloPlayer(xbmc.Player):
 
         util.DEBUG_LOG('Player (LiveTV): Playing channel')
 
-        self.play(watch.url, li, False, 0)
+        self.player.play(watch.url, li, False, 0)
         self.loadingDialog.wait()
 
         return None
 
-    def playRecording(self, rec, show=None, resume=True, live=False):
-        self.reset()
-        self.isPlayingRecording = True
-        self.liveRecording = live
-        self.airing = rec
-        watch = rec.watch()
-        if watch.error:
-            return watch.error
+    def wait(self):
+        self._waiting.clear()
+        try:
+            while self.player.isPlayingVideo() and not xbmc.abortRequested:
+                xbmc.sleep(100)
+        finally:
+            self._waiting.set()
 
-        self.watch = watch
-        title = rec.title or (show and show.title or '{0} {1}'.format(rec.displayChannel(), rec.network))
-        thumb = show and show.thumb or ''
-        self.item = xbmcgui.ListItem(title, title, thumbnailImage=thumb, path=watch.url)
-        self.item.setInfo('video', {'title': title, 'tvshowtitle': title})
-        # li.setInfo('video', {'duration': str(rec.duration / 60), 'title': rec.episodeTitle, 'tvshowtitle': rec.seriesTitle})
-        # li.addStreamInfo('video', {'duration': rec.duration})
-        self.item.setIconImage(thumb)
+    def onPlayBackStarted(self):
+        self.startWait()
 
-        self.playlist = watch.getSegmentedPlaylist()
-        self.segments = copy.copy(self.playlist.segments)
+    def onVideoWindowOpened(self):
+        self.closeLoadingDialog()
 
-        self.setupTrickMode(watch)
-
-        if rec.position and resume:
-            util.DEBUG_LOG('Player (Recording): Resuming at {0}'.format(rec.position))
-            self.playAtPosition(rec.position)
-        else:
-            util.DEBUG_LOG('Player (Recording): Playing from beginning')
-            self.playAtPosition(0)
-            # self.play(watch.url, self.item, False, 0)
-
-        return None
+    def onVideoWindowClosed(self):
+        if self.player.isPlayingVideo():
+            util.DEBUG_LOG('Player (LiveTV): Stopping video')
+            self.player.stop()
 
     def closeLoadingDialog(self):
         if self.loadingDialog:
             self.loadingDialog.close()
         self.loadingDialog = None
 
-    def playAtPosition(self, position):
-        self.seeking = False
-        self.startPosition = position
-        self.position = 0
-        self.makeSeekedPlaylist(position)
-        self.trickWindow.setPosition(self.absolutePosition)
 
-        if self.liveRecording:
-            with open(self.playlistFilename, 'a') as f:
-                f.write('\n#EXT-X-ENDLIST')
-            self.nextPlay = self.watch.url
+class TabloPlayer(xbmc.Player):
+    def init(self):
+        self.reset()
+        self.monitor()
+        return self
 
-        self.play(self.playlistFilename, self.item, False, 0)
+    def reset(self):
+        self.started = False
+        self.handler = None
 
-    def wait(self):
-        if self.isPlayingRecording:
-            threading.Thread(target=self._waitRecording).start()
-        else:
-            threading.Thread(target=self._waitLiveTV).start()
+    def playAiringChannel(self, airing):
+        self.reset()
+        self.handler = LiveTVHandler(self)
+        return self.handler.play(airing)
 
-    def _waitRecording(self):
-        self._waiting.clear()
-        try:
-            cacheCount = 0
-            while self.isPlayingVideo() and not xbmc.abortRequested:
-                if xbmc.getCondVisibility('Player.Seeking'):
-                    self.onPlayBackSeek(self.position, 0)
-                else:
-                    self.position = self.getTime()
-                xbmc.sleep(100)
+    def playRecording(self, rec, show=None, resume=True):
+        self.reset()
+        self.handler = RecordingHandler(self)
+        return self.handler.play(rec, show, resume)
 
-                if xbmc.getCondVisibility('Player.Caching') and self.position - self.startPosition < 10:
-                    cacheCount += 1
-                    if cacheCount > 4 and not xbmc.getCondVisibility('IntegerGreaterThan(Player.CacheLevel,0)'):
-                        util.DEBUG_LOG(
-                            'Player (Recording): Forcing resume at {0} - cache level: {1}'.format(self.position, xbmc.getInfoLabel('Player.CacheLevel'))
-                        )
-                        xbmc.executebuiltin('PlayerControl(play)')
-                        cacheCount = 0
-                else:
-                    cacheCount = 0
-
-                if xbmc.getCondVisibility('VideoPlayer.IsFullscreen'):
-                    self.hasFullScreened = True
-                elif self.hasFullScreened:
-                    util.DEBUG_LOG('Player (Recording): Video closed')
-                    break
-
-            if self.position and self.isPlayingRecording:
-                util.DEBUG_LOG('Player (Recording): Saving position')
-                self.airing.setPosition(self.absolutePosition)
-                # self.airing.setPosition(self.position)
-
-            if not self.seeking:
-                if self.isPlayingVideo():
-                    util.DEBUG_LOG('Player (Recording): Stopping video')
-                    self.stop()
-
-                util.DEBUG_LOG('Player (Recording): Played for {0} seconds'.format(self.position))
-                self.finish()
-        finally:
-            self._waiting.set()
-
-        self.checkForNext()
-
-    def _waitLiveTV(self):
-        self._waiting.clear()
-        try:
-            while self.isPlayingVideo() and not xbmc.abortRequested:
-                xbmc.sleep(100)
-
-                if xbmc.getCondVisibility('VideoPlayer.IsFullscreen'):
-                    self.hasFullScreened = True
-                elif self.hasFullScreened:
-                    util.DEBUG_LOG('Player (LiveTV): Video closed')
-                    break
-
-            if self.isPlayingVideo():
-                util.DEBUG_LOG('Player (LiveTV): Stopping video')
-                self.stop()
-
-            util.DEBUG_LOG('Player (LiveTV): Played for {0} seconds'.format(self.position))
-
-            if self.liveRecording:
-                self.finish(force=True)
-        finally:
-            self._waiting.set()
+    def playLiveRecording(self, rec, show=None, resume=True):
+        self.reset()
+        self.handler = LiveRecordingHandler(self)
+        return self.handler.play(rec, show, resume)
 
     def onPlayBackStarted(self):
-        self.closeLoadingDialog()
-
-        if self.isPlayingRecording:
-            self.trickWindow.setPosition(self.absolutePosition)
-            self.trickWindow.blank()
-
-        self.wait()
+        self.started = True
+        util.DEBUG_LOG('Player - STARTED')
+        if not self.handler:
+            return
+        self.handler.onPlayBackStarted()
 
     def onPlayBackStopped(self):
-        self.closeLoadingDialog()
+        if not self.started:
+            self.onPlaybackFailed()
+
+        util.DEBUG_LOG('Player - STOPPED' + (not self.started and ': FAILED' or ''))
+        if not self.handler:
+            return
+        self.handler.onPlayBackStopped()
 
     def onPlayBackEnded(self):
-        self.ended = True
-        self.closeLoadingDialog()
+        if not self.started:
+            self.onPlaybackFailed()
+
+        util.DEBUG_LOG('Player - ENDED' + (not self.started and ': FAILED' or ''))
+        if not self.handler:
+            return
+        self.handler.onPlayBackEnded()
 
     def onPlayBackSeek(self, time, offset):
-        if not self.isPlayingRecording:
+        util.DEBUG_LOG('Player - SEEK')
+        if not self.handler:
             return
+        self.handler.onPlayBackSeek(time, offset)
 
-        self.seeking = True
-        self.trickWindow.setPosition(self.absolutePosition)
-        self.trickWindow.unBlank()
-        self.stop()
-        util.DEBUG_LOG('Player (Recording): Seek started at {0} (absolute: {1})'.format(self.position, self.absolutePosition))
+    def onPlaybackFailed(self):
+        if not self.handler:
+            return
+        self.handler.onPlayBackFailed()
+
+    def onVideoWindowOpened(self):
+        util.DEBUG_LOG('Player: Video window opened')
+        try:
+            self.handler.onVideoWindowOpened()
+        except:
+            util.ERROR()
+
+    def onVideoWindowClosed(self):
+        util.DEBUG_LOG('Player: Video window closed')
+        try:
+            self.handler.onVideoWindowClosed()
+        except:
+            util.ERROR()
 
     def stopAndWait(self):
         if self.isPlayingVideo():
+            util.DEBUG_LOG('Player (Recording): Stopping for external wait')
             self.stop()
-            self._waiting.wait()
+        self.handler.waitForStop()
 
-    def finish(self, force=False):
-        if not force:
-            if not self.isPlayingRecording or self.liveRecording:
-                return
+    def monitor(self):
+        threading.Thread(target=self._monitor).start()
 
-        util.DEBUG_LOG('Player: Closing trick window')
-        self.trickWindow.doClose()
-        del self.trickWindow
-        self.trickWindow = None
+    def _monitor(self):
 
+        while not xbmc.abortRequested:
+            # Monitor loop
+            if self.isPlayingVideo():
+                util.DEBUG_LOG('Player: Monitoring')
+
+            hasFullScreened = False
+
+            while self.isPlayingVideo() and not xbmc.abortRequested:
+                xbmc.sleep(100)
+                if xbmc.getCondVisibility('VideoPlayer.IsFullscreen'):
+                    if not hasFullScreened:
+                        hasFullScreened = True
+                        self.onVideoWindowOpened()
+                elif hasFullScreened:
+                    hasFullScreened = False
+                    self.onVideoWindowClosed()
+
+            if hasFullScreened:
+                self.onVideoWindowClosed()
+
+            # Idle loop
+            if not self.isPlayingVideo():
+                util.DEBUG_LOG('Player: Idling...')
+
+            while not self.isPlayingVideo() and not xbmc.abortRequested:
+                xbmc.sleep(100)
 
 PLAYER = TabloPlayer().init()

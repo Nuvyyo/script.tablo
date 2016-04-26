@@ -104,6 +104,8 @@ class Watch(object):
 
         self.getPlaylistURL(data.get('playlist_url'))
 
+        self._playlist = None
+
     def getPlaylistURL(self, url):
         self.originalPlaylistUrl = url
         p = urlparse.urlparse(url)
@@ -114,7 +116,10 @@ class Watch(object):
         self.url = '{0}://{1}{2}'.format(p.scheme, p.netloc, m.playlists[0].uri)
 
     def getSegmentedPlaylist(self):
-        m = m3u8.loads(requests.get(self.url).text)
+        if not self._playlist:
+            self._playlist = requests.get(self.url).text
+
+        m = m3u8.loads(self._playlist)
         m.base_path = self.base
         return m
 

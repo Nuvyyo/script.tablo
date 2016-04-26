@@ -120,19 +120,16 @@ class RecordingShowBase:
         changes = {}
 
         if action:
-            if action == 'watch':
+            if action in ('watch', 'resume'):
                 try:
                     show = self._show or airing.getShow()
                 except:
                     show = None
-                player.PLAYER.playRecording(airing, show=show, resume=False, live=airing.recording())
-                # xbmc.Player().play(airing.watch().url)
-            elif action == 'resume':
-                try:
-                    show = self._show or airing.getShow()
-                except:
-                    show = None
-                player.PLAYER.playRecording(airing, show=show, live=airing.recording())
+
+                if airing.recording():
+                    player.PLAYER.playLiveRecording(airing, show=show, resume=action == 'resume')
+                else:
+                    player.PLAYER.playRecording(airing, show=show, resume=action == 'resume')
             elif action == 'toggle':
                 airing.markWatched(not airing.watched)
                 self.modified = True

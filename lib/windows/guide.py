@@ -673,6 +673,10 @@ class GuideShowWindow(kodigui.BaseWindow):
             xbmc.sleep(100)
             airing = item.dataSource.get('airing')
 
+        if not airing:
+            util.DEBUG_LOG('GuideShowWindow.airingsListClicked(): Failed to get airing!')
+            return
+
         info = 'Channel {0} {1} on {2} from {3} to {4}'.format(
             airing.displayChannel(),
             airing.network,
@@ -894,7 +898,8 @@ class GuideShowWindow(kodigui.BaseWindow):
 
         if isinstance(self._show, tablo.Series):
             seasons = self._show.seasons()
-            seasonsData = tablo.API.batch.post(seasons)
+            if seasons:
+                seasonsData = tablo.API.batch.post(seasons)
 
             first = True
             for seasonPath in seasons:
