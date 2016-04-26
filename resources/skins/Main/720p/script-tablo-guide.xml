@@ -45,7 +45,7 @@
                 <posy>0</posy>
                 <width>1280</width>
                 <height>720</height>
-                <texture fallback="placeholders/placeholder_background_hd.jpg">$INFO[Container(301).ListItem.Property(background)]</texture>
+                <texture background="true" fallback="placeholders/placeholder_background_hd.jpg">$INFO[Container(301).ListItem.Property(background)]</texture>
                 <aspectratio aligny="top">scale</aspectratio>
                 <fadetime>500</fadetime>
             </control>
@@ -200,7 +200,7 @@
                                         <posy>0</posy>
                                         <width>180</width>
                                         <height>246</height>
-                                        <texture>$INFO[ListItem.Thumb]</texture>
+                                        <texture background="true">$INFO[ListItem.Thumb]</texture>
                                         <aspectratio>scale</aspectratio>
                                     </control>
                                     <control type="textbox">
@@ -275,7 +275,7 @@
                                         <posy>3</posy>
                                         <width>190</width>
                                         <height>260</height>
-                                        <texture>$INFO[ListItem.Thumb]</texture>
+                                        <texture background="true">$INFO[ListItem.Thumb]</texture>
                                         <aspectratio>scale</aspectratio>
                                     </control>
                                     <control type="textbox">
