@@ -357,6 +357,7 @@ class GuideWindow(kodigui.BaseWindow):
         item.setThumbnailImage(show.thumb)
         item.setProperty('background', show.background)
         item.setProperty('key', key)
+        item.setProperty('no.title', not show.thumbHasTitle and '1' or '')
         if show.scheduleRule:
             if show.scheduleRule == 'conflict':
                 item.setProperty('badge', 'guide/guide_badge_conflict_hd.png')

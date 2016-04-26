@@ -378,6 +378,7 @@ class Show(object):
     def __init__(self, data):
         self.data = None
         self._thumb = ''
+        self._thumbHasTitle = None
         self._background = ''
         self.path = data['path']
         self.scheduleRule = data.get('schedule_rule') != 'none' and data.get('schedule_rule') or None
@@ -408,10 +409,20 @@ class Show(object):
     def thumb(self):
         if not self._thumb:
             try:
-                self._thumb = self.data.get('thumbnail_image') and API.images(self.data['thumbnail_image']['image_id']) or ''
+                if self.data.get('thumbnail_image'):
+                    self._thumb = API.images(self.data['thumbnail_image']['image_id'])
+                    self._thumbHasTitle = self.data['thumbnail_image']['has_title']
             except:
                 print self.data['thumbnail_image']
+                self._thumbHasTitle = False
         return self._thumb
+
+    @property
+    def thumbHasTitle(self):
+        if self._thumbHasTitle is None:
+            self.thumb
+
+        return self._thumbHasTitle
 
     @property
     def background(self):

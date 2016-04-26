@@ -195,17 +195,6 @@
                                         <texture>script-tablo-white_square.png</texture>
                                         <colordiffuse>FF101924</colordiffuse>
                                     </control>
-                                    <control type="textbox">
-                                        <posx>10</posx>
-                                        <posy>0</posy>
-                                        <width>160</width>
-                                        <height>246</height>
-                                        <font>font30</font>
-                                        <textcolor>FFFFFFFF</textcolor>
-                                        <align>left</align>
-                                        <aligny>center</aligny>
-                                        <label>$INFO[ListItem.Label]</label>
-                                    </control>
                                     <control type="image">
                                         <posx>0</posx>
                                         <posy>0</posy>
@@ -213,6 +202,19 @@
                                         <height>246</height>
                                         <texture>$INFO[ListItem.Thumb]</texture>
                                         <aspectratio>scale</aspectratio>
+                                    </control>
+                                    <control type="textbox">
+                                        <visible>IsEmpty(ListItem.Thumb) | !IsEmpty(ListItem.Property(no.title))</visible>
+                                        <posx>10</posx>
+                                        <posy>0</posy>
+                                        <width>160</width>
+                                        <height>246</height>
+                                        <font>font30</font>
+                                        <textcolor>FFFFFFFF</textcolor>
+                                        <shadowcolor>FF000000</shadowcolor>
+                                        <align>left</align>
+                                        <aligny>center</aligny>
+                                        <label>$INFO[ListItem.Label]</label>
                                     </control>
                                     <control type="image">
                                         <posx>0</posx>
@@ -268,17 +270,6 @@
                                         <texture>script-tablo-white_square.png</texture>
                                         <colordiffuse>FF101924</colordiffuse>
                                     </control>
-                                    <control type="textbox">
-                                        <left>20</left>
-                                        <top>8</top>
-                                        <width>160</width>
-                                        <height>250</height>
-                                        <font>font30</font>
-                                        <textcolor>FFFFFFFF</textcolor>
-                                        <align>left</align>
-                                        <aligny>center</aligny>
-                                        <label>$INFO[ListItem.Label]</label>
-                                    </control>
                                     <control type="image">
                                         <posx>5</posx>
                                         <posy>3</posy>
@@ -286,6 +277,19 @@
                                         <height>260</height>
                                         <texture>$INFO[ListItem.Thumb]</texture>
                                         <aspectratio>scale</aspectratio>
+                                    </control>
+                                    <control type="textbox">
+                                        <visible>IsEmpty(ListItem.Thumb) | !IsEmpty(ListItem.Property(no.title))</visible>
+                                        <left>20</left>
+                                        <top>8</top>
+                                        <width>160</width>
+                                        <height>250</height>
+                                        <font>font30</font>
+                                        <textcolor>FFFFFFFF</textcolor>
+                                        <shadowcolor>FF000000</shadowcolor>
+                                        <align>left</align>
+                                        <aligny>center</aligny>
+                                        <label>$INFO[ListItem.Label]</label>
                                     </control>
                                     <control type="image">
                                         <posx>135</posx>
