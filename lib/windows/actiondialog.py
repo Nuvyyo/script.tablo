@@ -1,3 +1,4 @@
+import xbmcgui
 import kodigui
 from lib import util
 
@@ -15,6 +16,11 @@ class ActionDialog(kodigui.BaseWindow, util.CronReceiver):
         kodigui.BaseWindow.__init__(self, *args, **kwargs)
         util.setGlobalProperty('action.button1.busy', '')
         util.setGlobalProperty('action.button2.busy', '')
+        self.itemCount = kwargs.get('item_count')
+        self.itemPos = kwargs.get('item_pos')
+        self.init(kwargs)
+
+    def init(self, kwargs):
         self.number = kwargs.get('number')
         self.title = kwargs.get('title')
         self.info = kwargs.get('info')
@@ -25,11 +31,12 @@ class ActionDialog(kodigui.BaseWindow, util.CronReceiver):
         self.button2 = kwargs.get('button2')
         self.titleIndicator = kwargs.get('title_indicator', '')
         self.callback = kwargs.get('callback')
-        self.object = kwargs.get('object')
+        self.object = kwargs.get('obj')
         self.action = None
 
     def onFirstInit(self):
         self.updateDisplayProperties()
+        self.setPrevNextIndicators()
         self.setProperty('number', str(self.number or ''))
         self.setProperty('title', self.title)
         self.setProperty('info', self.info)
@@ -42,6 +49,19 @@ class ActionDialog(kodigui.BaseWindow, util.CronReceiver):
 
     def onReInit(self):
         util.CRON.registerReceiver(self)
+
+    def onAction(self, action):
+        try:
+            if action == xbmcgui.ACTION_MOVE_UP:
+                self.action = 'PREV_ITEM'
+                return self.doPrevNextCallback()
+            elif action == xbmcgui.ACTION_MOVE_DOWN:
+                self.action = 'NEXT_ITEM'
+                return self.doPrevNextCallback()
+        except:
+            util.ERROR()
+
+        kodigui.BaseWindow.onAction(self, action)
 
     def onClick(self, controlID):
         if controlID == self.BUTTON1_ID:
@@ -57,8 +77,45 @@ class ActionDialog(kodigui.BaseWindow, util.CronReceiver):
             util.CRON.cancelReceiver(self)
         self.doCallback()
 
+    def setPrevNextIndicators(self):
+        if self.itemPos > 0:
+            self.setProperty('more.up', '1')
+        else:
+            self.setProperty('more.up', '')
+
+        if self.itemPos < self.itemCount - 1:
+            self.setProperty('more.down', '1')
+        else:
+            self.setProperty('more.down', '')
+
+    def doPrevNextCallback(self):
+        if not self.callback:
+            self.action = None
+            return False
+
+        action = self.action
+        self.action = None
+
+        if action == 'PREV_ITEM':
+            if self.itemPos <= 0:
+                return
+            self.itemPos -= 1
+        elif action == 'NEXT_ITEM':
+            if self.itemPos >= self.itemCount - 1:
+                return
+            self.itemPos += 1
+
+        kwargs = self.callback(self.itemPos, 'CHANGE.ITEM')
+
+        if not kwargs:
+            return False
+
+        self.init(kwargs)
+        self.onFirstInit()
+
     def doCallback(self):
         if not self.callback:
+            self.action = None
             return False
 
         if self.action != 'watch':
@@ -96,26 +153,21 @@ class ActionDialog(kodigui.BaseWindow, util.CronReceiver):
 
 
 def openDialog(
-    title, info, plot, start, button1,
-    number=None, button2=None, title_indicator=None, background=None, callback=None, obj=None
+    title, info, plot, start, button1, **kwargs
 ):
 
     w = ActionDialog.open(
-        number=number,
         title=title,
         info=info,
         plot=plot,
         start=start,
-        background=background,
         button1=button1,
-        button2=button2,
-        title_indicator=title_indicator,
-        callback=callback,
-        object=obj
+        **kwargs
     )
 
     util.CRON.cancelReceiver(w)
 
     action = w.action
+    pos = w.itemPos
     del w
-    return action
+    return action or pos

@@ -671,8 +671,8 @@ class GuideShowWindow(kodigui.BaseWindow):
         else:
             arg_dict[button] = ('record', 'Record {0}'.format(util.LOCALIZED_AIRING_TYPES[self._show.type]))
 
-    def airingsListClicked(self):
-        item = self.airingsList.getSelectedItem()
+    def airingsListClicked(self, item=None, get_args_only=False):
+        item = item or self.airingsList.getSelectedItem()
         if not item:
             return
 
@@ -716,21 +716,59 @@ class GuideShowWindow(kodigui.BaseWindow):
             else:
                 start = 'Starts in {0}'.format(util.durationToText(secs))
 
-        actiondialog.openDialog(
+        kwargs['item_count'] = len(self.airingItems)
+        kwargs['item_pos'] = int(item.getProperty('pos'))
+
+        if get_args_only:
+            kwargs['title'] = airing.title or self._show.title
+            kwargs['info'] = info
+            kwargs['plot'] = airing.description
+            kwargs['start'] = start
+            return kwargs
+
+        pos = actiondialog.openDialog(
             airing.title or self._show.title,
-            info, airing.description,
+            info,
+            airing.description,
             start,
             **kwargs
         )
 
+        if isinstance(pos, int):
+            item = self.getItemByPos(pos)
+            if item:
+                self.airingsList.selectItem(item.pos())
+
         self.updateIndicators()
+
+    def getItemByPos(self, pos):
+        for item in self.airingsList:
+            if item.getProperty('pos') == str(pos):
+                return item
+
+        return None
+
+    def updateActionDialog(self, pos):
+        item = self.getItemByPos(pos)
+        if not item:
+            return
+
+        kwargs = self.airingsListClicked(item=item, get_args_only=True)
+        if not kwargs:
+            return
+
+        self.setDialogButtons(kwargs['obj'], kwargs)
+
+        return kwargs
 
     def actionDialogCallback(self, obj, action):
         airing = obj
         changes = {}
 
         if action:
-            if action == 'watch':
+            if action == 'CHANGE.ITEM':
+                return self.updateActionDialog(obj)
+            elif action == 'watch':
                 player.PLAYER.playAiringChannel(airing.gridAiring or airing)
             elif action == 'record':
                 airing.schedule()
@@ -909,6 +947,7 @@ class GuideShowWindow(kodigui.BaseWindow):
         self.airingsList.reset()
         self.airingItems = {}
         airings = []
+        airingIDX = 0
 
         if isinstance(self._show, tablo.Series):
             seasons = self._show.seasons()
@@ -936,6 +975,8 @@ class GuideShowWindow(kodigui.BaseWindow):
                 airings += seasonEps
                 for p in seasonEps:
                     item = kodigui.ManagedListItem('', data_source={'path': p, 'airing': None})
+                    item.setProperty('pos', str(airingIDX))
+                    airingIDX += 1
                     if first:
                         first = False
                         item.setProperty('top', '1')
@@ -951,6 +992,8 @@ class GuideShowWindow(kodigui.BaseWindow):
             first = True
             for p in airings:
                 item = kodigui.ManagedListItem('', data_source={'path': p, 'airing': None})
+                item.setProperty('pos', str(airingIDX))
+                airingIDX += 1
                 if first:
                     first = False
                     item.setProperty('top', '1')

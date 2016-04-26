@@ -63,8 +63,8 @@ class RecordingShowBase:
 
         arg_dict['plot'] = description
 
-    def airingsListClicked(self):
-        item = self.airingsList.getSelectedItem()
+    def airingsListClicked(self, item=None, get_args_only=False):
+        item = item or self.airingsList.getSelectedItem()
         if not item:
             return
 
@@ -103,7 +103,19 @@ class RecordingShowBase:
 
         self.setDialogIndicators(airing, show, kwargs)
 
-        openDialog(
+        kwargs['item_count'] = len(self.airingItems)
+        kwargs['item_pos'] = int(item.getProperty('pos'))
+
+        if get_args_only:
+            kwargs['title'] = title
+            kwargs['info'] = info
+            kwargs['preview'] = airing.snapshot
+            kwargs['failed'] = failed
+            kwargs['button2'] = airing.watched and 'Mark Unwatched' or 'Mark Watched'
+            kwargs['button3'] = airing.protected and 'Unprotect' or 'Protect'
+            return kwargs
+
+        pos = openDialog(
             title,
             info,
             airing.snapshot,
@@ -113,14 +125,32 @@ class RecordingShowBase:
             **kwargs
         )
 
+        if isinstance(pos, int):
+            item = self.getItemByPos(pos)
+            if item:
+                self.airingsList.selectItem(item.pos())
+
         self.updateIndicators()
+
+    def updateActionDialog(self, pos):
+        item = self.getItemByPos(pos)
+        if not item:
+            return
+
+        kwargs = self.airingsListClicked(item=item, get_args_only=True)
+        if not kwargs:
+            return
+
+        return kwargs
 
     def actionDialogCallback(self, obj, action):
         airing = obj
         changes = {}
 
         if action:
-            if action in ('watch', 'resume'):
+            if action == 'CHANGE.ITEM':
+                return self.updateActionDialog(obj)
+            elif action in ('watch', 'resume'):
                 try:
                     show = self._show or airing.getShow()
                 except:
@@ -463,6 +493,10 @@ class RecordingDialog(actiondialog.ActionDialog):
 
     def __init__(self, *args, **kwargs):
         actiondialog.ActionDialog.__init__(self, *args, **kwargs)
+        util.CRON.registerReceiver(self)
+
+    def init(self, kwargs):
+        actiondialog.ActionDialog.init(self, kwargs)
         self.title = kwargs.get('title')
         self.info = kwargs.get('info')
         self.plot = kwargs.get('plot')
@@ -473,16 +507,17 @@ class RecordingDialog(actiondialog.ActionDialog):
         self.seenratio = kwargs.get('seenratio')
         self.background = kwargs.get('background')
         self.callback = kwargs.get('callback')
-        self.object = kwargs.get('object')
+        self.object = kwargs.get('obj')
         self._show = kwargs.get('show')
         self.button2 = kwargs.get('button2')
         self.button3 = kwargs.get('button3')
         self.action = None
         self.parentAction = None
-        util.CRON.registerReceiver(self)
 
     def onFirstInit(self):
         self.updateDisplayProperties()
+        self.setPrevNextIndicators()
+
         self.setProperty('title', self.title)
         self.setProperty('info', self.info)
         self.setProperty('plot', self.plot)
@@ -633,29 +668,22 @@ class RecordingDialog(actiondialog.ActionDialog):
 
 
 def openDialog(
-    title, info, preview, failed, button2, button3, plot=None, indicator=None,
-    seen=None, seenratio=None, background=None, callback=None, obj=None, show=None
+    title, info, preview, failed, button2, button3, **kwargs
 ):
 
     w = RecordingDialog.open(
         title=title,
         info=info,
-        plot=plot,
         preview=preview,
         failed=failed,
-        indicator=indicator,
         button2=button2,
         button3=button3,
-        seen=seen,
-        seenratio=seenratio,
-        background=background,
-        callback=callback,
-        object=obj,
-        show=show
+        **kwargs
     )
 
     util.CRON.cancelReceiver(w)
 
     action = w.action
+    pos = w.itemPos
     del w
-    return action
+    return action or pos

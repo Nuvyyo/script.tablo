@@ -629,5 +629,22 @@
             </control>
 
         </control>
+
+        <control type="image">
+            <visible>!IsEmpty(Window.Property(more.up))</visible>
+            <posx>620</posx>
+            <posy>52</posy>
+            <width>39</width>
+            <height>16</height>
+            <texture flipy="true">indicators/arrow_hint_down_hd.png</texture>
+        </control>
+        <control type="image">
+            <visible>!IsEmpty(Window.Property(more.down))</visible>
+            <posx>620</posx>
+            <posy>652</posy>
+            <width>36</width>
+            <height>16</height>
+            <texture>indicators/arrow_hint_down_hd.png</texture>
+        </control>
     </controls>
 </window>
