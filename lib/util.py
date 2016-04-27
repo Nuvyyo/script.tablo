@@ -89,6 +89,10 @@ def ERROR(txt='', hide_tb=False, notify=False):
     return short
 
 
+def errorDialog(msg, heading='Error'):
+    xbmcgui.Dialog().ok(heading, msg)
+
+
 def getSetting(key, default=None):
     setting = ADDON.getSetting(key)
     return _processSetting(setting, default)

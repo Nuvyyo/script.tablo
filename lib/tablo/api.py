@@ -174,7 +174,6 @@ class Airing(object):
 
     @property
     def showPath(self):
-        print 'x', self.type
         if self.type == 'episode':
             return self.data['series_path']
         elif self.type == 'movie':

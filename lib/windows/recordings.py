@@ -103,8 +103,9 @@ class RecordingShowBase:
 
         self.setDialogIndicators(airing, show, kwargs)
 
-        kwargs['item_count'] = len(self.airingItems)
-        kwargs['item_pos'] = int(item.getProperty('pos'))
+        if hasattr(self, 'airingItems'):
+            kwargs['item_count'] = len(self.airingItems)
+            kwargs['item_pos'] = int(item.getProperty('pos'))
 
         if get_args_only:
             kwargs['title'] = title
@@ -441,8 +442,9 @@ class RecordingShowWindow(RecordingShowBase, guide.GuideShowWindow):
                     break
             else:
                 self.doClose()
-        except tablo.APIError:
+        except tablo.APIError, e:
             util.ERROR()
+            util.errorDialog(u'Delete failed: {0}'.format(e.message), heading='Failed')
         finally:
             self.setProperty('action.busy', '')
 
