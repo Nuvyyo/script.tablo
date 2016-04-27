@@ -661,6 +661,16 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
 
         self.setDialogButtons(airing, kwargs)
 
+        if airing.type == 'movie':
+            try:
+                show = airing.gridAiring.getShow()
+                description = show.plot or show.description
+            except:
+                util.ERROR()
+                description = ''
+        else:
+            description = airing.gridAiring.description
+
         secs = airing.gridAiring.secondsToStart()
 
         if secs < 1:
@@ -670,7 +680,8 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
 
         actiondialog.openDialog(
             airing.title,
-            info, airing.gridAiring.description,
+            info,
+            description,
             start,
             **kwargs
         )

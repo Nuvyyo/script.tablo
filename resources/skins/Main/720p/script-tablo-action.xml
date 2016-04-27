@@ -151,7 +151,7 @@
                             <posy>1</posy>
                             <width>63</width>
                             <height>27</height>
-                            <texture>$INFO[Window.Property(start.indicator1]</texture>
+                            <texture>$INFO[Window.Property(start.indicator1)]</texture>
                             <aspectratio>keep</aspectratio>
                         </control>
                         <control type="image">
@@ -159,7 +159,7 @@
                             <posy>1</posy>
                             <width>63</width>
                             <height>27</height>
-                            <texture>$INFO[Window.Property(start.indicator2]</texture>
+                            <texture>$INFO[Window.Property(start.indicator2)]</texture>
                             <aspectratio>keep</aspectratio>
                         </control>
                 </control>

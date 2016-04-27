@@ -719,17 +719,22 @@ class GuideShowWindow(kodigui.BaseWindow):
         kwargs['item_count'] = len(self.airingItems)
         kwargs['item_pos'] = int(item.getProperty('pos'))
 
+        if airing.type == 'schedule':
+            description = self._show.plot or self._show.description
+        else:
+            description = airing.description
+
         if get_args_only:
             kwargs['title'] = airing.title or self._show.title
             kwargs['info'] = info
-            kwargs['plot'] = airing.description
+            kwargs['plot'] = description
             kwargs['start'] = start
             return kwargs
 
         pos = actiondialog.openDialog(
             airing.title or self._show.title,
             info,
-            airing.description,
+            description,
             start,
             **kwargs
         )

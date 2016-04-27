@@ -166,7 +166,7 @@ class Airing(object):
         elif 'series' in self.path:
             self.type = 'episode'
         elif 'movies' in self.path:
-            self.type = 'movie_airing'
+            self.type = 'movie'
         elif 'sports' in self.path:
             self.type = 'event'
         elif 'programs' in self.path:
@@ -174,9 +174,10 @@ class Airing(object):
 
     @property
     def showPath(self):
+        print 'x', self.type
         if self.type == 'episode':
             return self.data['series_path']
-        elif self.type == 'movie_airing':
+        elif self.type == 'movie':
             return self.data['movie_path']
         elif self.type == 'event':
             return self.data['sport_path']
@@ -355,7 +356,7 @@ class GridAiring(Airing):
             if 'episode' in data:
                 self._gridAiring = Airing(data, 'episode')
             elif 'movie_airing' in data:
-                self._gridAiring = Airing(data, 'movie_airing')
+                self._gridAiring = Airing(data, 'movie')
             elif 'event' in data:
                 self._gridAiring = Airing(data, 'event')
             elif 'program' in data:
