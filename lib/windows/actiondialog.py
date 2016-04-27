@@ -78,6 +78,9 @@ class ActionDialog(kodigui.BaseWindow, util.CronReceiver):
         self.doCallback()
 
     def setPrevNextIndicators(self):
+        if self.itemCount is None:
+            return
+
         if self.itemPos > 0:
             self.setProperty('more.up', '1')
         else:
@@ -92,6 +95,9 @@ class ActionDialog(kodigui.BaseWindow, util.CronReceiver):
         if not self.callback:
             self.action = None
             return False
+
+        if self.itemCount is None:
+            return
 
         action = self.action
         self.action = None
