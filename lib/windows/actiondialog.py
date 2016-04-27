@@ -30,6 +30,8 @@ class ActionDialog(kodigui.BaseWindow, util.CronReceiver):
         self.button1 = kwargs.get('button1')
         self.button2 = kwargs.get('button2')
         self.titleIndicator = kwargs.get('title_indicator', '')
+        self.startIndicator1 = kwargs.get('start_indicator1', '')
+        self.startIndicator2 = kwargs.get('start_indicator2', '')
         self.callback = kwargs.get('callback')
         self.object = kwargs.get('obj')
         self.action = None
@@ -44,6 +46,8 @@ class ActionDialog(kodigui.BaseWindow, util.CronReceiver):
         self.setProperty('start', self.start)
         self.setProperty('background', self.background)
         self.setProperty('title.indicator', self.titleIndicator)
+        self.setProperty('start.indicator1', self.startIndicator1)
+        self.setProperty('start.indicator2', self.startIndicator2)
         self.setFocusId(self.BUTTON1_ID)
         util.CRON.registerReceiver(self)
 

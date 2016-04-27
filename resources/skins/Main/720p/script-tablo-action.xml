@@ -128,16 +128,40 @@
                     <textcolor>FFEBEBEB</textcolor>
                     <label>$INFO[Window.Property(plot)]</label>
                 </control>
-                <control type="label">
-                    <left>20</left>
-                    <top>340</top>
-                    <width>1080</width>
-                    <height>30</height>
-                    <font>font14</font>
-                    <textcolor>FFEBEBEB</textcolor>
-                    <align>left</align>
-                    <aligny>center</aligny>
-                    <label>$INFO[Window.Property(start)]</label>
+                 <control type="grouplist">
+                        <left>20</left>
+                        <top>340</top>
+                        <height>30</height>
+                        <width>1080</width>
+                        <orientation>horizontal</orientation>
+                        <itemgap>10</itemgap>
+                        <align>left</align>
+                        <usecontrolcoords>true</usecontrolcoords>
+                        <control type="label">
+                            <width min="0" max="1080">auto</width>
+                            <height>30</height>
+                            <font>font14</font>
+                            <textcolor>FFEBEBEB</textcolor>
+                            <align>left</align>
+                            <aligny>center</aligny>
+                            <label>$INFO[Window.Property(start)]</label>
+                        </control>
+                        <control type="image">
+                            <visible>!IsEmpty(Window.Property(start.indicator1))</visible>
+                            <posy>1</posy>
+                            <width>63</width>
+                            <height>27</height>
+                            <texture>$INFO[Window.Property(start.indicator1]</texture>
+                            <aspectratio>keep</aspectratio>
+                        </control>
+                        <control type="image">
+                            <visible>!IsEmpty(Window.Property(start.indicator2))</visible>
+                            <posy>1</posy>
+                            <width>63</width>
+                            <height>27</height>
+                            <texture>$INFO[Window.Property(start.indicator2]</texture>
+                            <aspectratio>keep</aspectratio>
+                        </control>
                 </control>
 
                 <control type="group">

@@ -464,16 +464,12 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
         self.updateChannelAirings(channel.path)
 
     def updateGridItem(self, airing, ID):
-        control = self.getControl(ID)
-        if airing.scheduled:
-            if airing.conflicted:
-                util.setGlobalProperty('badge.color.{0}'.format(ID), 'FFD93A34')
-            else:
-                util.setGlobalProperty('badge.color.{0}'.format(ID), 'FFFF8000')
-            control.setSelected(True)
+        if airing.conflicted:
+            util.setGlobalProperty('badge.color.{0}'.format(ID), 'FFD93A34')
+        elif airing.scheduled:
+            util.setGlobalProperty('badge.color.{0}'.format(ID), 'FFFF8000')
         else:
             util.setGlobalProperty('badge.color.{0}'.format(ID), '00FFFFFF')
-            control.setSelected(False)
 
     def updateChannelAirings(self, path):
         genData = self.gen.channels[path]
@@ -658,7 +654,9 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
             'number': airing.gridAiring.number,
             'background': airing.background,
             'callback': self.actionDialogCallback,
-            'obj': airing
+            'obj': airing,
+            'start_indicator1': 'new' in airing.qualifiers and 'indicators/qualifier_new_hd.png' or '',
+            'start_indicator2': 'live' in airing.qualifiers and 'indicators/qualifier_live_hd.png' or ''
         }
 
         self.setDialogButtons(airing, kwargs)
