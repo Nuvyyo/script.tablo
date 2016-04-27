@@ -543,7 +543,7 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
             if width > 34:
                 control.setLabel(label)
             else:
-                control.setLabel('')
+                control.setLabel(' ')
 
         if slot == -1 or (totalwidth < 1110 and not atEnd):
             slot += 1
