@@ -37,37 +37,7 @@ class DeviceWindow(kodigui.BaseWindow):
             self.setProperty('subscription.title', 'No Subscription')
             self.setProperty('subscription.description', 'Subscribe now to receive guide data and enable more features.')
 
-        try:
-            hdinfo = tablo.API.server.harddrives.get()
-        except:
-            hdinfo = None
-            util.ERROR()
-
-        if hdinfo:
-            controlID = 200
-            for i, drive in enumerate(hdinfo):
-                if not drive.get('connected'):
-                    continue
-
-                if controlID > 200:
-                    break
-
-                self.setProperty('drive.{0}'.format(i), drive['name'])
-                self.setProperty('drive.{0}.used'.format(i), '{0} Used'.format(util.simpleSize(drive['usage'])))
-                self.setProperty('drive.{0}.left'.format(i), '{0} Available'.format(util.simpleSize(drive['size'] - drive['usage'])))
-                control = self.getControl(controlID)
-                w = int((drive['usage'] / float(drive['size'])) * self.DRIVE_WIDTH)
-                control.setWidth(w)
-                if self.DRIVE_WIDTH - w < 200:
-                    self.setProperty('drive.{0}.almost_full'.format(i), '1')
-                    control = self.getControl(controlID+1)
-                    control.setWidth((w / 2) - 15)
-                    control = self.getControl(controlID+2)
-                    control.setWidth((w / 2) - 15)
-                else:
-                    control = self.getControl(controlID+1)
-                    control.setWidth(w-10)
-                controlID += 100
+        self.updateHDInfo()
 
         if not tablo.API.serverInfo:
             tablo.API.getServerInfo()
@@ -81,29 +51,41 @@ class DeviceWindow(kodigui.BaseWindow):
         self.setProperty('addon.version', util.ADDON.getAddonInfo('version'))
 
     def onWindowFocus(self):
+        self.updateHDInfo()
+
+    def updateHDInfo(self):
         try:
             hdinfo = tablo.API.server.harddrives.get()
         except:
             hdinfo = None
             util.ERROR()
 
-        if hdinfo:
-            controlID = 200
-            for i, drive in enumerate(hdinfo):
-                if not drive.get('connected'):
-                    continue
+        if not hdinfo:
+            return
 
-                if controlID > 200:
-                    break
+        controlID = 200
+        for i, drive in enumerate(hdinfo):
+            if not drive.get('connected'):
+                continue
 
-                self.setProperty('drive.{0}'.format(i), drive['name'])
-                self.setProperty('drive.{0}.used'.format(i), '{0} Used'.format(util.simpleSize(drive['usage'])))
-                self.setProperty('drive.{0}.left'.format(i), '{0} Available'.format(util.simpleSize(drive['size'] - drive['usage'])))
-                control = self.getControl(controlID)
-                w = int((drive['usage'] / float(drive['size'])) * self.DRIVE_WIDTH)
-                control.setWidth(w)
+            if controlID > 200:
+                break
+
+            self.setProperty('drive.{0}'.format(i), drive['name'])
+            self.setProperty('drive.{0}.used'.format(i), '{0} Used'.format(util.simpleSize(drive['usage'])))
+            self.setProperty('drive.{0}.left'.format(i), '{0} Available'.format(util.simpleSize(drive['size'] - drive['usage'])))
+            control = self.getControl(controlID)
+            w = int((drive['usage'] / float(drive['size'])) * self.DRIVE_WIDTH)
+            control.setWidth(w)
+            if self.DRIVE_WIDTH - w < 200:
+                self.setProperty('drive.{0}.almost_full'.format(i), '1')
                 control = self.getControl(controlID+1)
-                control.setWidth(w - 10)
+                control.setWidth((w / 2) - 15)
+                control = self.getControl(controlID+2)
+                control.setWidth((w / 2) - 15)
+            else:
+                control = self.getControl(controlID+1)
+                control.setWidth(w-10)
                 controlID += 100
 
     def onAction(self, action):
