@@ -500,15 +500,12 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
             self.slotButtons[ID] = airing
             control = self.getControl(ID)
 
-            if airing.scheduled:
-                if airing.conflicted:
-                    util.setGlobalProperty('badge.color.{0}'.format(ID), 'FFD93A34')
-                else:
-                    util.setGlobalProperty('badge.color.{0}'.format(ID), 'FFFF8000')
-                control.setSelected(True)
+            if airing.conflicted:
+                util.setGlobalProperty('badge.color.{0}'.format(ID), 'FFD93A34')
+            elif airing.scheduled:
+                util.setGlobalProperty('badge.color.{0}'.format(ID), 'FFFF8000')
             else:
                 util.setGlobalProperty('badge.color.{0}'.format(ID), '00FFFFFF')
-                control.setSelected(False)
 
             if airing.airingNow(self.hhData.halfHour):
                 if self.hhData.offsetHalfHours != 0 and self.hhData.halfHour != airing.datetime:
