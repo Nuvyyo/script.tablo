@@ -524,7 +524,7 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
             else:
                 label = airing.title
 
-            width = int((duration/1800.0)*self.gen.HALF_HOUR_WIDTH)
+            width = int(round((duration/1800.0)*self.gen.HALF_HOUR_WIDTH))
             save = width
             if totalwidth > 1110:
                 self.offButtons[ID] = True
