@@ -363,10 +363,6 @@ class GridAiring(Airing):
 
         return self._gridAiring
 
-    @property
-    def scheduled(self):
-        return self.scheduleData['state'] != 'none'
-
     def schedule(self, on=True):
         self.scheduleData = self.gridAiring.schedule(on)
         return self.scheduleData
