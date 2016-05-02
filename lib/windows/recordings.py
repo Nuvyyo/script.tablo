@@ -442,9 +442,8 @@ class RecordingShowWindow(RecordingShowBase, guide.GuideShowWindow):
                     break
             else:
                 self.doClose()
-        except tablo.APIError, e:
+        except tablo.APIError:
             util.ERROR()
-            util.errorDialog(u'Delete failed: {0}'.format(e.message), heading='Failed')
         finally:
             self.setProperty('action.busy', '')
 
