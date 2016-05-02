@@ -817,7 +817,7 @@ class GuideShowWindow(kodigui.BaseWindow):
                     self.setFocusId(self.AIRINGS_BUTTON_ID)
                     return
 
-                for i in range(pos - 1, 2, -1):
+                for i in range(pos - 1, 0, -1):
                     nextItem = self.airingsList.getListItem(i)
                     if not nextItem.getProperty('header'):
                         self.airingsList.selectItem(nextItem.pos())

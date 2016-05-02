@@ -71,6 +71,8 @@ class RecordingShowBase:
         airing = item.dataSource.get('airing')
 
         if airing and airing.deleted:
+            if get_args_only:
+                return {'SKIP': True}
             return
 
         while not airing and backgroundthread.BGThreader.working() and not xbmc.abortRequested:

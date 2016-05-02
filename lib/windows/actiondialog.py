@@ -1,3 +1,4 @@
+import xbmc
 import xbmcgui
 import kodigui
 from lib import util
@@ -18,6 +19,8 @@ class ActionDialog(kodigui.BaseWindow, util.CronReceiver):
         util.setGlobalProperty('action.button2.busy', '')
         self.itemCount = kwargs.get('item_count')
         self.itemPos = kwargs.get('item_pos')
+        self.skipped = {}
+        self.lastUnskipped = self.itemPos
         self.init(kwargs)
 
     def init(self, kwargs):
@@ -56,10 +59,10 @@ class ActionDialog(kodigui.BaseWindow, util.CronReceiver):
 
     def onAction(self, action):
         try:
-            if action == xbmcgui.ACTION_MOVE_UP:
+            if action == xbmcgui.ACTION_MOVE_UP and not xbmc.getCondVisibility('ControlGroup(500).HasFocus(0)'):
                 self.action = 'PREV_ITEM'
                 return self.doPrevNextCallback()
-            elif action == xbmcgui.ACTION_MOVE_DOWN:
+            elif action == xbmcgui.ACTION_MOVE_DOWN and not xbmc.getCondVisibility('ControlGroup(500).HasFocus(0)'):
                 self.action = 'NEXT_ITEM'
                 return self.doPrevNextCallback()
         except:
@@ -106,16 +109,37 @@ class ActionDialog(kodigui.BaseWindow, util.CronReceiver):
         action = self.action
         self.action = None
 
+        pos = self.itemPos
+
         if action == 'PREV_ITEM':
-            if self.itemPos <= 0:
+            while pos > 0:
+                pos -= 1
+
+                if pos not in self.skipped:
+                    self.itemPos = pos
+                    break
+            else:
+                self.itemPos = self.lastUnskipped
                 return
-            self.itemPos -= 1
         elif action == 'NEXT_ITEM':
-            if self.itemPos >= self.itemCount - 1:
+            while pos < self.itemCount - 1:
+                pos += 1
+
+                if pos not in self.skipped:
+                    self.itemPos = pos
+                    break
+            else:
+                self.itemPos = self.lastUnskipped
                 return
-            self.itemPos += 1
 
         kwargs = self.callback(self.itemPos, 'CHANGE.ITEM')
+
+        if 'SKIP' in kwargs:
+            self.skipped[self.itemPos] = True
+            self.action = action
+            return self.doPrevNextCallback()
+        else:
+            self.lastUnskipped = self.itemPos
 
         if not kwargs:
             return False
