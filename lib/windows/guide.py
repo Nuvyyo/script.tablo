@@ -578,7 +578,7 @@ class GuideShowWindow(kodigui.BaseWindow):
                 info.append(str(self._show.release_year))
 
             self.setProperty('info', u' / '.join(info) + u' / ')
-            self.setProperty('stars', str(self._show.quality_rating/2))
+            self.setProperty('stars', str(self._show.quality_rating / 2))
             self.setProperty('half.star', str(self._show.quality_rating % 2))
         elif self._show.type == 'SPORT':
             if self._show.showCounts.get('airing_count'):
@@ -712,7 +712,7 @@ class GuideShowWindow(kodigui.BaseWindow):
             secs = airing.secondsToStart()
 
             if secs < 1:
-                start = 'Started {0} ago'.format(util.durationToText(secs*-1))
+                start = 'Started {0} ago'.format(util.durationToText(secs * -1))
             else:
                 start = 'Starts in {0}'.format(util.durationToText(secs))
 
@@ -795,7 +795,7 @@ class GuideShowWindow(kodigui.BaseWindow):
             secs = airing.secondsToStart()
 
             if secs < 1:
-                start = 'Started {0} ago'.format(util.durationToText(secs*-1))
+                start = 'Started {0} ago'.format(util.durationToText(secs * -1))
             else:
                 start = 'Starts in {0}'.format(util.durationToText(secs))
 
@@ -816,13 +816,13 @@ class GuideShowWindow(kodigui.BaseWindow):
                     self.setFocusId(self.AIRINGS_BUTTON_ID)
                     return
 
-                for i in range(pos-1, 2, -1):
+                for i in range(pos - 1, 2, -1):
                     nextItem = self.airingsList.getListItem(i)
                     if not nextItem.getProperty('header'):
                         self.airingsList.selectItem(nextItem.pos())
                         return
             else:  # action == xbmcgui.ACTION_MOVE_DOWN or action == xbmcgui.ACTION_PAGE_DOWN:
-                for i in range(pos+1, self.airingsList.size()):
+                for i in range(pos + 1, self.airingsList.size()):
                     nextItem = self.airingsList.getListItem(i)
                     if not nextItem.getProperty('header'):
                         self.airingsList.selectItem(nextItem.pos())
