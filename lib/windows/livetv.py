@@ -41,7 +41,7 @@ class HalfHourData(object):
         return self
 
     def updateOffsets(self):
-        self.halfHour = self.startHalfHour + tablo.compat.datetime.timedelta(minutes=self.offsetHalfHours*30)
+        self.halfHour = self.startHalfHour + tablo.compat.datetime.timedelta(minutes=self.offsetHalfHours * 30)
         self.maxHalfHour = self.halfHour + tablo.compat.datetime.timedelta(minutes=120)
 
     def incrementOffset(self):
@@ -134,7 +134,7 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
 
                 if controlID in self.chanLabelButtons:
                     return self.guideLeft(True)
-                elif controlID-1 in self.chanLabelButtons:
+                elif controlID - 1 in self.chanLabelButtons:
                     return self.guideLeft()
             elif action == xbmcgui.ACTION_MOVE_RIGHT:
                 self.setUpDownDatetime(controlID)
@@ -305,7 +305,7 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
         controlID = controlID or self.getFocusId()
         if 99 < controlID <= self.gen.maxEnd:
             return controlID - 100
-        row = ((controlID - self.gen.maxEnd - 1)/(self.gen.ITEMS_PER_ROW + 2))
+        row = ((controlID - self.gen.maxEnd - 1) / (self.gen.ITEMS_PER_ROW + 2))
         return row
 
     def onClick(self, controlID):
@@ -343,7 +343,7 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
                 info.append(str(airing.release_year))
 
             self.setProperty('info', u' / '.join(info) + u' /')
-            self.setProperty('stars', str(airing.quality_rating/2))
+            self.setProperty('stars', str(airing.quality_rating / 2))
             self.setProperty('half.star', str(airing.quality_rating % 2))
         else:
             self.setProperty('stars', '0')
@@ -367,7 +367,7 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
             secs = airing.secondsToStart()
 
             if secs < 1:
-                start = 'Started {0} ago'.format(util.durationToText(secs*-1))
+                start = 'Started {0} ago'.format(util.durationToText(secs * -1))
             else:
                 start = 'Starts in {0}'.format(util.durationToText(secs))
 
@@ -429,7 +429,7 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
         if row is None:
             row = self.getRow()
 
-        for i in range(len(self.rows[row])-1, -1, -1):
+        for i in range(len(self.rows[row]) - 1, -1, -1):
             controlID = self.rows[row][i][0]
             if xbmc.getCondVisibility('Control.IsVisible({0})'.format(controlID)) and not self.rows[row][i][2]:
                 break
@@ -524,7 +524,7 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
             else:
                 label = airing.title
 
-            width = int(round((duration/1800.0)*self.gen.HALF_HOUR_WIDTH))
+            width = int(round((duration / 1800.0) * self.gen.HALF_HOUR_WIDTH))
             save = width
             if totalwidth > 1110:
                 self.offButtons[ID] = True
@@ -538,7 +538,7 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
 
             totalwidth += save
 
-            control.setRadioDimension(width-31, 1, 30, 30)
+            control.setRadioDimension(width - 31, 1, 30, 30)
             control.setWidth(width)
             if width > 34:
                 control.setLabel(label)
@@ -564,7 +564,7 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
             self.slotButtons[ID] = None
             row.append((ID, None, False))
 
-        for slot in range(slot+1, self.gen.ITEMS_PER_ROW):
+        for slot in range(slot + 1, self.gen.ITEMS_PER_ROW):
             ID = genData['slots'][slot]
 
             self.setProperty('badge.color.{0}'.format(ID), '00FFFFFF')
@@ -591,7 +591,7 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
             self.slotButtons[ID] = None
             row.append((ID, None, False))
 
-            for slot in range(slot+1, self.gen.ITEMS_PER_ROW):
+            for slot in range(slot + 1, self.gen.ITEMS_PER_ROW):
                 ID = genData['slots'][slot]
 
                 control = self.getControl(ID)
@@ -674,7 +674,7 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
         secs = airing.gridAiring.secondsToStart()
 
         if secs < 1:
-            start = 'Started {0} ago'.format(util.durationToText(secs*-1))
+            start = 'Started {0} ago'.format(util.durationToText(secs * -1))
         else:
             start = 'Starts in {0}'.format(util.durationToText(secs))
 
@@ -712,7 +712,7 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
             secs = airing.gridAiring.secondsToStart()
 
             if secs < 1:
-                start = 'Started {0} ago'.format(util.durationToText(secs*-1))
+                start = 'Started {0} ago'.format(util.durationToText(secs * -1))
             else:
                 start = 'Starts in {0}'.format(util.durationToText(secs))
 
@@ -870,7 +870,7 @@ class EPGXMLGenerator(object):
                 util.setGlobalProperty('badge.color.{0}'.format(ID), '00FFFFFF')
                 airingsXML += self.AIRING_BASE_XML.format(ID=ID, WIDTH=width)
 
-            airingsXML += self.END_BUTTON_XML.format(100+idx)
+            airingsXML += self.END_BUTTON_XML.format(100 + idx)
 
             xml += self.CHANNEL_BASE_XML.format(ID=chanID, AIRINGS_XML=airingsXML, POSY=posy, PATH=p.rsplit('/', 1)[-1], FIRST=first)
             data = {'ID': chanID, 'label': chanLabelID, 'slots': slots}
