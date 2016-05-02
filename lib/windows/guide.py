@@ -1005,7 +1005,7 @@ class GuideShowWindow(kodigui.BaseWindow):
                 self.airingItems[p] = item
                 self.airingsList.addItem(item)
 
-        if not self.airingsList.size():
+        if not self.airingItems:
             self.setEmptyMessage()
 
         self.getAiringData(airings)
