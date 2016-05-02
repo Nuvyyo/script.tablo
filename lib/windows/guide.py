@@ -699,7 +699,9 @@ class GuideShowWindow(kodigui.BaseWindow):
             'number': airing.number,
             'background': self._show.background,
             'callback': self.actionDialogCallback,
-            'obj': airing
+            'obj': airing,
+            'start_indicator1': 'new' in airing.qualifiers and 'indicators/qualifier_new_hd.png' or '',
+            'start_indicator2': 'live' in airing.qualifiers and 'indicators/qualifier_live_hd.png' or ''
         }
 
         self.setDialogButtons(airing, kwargs)
