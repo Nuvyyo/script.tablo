@@ -324,13 +324,13 @@ class RecordingsWindow(guide.GuideWindow, RecordingShowBase):
                     self.airingsList.selectItem(1)
                     return True
 
-                for i in range(pos-1, 0, -1):
+                for i in range(pos - 1, 0, -1):
                     nextItem = self.airingsList.getListItem(i)
                     if not nextItem.getProperty('header'):
                         self.airingsList.selectItem(nextItem.pos())
                         return True
             else:  # action == xbmcgui.ACTION_MOVE_DOWN or action == xbmcgui.ACTION_PAGE_DOWN:
-                for i in range(pos+1, self.airingsList.size()):
+                for i in range(pos + 1, self.airingsList.size()):
                     nextItem = self.airingsList.getListItem(i)
                     if not nextItem.getProperty('header'):
                         self.airingsList.selectItem(nextItem.pos())
@@ -531,7 +531,7 @@ class RecordingDialog(actiondialog.ActionDialog):
         self.setProperty('button3', self.button3)
 
         if self.seenratio:
-            self.getControl(self.SEEN_PROGRESS_IMAGE_ID).setWidth(int(self.seenratio*self.SEEN_PROGRESS_WIDTH))
+            self.getControl(self.SEEN_PROGRESS_IMAGE_ID).setWidth(int(self.seenratio * self.SEEN_PROGRESS_WIDTH))
 
         if self.failed:
             self.getControl(self.WATCH_BUTTON_ID).setEnabled(False)
@@ -665,7 +665,7 @@ class RecordingDialog(actiondialog.ActionDialog):
         else:
             self.getControl(self.DELETE_BUTTON_ID).setEnabled(True)
 
-        self.getControl(self.SEEN_PROGRESS_IMAGE_ID).setWidth(int((self.seenratio or 0)*self.SEEN_PROGRESS_WIDTH))
+        self.getControl(self.SEEN_PROGRESS_IMAGE_ID).setWidth(int((self.seenratio or 0) * self.SEEN_PROGRESS_WIDTH))
 
 
 def openDialog(
