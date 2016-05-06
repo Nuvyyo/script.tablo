@@ -1,4 +1,5 @@
 import os
+import time
 import xbmc
 import xbmcgui
 import kodigui
@@ -108,6 +109,8 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
         self.rows = [[]] * len(self.gen.paths)
         self.channels = {}
         self.upDownDatetime = None
+        self.tunerInUse = []
+        self.nextTunerPoll = 0
 
         self.gridGroup = self.getControl(self.GRID_GROUP_ID)
         self.timeIndicator = self.getControl(self.TIME_INDICATOR_ID)
@@ -117,6 +120,7 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
         self.setTimesHeader()
         self.updateTimeIndicator()
 
+        self.clearChannelColors()
         self.initEPG()
         self.getChannels()
 
@@ -164,6 +168,7 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
     def tick(self):
         self.updateTimeIndicator()
         self.updateSelectedDetails()
+        self.pollTuners()
 
     def halfHour(self):
         self.hhData.update()
@@ -325,6 +330,44 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
         if not self.selectFirstInRow():
             self.setFocusId(self.gen.maxEnd + 3)  # Upper left grid button
 
+    def clearChannelColors(self):
+        for path in self.gen.paths:
+            channel = self.gen.channels[path]
+            self.setProperty('channel.pulse.{0}'.format(channel['label']), '')
+            self.getControl(channel['label']).setLabel('{0}'.format(channel.get('title', '')))
+
+    def getUsedTunerChannelPaths(self):
+        paths = []
+        for tuner in tablo.API.server.tuners.get():
+            if tuner.get('in_use'):
+                path = tuner.get('channel')
+                if path in self.gen.channels:
+                    paths.append(path)
+
+        return paths
+
+    def pollTuners(self):
+        now = time.time()
+        if now < self.nextTunerPoll:
+            return
+
+        self.nextTunerPoll = time.time() + 30
+        self.checkTuners()
+
+    def checkTuners(self):
+        try:
+            paths = self.getUsedTunerChannelPaths()
+            if paths != self.tunerInUse:
+                self.clearChannelColors()
+            self.tunerInUse = paths
+
+            for path in paths:
+                channel = self.gen.channels[path]
+                self.setProperty('channel.pulse.{0}'.format(channel['label']), '1')
+                self.getControl(channel['label']).setLabel('[COLOR FFFF2222]{0}[/COLOR]'.format(channel.get('title', '')))
+        except:
+            util.ERROR()
+
     def updateSelectedDetails(self):
         airing = self.getSelectedAiring()
         if not airing:
@@ -457,9 +500,12 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
         genData = self.gen.channels[channel.path]
         ID = genData['label']
         self.chanLabelButtons[ID] = True
-        self.getControl(ID).setLabel(
-            '{0} [B]{1}-{2}[/B]'.format(channel.call_sign, channel.major, channel.minor)
-        )
+        label = '{0} [B]{1}-{2}[/B]'.format(channel.call_sign, channel.major, channel.minor)
+        genData['title'] = label
+        if channel.path in self.tunerInUse:
+            self.getControl(ID).setLabel('[COLOR FFFF2222]{0}[/COLOR]'.format(label))
+        else:
+            self.getControl(ID).setLabel(label)
 
         self.updateChannelAirings(channel.path)
 
@@ -605,6 +651,7 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
     @base.tabloErrorHandler
     def getChannels(self):
         self.grid.getChannels(self.gen.paths)
+        self.checkTuners()
 
     def fillChannels(self):
         self.slotButtons = {}
@@ -819,6 +866,7 @@ class EPGXMLGenerator(object):
 
     CHANNEL_LABEL_BASE_XML = '''
                     <control type="button" id="{ID}">
+                        <animation effect="fade" start="100" end="20" time="1000" pulse="true" condition="!IsEmpty(Window.Property(channel.pulse.{ID}))">Conditional</animation>
                         <width>180</width>
                         <height>52</height>
                         <font>font13</font>
@@ -833,7 +881,7 @@ class EPGXMLGenerator(object):
                         <label></label>
                         <scroll>false</scroll>
                     </control>
-'''
+'''  # noqa E501
 
     def __init__(self, paths):
         self.paths = paths
