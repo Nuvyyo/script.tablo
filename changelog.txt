@@ -1,3 +1,14 @@
+- 0.0.24
+
+FIX:     Issue #33
+
+- 0.0.23
+
+FIX:     Issues #20, #32, #34
+FIX:     Issues #26, #31 (Again)
+FIX:     Navigation issue in episode lists
+FIX:     Navigation when using up/down to change episode details after deleting episodes
+
 - 0.0.22
 
 FIX:     Issues #2, #29
