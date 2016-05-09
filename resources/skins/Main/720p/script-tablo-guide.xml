@@ -231,11 +231,11 @@
                                         <texture>$INFO[ListItem.Property(badge)]</texture>
                                     </control>
                                     <control type="label">
-                                        <posx>150</posx>
+                                        <posx>147</posx>
                                         <posy>0</posy>
                                         <width>30</width>
                                         <height>30</height>
-                                        <font>font14</font>
+                                        <font>font12</font>
                                         <textcolor>FFFFFFFF</textcolor>
                                         <align>center</align>
                                         <aligny>center</aligny>
@@ -299,11 +299,11 @@
                                         <texture>$INFO[ListItem.Property(badge)]</texture>
                                     </control>
                                     <control type="label">
-                                        <posx>165</posx>
+                                        <posx>162</posx>
                                         <posy>3</posy>
                                         <width>30</width>
                                         <height>30</height>
-                                        <font>font14</font>
+                                        <font>font12</font>
                                         <textcolor>FFFFFFFF</textcolor>
                                         <align>center</align>
                                         <aligny>center</aligny>
