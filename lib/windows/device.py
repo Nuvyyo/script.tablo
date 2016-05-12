@@ -79,13 +79,13 @@ class DeviceWindow(kodigui.BaseWindow):
             control.setWidth(w)
             if self.DRIVE_WIDTH - w < 200:
                 self.setProperty('drive.{0}.almost_full'.format(i), '1')
-                control = self.getControl(controlID+1)
+                control = self.getControl(controlID + 1)
                 control.setWidth((w / 2) - 15)
-                control = self.getControl(controlID+2)
+                control = self.getControl(controlID + 2)
                 control.setWidth((w / 2) - 15)
             else:
-                control = self.getControl(controlID+1)
-                control.setWidth(w-10)
+                control = self.getControl(controlID + 1)
+                control.setWidth(w - 10)
                 controlID += 100
 
     def onAction(self, action):
