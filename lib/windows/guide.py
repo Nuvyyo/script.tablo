@@ -341,11 +341,10 @@ class GuideWindow(kodigui.BaseWindow):
         backgroundthread.BGThreader.addTasks(self._tasks)
 
     def updateShowItem(self, show):
-        if not show:
-            self.setProperty('busy', '')
-            return
-
         self.setProperty('busy', '')
+
+        if not show:
+            return
 
         if show.path not in self.showItems:
             return
@@ -358,7 +357,6 @@ class GuideWindow(kodigui.BaseWindow):
         item.setProperty('background', show.background)
         item.setProperty('key', key)
         item.setProperty('no.title', not show.thumbHasTitle and '1' or '')
-        print show.data
 
         if show.showCounts and show.showCounts.get('conflicted_count'):
             item.setProperty('badge', 'guide/guide_badge_conflict_hd.png')
@@ -386,7 +384,7 @@ class GuideWindow(kodigui.BaseWindow):
             item.setProperty('badge.count', '')
 
     @base.tabloErrorHandler
-    def fillShows(self, reset=False):
+    def fillShows(self, reset=False, clear=False):
         self.setProperty('show.recent', '')
         self.cancelTasks()
 
@@ -403,6 +401,10 @@ class GuideWindow(kodigui.BaseWindow):
                 lastPos = currentItem.pos()
 
         self.showItems = {}
+
+        if clear:
+            self.showList.reset()
+            self.keysList.reset()
 
         args = {}
         if self.state:
@@ -637,6 +639,7 @@ class GuideShowWindow(kodigui.BaseWindow):
         if not action:
             return
         self.setProperty('action.busy', '1')
+        self.modified = True
         try:
             self._show.schedule(action)
         finally:
@@ -780,10 +783,12 @@ class GuideShowWindow(kodigui.BaseWindow):
             elif action == 'watch':
                 player.PLAYER.playAiringChannel(airing.gridAiring or airing)
             elif action == 'record':
+                self.modified = True
                 airing.schedule()
                 self._show.update()
                 grid.addPending(airing=airing)
             elif action == 'unschedule':
+                self.modified = True
                 airing.schedule(False)
                 self._show.update()
                 grid.addPending(airing=airing)

@@ -1,4 +1,8 @@
+import xbmc
+import base
 import guide
+from lib import backgroundthread
+WM = None
 
 
 class ScheduledWindow(guide.GuideWindow):
@@ -23,8 +27,8 @@ class ScheduledWindow(guide.GuideWindow):
         self.setFilter()
         self.setProperty('hide.menu', '1')
 
-        if not guide.WM.windowWasLast(self):
-            self.fillShows()
+        if not self._showingDialog and not WM.windowWasLast(self):
+            self.fillShows(clear=True)
 
         self.setFocusId(self.SHOW_GROUP_ID)
 
@@ -33,3 +37,25 @@ class ScheduledWindow(guide.GuideWindow):
             self.setShowFocus()
             guide.WM.showMenu()
             return
+
+    @base.dialogFunction
+    def showClicked(self):
+        item = self.showList.getSelectedItem()
+        if not item:
+            return
+
+        show = item.dataSource.get('show')
+
+        if not show:
+            self.getSingleShowData(item.dataSource['path'])
+            while not show and backgroundthread.BGThreader.working() and not xbmc.abortRequested:
+                xbmc.sleep(100)
+                show = item.dataSource.get('show')
+        if self.closing():
+            return
+
+        w = guide.GuideShowWindow.open(show=show)
+        if w.modified:
+            self.fillShows(clear=True)
+
+        self.updateShowItem(show)
