@@ -902,6 +902,10 @@ class GuideShowWindow(kodigui.BaseWindow):
         item.setLabel2(airing.displayDay())
         item.setProperty('number', str(airing.number or ''))
         item.setProperty('airing', airing.airingNow() and '1' or '')
+        if 'new' in airing.qualifiers:
+            item.setProperty('qualifier', 'indicators/qualifier_new_hd')
+        else:
+            item.setProperty('qualifier', 'live' in airing.qualifiers and 'indicators/qualifier_live_hd' or '')
 
         self.updateItemIndicators(item)
 
