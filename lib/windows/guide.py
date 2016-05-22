@@ -191,6 +191,8 @@ class GuideWindow(kodigui.BaseWindow):
             self.setFocusId(self.MENU_GROUP_ID)
             WM.showMenu()
             return
+        elif controlID == self.SHOW_PANEL_ID:
+            self.updateKey()
 
     def doClose(self):
         kodigui.BaseWindow.doClose(self)
@@ -248,7 +250,7 @@ class GuideWindow(kodigui.BaseWindow):
         return ret
 
     def updateKey(self, action=None):
-        if self.getFocusId() == self.SHOW_PANEL_ID:
+        if not action or self.getFocusId() == self.SHOW_PANEL_ID:
             item = self.showList.getSelectedItem()
             if not item:
                 return
@@ -390,6 +392,8 @@ class GuideWindow(kodigui.BaseWindow):
 
         self.setProperty('busy', '1')
 
+        self.lastKey = None
+
         lastPath = None
         selectItem = None
         lastPos = None
@@ -503,6 +507,8 @@ class GuideWindow(kodigui.BaseWindow):
                 self.setProperty('empty.message2', message[1])
 
         self.getShowData(paths)
+
+        self.updateKey()
 
 
 class AiringsTask(backgroundthread.Task):
