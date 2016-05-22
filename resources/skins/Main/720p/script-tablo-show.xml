@@ -12,9 +12,18 @@
             <posy>0</posy>
             <width>1280</width>
             <height>720</height>
-            <texture background="true" fallback="placeholders/placeholder_background_hd.jpg">$INFO[Window.Property(background)]</texture>
-            <aspectratio aligny="top">scale</aspectratio>
+            <texture>placeholders/placeholder_background_hd.jpg</texture>
             <colordiffuse>8AFFFFFF</colordiffuse>
+            <aspectratio aligny="top">scale</aspectratio>
+        </control>
+        <control type="image">
+            <posx>0</posx>
+            <posy>0</posy>
+            <width>1280</width>
+            <height>720</height>
+            <texture background="true" fallback="$INFO[Window.Property(background)]">$INFO[Window.Property(background)]?dialog=1</texture>
+            <aspectratio aligny="top">scale</aspectratio>
+            <colordiffuse>FF8A8A8A</colordiffuse>
             <fadetime>500</fadetime>
         </control>
         <control type="image">
