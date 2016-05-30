@@ -383,8 +383,11 @@ class RecordingHandler(PlayerHandler):
             self.finish()
 
     def onPlayBackStarted(self):
-        self.trickWindow.setPosition(self.absolutePosition)
-        self.trickWindow.blank()
+        try:
+            self.trickWindow.setPosition(self.absolutePosition)
+            self.trickWindow.blank()
+        except:
+            util.ERROR()
 
         self.startWait()
 
@@ -695,6 +698,7 @@ class TabloPlayer(xbmc.Player):
         util.DEBUG_LOG('Player: Video window closed')
         try:
             self.handler.onVideoWindowClosed()
+            self.stop()
         except:
             util.ERROR()
 
@@ -702,7 +706,7 @@ class TabloPlayer(xbmc.Player):
         if self.isPlayingVideo():
             util.DEBUG_LOG('Player (Recording): Stopping for external wait')
             self.stop()
-        self.handler.waitForStop()
+            self.handler.waitForStop()
 
     def monitor(self):
         threading.Thread(target=self._monitor).start()
@@ -722,7 +726,7 @@ class TabloPlayer(xbmc.Player):
                     if not hasFullScreened:
                         hasFullScreened = True
                         self.onVideoWindowOpened()
-                elif hasFullScreened:
+                elif hasFullScreened and not xbmc.getCondVisibility('Window.IsVisible(busydialog)'):
                     hasFullScreened = False
                     self.onVideoWindowClosed()
 
