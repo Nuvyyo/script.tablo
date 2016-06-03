@@ -4,7 +4,7 @@
        version="1.0.0"
        provider-name="Nuvyyo">
     <requires>
-        <import addon="xbmc.python" version="2.14.0"/>
+        <import addon="xbmc.python" version="2.24.0"/>
         <import addon="script.module.requests" version="2.3.0"/>
         <import addon="script.module.m3u8" version="0.2.2"/>
     </requires>
