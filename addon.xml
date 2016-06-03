@@ -8,6 +8,7 @@
         <import addon="script.module.requests" version="2.3.0"/>
         <import addon="script.module.m3u8" version="0.2.2"/>
         <import addon="script.module.pytz" version="2014.2"/>
+        <import addon="script.module.dateutil" version="2.4.2"/>
     </requires>
     <extension point="xbmc.python.script" library="default.py">
         <provides>video</provides>
