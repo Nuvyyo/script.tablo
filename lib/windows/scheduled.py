@@ -2,6 +2,9 @@ import xbmc
 import base
 import guide
 from lib import backgroundthread
+from lib.util import T
+
+
 WM = None
 
 
@@ -9,8 +12,8 @@ class ScheduledWindow(guide.GuideWindow):
     name = 'SCHEDULED'
     view = 'guide'
     state = 'scheduled'
-    section = 'Scheduled'
-    emptyMessage = ('No Shows to Display',)
+    section = T(32195)
+    emptyMessage = (T(32116),)
 
     types = (
         (None, ''),

@@ -66,7 +66,7 @@
                         <textcolor>FFFFFFFF</textcolor>
                         <align>center</align>
                         <aligny>center</aligny>
-                        <label>[B]Disconnect[/B]</label>
+                        <label>[B]$ADDON[script.tablo 32208][/B]</label>
                     </control>
                     <control type="label">
                         <visible>!Control.HasFocus(100)</visible>
@@ -78,7 +78,7 @@
                         <textcolor>FFFFFFFF</textcolor>
                         <align>center</align>
                         <aligny>center</aligny>
-                        <label>Disconnect</label>
+                        <label>$ADDON[script.tablo 32208]</label>
                     </control>
                 </control>
 
@@ -122,7 +122,7 @@
                         <textcolor>FFE8E8E8</textcolor>
                         <align>left</align>
                         <aligny>center</aligny>
-                        <label>Hard Drive: $INFO[Window.Property(drive.0)]</label>
+                        <label>$ADDON[script.tablo 32209]: $INFO[Window.Property(drive.0)]</label>
                     </control>
                     <control type="image">
                         <posx>0</posx>
@@ -199,7 +199,7 @@
                         <textcolor>FFE8E8E8</textcolor>
                         <align>left</align>
                         <aligny>center</aligny>
-                        <label>Hard Drive: $INFO[Window.Property(drive.1)]</label>
+                        <label>$ADDON[script.tablo 32209]: $INFO[Window.Property(drive.1)]</label>
                     </control>
                     <control type="image">
                         <posx>0</posx>
@@ -292,7 +292,7 @@
                             <textcolor>FFE8E8E8</textcolor>
                             <align>right</align>
                             <aligny>center</aligny>
-                            <label>Tablo Firmware</label>
+                            <label>$ADDON[script.tablo 32210]</label>
                         </control>
                         <control type="label">
                             <posx>650</posx>
@@ -319,7 +319,7 @@
                             <textcolor>FFE8E8E8</textcolor>
                             <align>right</align>
                             <aligny>center</aligny>
-                            <label>Tablo IP Address</label>
+                            <label>$ADDON[script.tablo 32211]</label>
                         </control>
                         <control type="label">
                             <posx>650</posx>
@@ -346,7 +346,7 @@
                             <textcolor>FFE8E8E8</textcolor>
                             <align>right</align>
                             <aligny>center</aligny>
-                            <label>Tablo MAC Address</label>
+                            <label>$ADDON[script.tablo 32212]</label>
                         </control>
                         <control type="label">
                             <posx>650</posx>
@@ -373,7 +373,7 @@
                             <textcolor>FFE8E8E8</textcolor>
                             <align>right</align>
                             <aligny>center</aligny>
-                            <label>Addon Version</label>
+                            <label>$ADDON[script.tablo 32213]</label>
                         </control>
                         <control type="label">
                             <posx>650</posx>
@@ -400,7 +400,7 @@
                             <textcolor>FFE8E8E8</textcolor>
                             <align>right</align>
                             <aligny>center</aligny>
-                            <label>Kodi Version</label>
+                            <label>$ADDON[script.tablo 32214]</label>
                         </control>
                         <control type="label">
                             <posx>650</posx>
@@ -427,7 +427,7 @@
                             <textcolor>FFE8E8E8</textcolor>
                             <align>right</align>
                             <aligny>center</aligny>
-                            <label>Kernel Version</label>
+                            <label>$ADDON[script.tablo 32215]</label>
                         </control>
                         <control type="label">
                             <posx>650</posx>

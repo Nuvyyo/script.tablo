@@ -2,8 +2,8 @@
 <settings>
 
   <!-- General -->
-  <category label="Main">
-    <setting id="debug" type="bool" label="Debug" default="false" />
+  <category label="32001">
+    <setting id="debug" type="bool" label="32002" default="false" />
   </category>
 
 </settings>

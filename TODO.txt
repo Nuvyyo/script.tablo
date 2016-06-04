@@ -1,7 +1,0 @@
-Add any missing indicators
-Fix recording error message
-
-Watch for: It got stuck in state where only 4 of the 6 visible channels were scrolling as I navigated left / right. The other two remained static / stuck where they were.
-
-When initially navigating to the Live TV screen from the main menu, no airing is displayed as focused (with white background). It’s not until navigating up/down/
-right again that it would redraw with the focused appearance.

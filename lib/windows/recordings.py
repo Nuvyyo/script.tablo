@@ -9,17 +9,18 @@ from lib import util
 from lib import backgroundthread
 from lib import player
 from lib import tablo
+from lib.util import T
 
 import guide
 
 
 RECORDING_FAILED_MESSAGES = {
-    "no_hard_drive": 'Recording failed because no hard drive was detected.',
-    "full_hard_drive": 'Recording failed because the hard drive was full.',
-    "no_tuner_available": 'Recording failed because no tuner was available.',
-    "weak_signal": 'Recording failed due to weak signal.',
-    "internal_error": 'Recording failed due to an unknown error. This is usually caused by poor reception.',
-    None: 'Recording failed due to an unknown error.'
+    "no_hard_drive": T(32162),
+    "full_hard_drive": T(32163),
+    "no_tuner_available": T(32164),
+    "weak_signal": T(32165),
+    "internal_error": T(32166),
+    None: T(32167)
 }
 
 
@@ -47,16 +48,16 @@ class RecordingShowBase:
             if airing.data['user_info']['position'] and not airing.recording():
                 left = airing.data['video_details']['duration'] - airing.data['user_info']['position']
                 total = airing.data['video_details']['duration']
-                description += '[CR][CR]Remaining: {0} of {1}'.format(util.durationToText(left), util.durationToText(total))
+                description += u'[CR][CR]{0}'.format(T(32168)).format(util.durationToText(left), util.durationToText(total))
                 arg_dict['seenratio'] = airing.data['user_info']['position'] / float(total)
                 arg_dict['seen'] = airing.data['user_info']['position']
             else:
                 if airing.recording():
-                    description += '[CR][CR]Recording Now...'
+                    description += u'[CR][CR]{1}'.format(T(32169))
                     if airing.data['user_info']['position']:
                         arg_dict['seen'] = airing.data['user_info']['position']
                 else:
-                    description += '[CR][CR]Length: {0}'.format(util.durationToText(airing.data['video_details']['duration']))
+                    description += '[CR][CR]{0}: {1}'.format(T(32170), util.durationToText(airing.data['video_details']['duration']))
                     arg_dict['seen'] = None
 
                 arg_dict['seenratio'] = None
@@ -81,7 +82,7 @@ class RecordingShowBase:
 
         show = self._show or airing.getShow()
 
-        info = 'Channel {0} {1} on {2} from {3} to {4}'.format(
+        info = T(32143).format(
             airing.displayChannel(),
             airing.network,
             airing.displayDay(),
@@ -114,8 +115,8 @@ class RecordingShowBase:
             kwargs['info'] = info
             kwargs['preview'] = airing.snapshot
             kwargs['failed'] = failed
-            kwargs['button2'] = airing.watched and 'Mark Unwatched' or 'Mark Watched'
-            kwargs['button3'] = airing.protected and 'Unprotect' or 'Protect'
+            kwargs['button2'] = airing.watched and T(32171) or T(32172)
+            kwargs['button3'] = airing.protected and T(32173) or T(32174)
             return kwargs
 
         pos = openDialog(
@@ -123,8 +124,8 @@ class RecordingShowBase:
             info,
             airing.snapshot,
             failed,
-            airing.watched and 'Mark Unwatched' or 'Mark Watched',
-            airing.protected and 'Unprotect' or 'Protect',
+            airing.watched and T(32171) or T(32172),
+            airing.protected and T(32173) or T(32174),
             **kwargs
         )
 
@@ -173,9 +174,9 @@ class RecordingShowBase:
                 airing.delete()
                 return None
             if action == 'toggle':
-                changes['button2'] = airing.watched and 'Mark Unwatched' or 'Mark Watched'
+                changes['button2'] = airing.watched and T(32171) or T(32172)
             elif action == 'protect':
-                changes['button3'] = airing.protected and 'Unprotect' or 'Protect'
+                changes['button3'] = airing.protected and T(32173) or T(32174)
 
             self.setDialogIndicators(airing, self._show, changes)
 
@@ -225,7 +226,7 @@ class RecordingShowBase:
             label = airing.title
 
         if not label:
-            label = 'Ch. {0} {1} at {2} - {3}'.format(
+            label = T(32147).format(
                 airing.displayChannel(),
                 airing.network,
                 airing.displayTimeStart(),
@@ -238,7 +239,7 @@ class RecordingShowBase:
         item.setProperty('show.title', show.title)
 
         if airing.recording():
-            item.setProperty('duration', 'Recording Now...')
+            item.setProperty('duration', T(32169))
         else:
             item.setProperty('duration', util.durationToText(airing.data['video_details']['duration']))
 
@@ -248,22 +249,22 @@ class RecordingShowBase:
 class RecordingsWindow(guide.GuideWindow, RecordingShowBase):
     name = 'RECORDINGS'
     view = 'recordings'
-    section = 'Recordings'
+    section = T(32175)
 
     types = (
-        (None, 'All'),
-        ('RECENT', 'Recent'),
-        ('SERIES', 'TV Shows'),
-        ('MOVIES', 'Movies'),
-        ('SPORTS', 'Sports'),
-        ('MANUAL', 'Manual')
+        (None, T(32120)),
+        ('RECENT', T(32176)),
+        ('SERIES', T(32121)),
+        ('MOVIES', T(32122)),
+        ('SPORTS', T(32123)),
+        ('MANUAL', T(32177))
     )
 
-    emptyMessage = ('No Recordings', 'You can schedule recordings from the Guide screen.')
-    emptyMessageTVShows = ('No Recorded TV Shows', 'You can schedule recordings from the Guide screen.')
-    emptyMessageMovies = ('No Recorded Movies', 'You can schedule recordings from the Guide screen.')
-    emptyMessageSports = ('No Recorded Sports', 'You can schedule recordings from the Guide screen.')
-    emptyMessageProgram = ('No Manual Recordings',)
+    emptyMessage = (T(32178), T(32183))
+    emptyMessageTVShows = (T(32179), T(32183))
+    emptyMessageMovies = (T(32180), T(32183))
+    emptyMessageSports = (T(32181), T(32183))
+    emptyMessageProgram = (T(32182),)
 
     RECENT_LIST_ID = 500
 
@@ -367,9 +368,9 @@ class RecordingsWindow(guide.GuideWindow, RecordingShowBase):
             label = None
             if tt.tm_year == now.tm_year:
                 if tt.tm_yday == now.tm_yday:
-                    label = 'Today'
+                    label = T(32184)
                 elif tt.tm_yday == now.tm_yday - 1:
-                    label = 'Yesterday'
+                    label = T(32185)
             label = label or time.strftime('%A, %B %d', tt)
 
             item = kodigui.ManagedListItem(label, data_source={'path': None, 'airing': None})
@@ -402,7 +403,7 @@ class RecordingsWindow(guide.GuideWindow, RecordingShowBase):
         else:
             self.setProperty('busy', '')
 
-            self.setProperty('empty.message', 'No Recent Recordings')
+            self.setProperty('empty.message', T(32186))
 
     def getAiringItem(self, airing):
         return self.showItems[airing.path]
@@ -421,7 +422,7 @@ class RecordingsWindow(guide.GuideWindow, RecordingShowBase):
 
 
 class RecordingShowWindow(RecordingShowBase, guide.GuideShowWindow):
-    sectionAction = 'Delete...'
+    sectionAction = T(32187)
 
     def setAiringLabel(self):
         self.setProperty('airing.label', util.LOCALIZED_RECORDING_TYPES_PLURAL[self._show.type])
@@ -455,7 +456,7 @@ class RecordingShowWindow(RecordingShowBase, guide.GuideShowWindow):
 
     def setupScheduleDialog(self):
         self.setProperty(
-            'schedule.message', 'Permanently delete the following {0}?'.format(
+            'schedule.message', T(32188).format(
                 util.LOCALIZED_RECORDING_TYPES_PLURAL[self._show.type].lower()
             )
         )
@@ -465,8 +466,8 @@ class RecordingShowWindow(RecordingShowBase, guide.GuideShowWindow):
         self.scheduleButtonActions[self.SCHEDULE_BUTTON_TOP_ID] = 'delete'
         self.scheduleButtonActions[self.SCHEDULE_BUTTON_BOT_ID] = 'cancel'
         self.setProperty('schedule.top.color', '52FF0000')
-        self.setProperty('schedule.top', 'Delete All {0}'.format(util.LOCALIZED_RECORDING_TYPES_PLURAL[self._show.type]))
-        self.setProperty('schedule.bottom', 'Cancel')
+        self.setProperty('schedule.top', T(32189).format(util.LOCALIZED_RECORDING_TYPES_PLURAL[self._show.type]))
+        self.setProperty('schedule.bottom', T(32149))
         # self.setProperty('title.indicator', 'indicators/rec_all_pill_hd.png')
 
     def fillAirings(self):
@@ -571,10 +572,10 @@ class RecordingDialog(actiondialog.ActionDialog):
     def onClick(self, controlID):
         if controlID == self.WATCH_BUTTON_ID:
             if self.seen:
-                self.setProperty('dialog.message', 'Resume watching at {0}?'.format(util.durationToText(self.seen)))
+                self.setProperty('dialog.message', T(32190).format(util.durationToText(self.seen)))
                 self.setProperty('dialog.top.color', '52FFFFFF')
-                self.setProperty('dialog.top', 'Play From Start')
-                self.setProperty('dialog.bottom', 'Resume')
+                self.setProperty('dialog.top', T(32191))
+                self.setProperty('dialog.bottom', T(32192))
                 self.parentAction = 'watch'
                 self.setFocusId(self.DIALOG_GROUP_ID)
                 return
@@ -620,10 +621,10 @@ class RecordingDialog(actiondialog.ActionDialog):
                 self.setProperty('button3.busy', '')
             return
         elif controlID == self.DELETE_BUTTON_ID:
-            self.setProperty('dialog.message', 'Permanently delete this {0}?'.format(util.LOCALIZED_RECORDING_TYPES[self._show.type].lower()))
+            self.setProperty('dialog.message', T(32193).format(util.LOCALIZED_RECORDING_TYPES[self._show.type].lower()))
             self.setProperty('dialog.top.color', '52FF0000')
-            self.setProperty('dialog.top', 'Delete')
-            self.setProperty('dialog.bottom', 'Cancel')
+            self.setProperty('dialog.top', T(32194))
+            self.setProperty('dialog.bottom', T(32149))
             self.parentAction = 'delete'
             return
 

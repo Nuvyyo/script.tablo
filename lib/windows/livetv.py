@@ -11,6 +11,8 @@ from lib import util
 from lib import tablo
 from lib.tablo import grid
 from lib import player
+from lib.util import T
+
 
 WM = None
 
@@ -85,7 +87,7 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
         try:
             paths = tablo.API.guide.channels.get()
         except tablo.ConnectionError:
-            msg = 'Cannot connect to {0}'.format(tablo.API.device.displayName)
+            msg = T(32157).format(tablo.API.device.displayName)
             WM.setError(msg)
             # xbmcgui.Dialog().ok('Connection Failure', msg)
             return False
@@ -364,7 +366,7 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
             for path in paths:
                 channel = self.gen.channels[path]
                 self.setProperty('channel.pulse.{0}'.format(channel['label']), '1')
-                self.getControl(channel['label']).setLabel('[COLOR FFFF2222]{0}[/COLOR]'.format(channel.get('title', '')))
+                self.getControl(channel['label']).setLabel(u'[COLOR FFFF2222]{0}[/COLOR]'.format(channel.get('title', '')))
         except:
             util.ERROR()
 
@@ -397,22 +399,22 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
             if airing.data.get('title'):
                 info.append(airing.data.get('title'))
             if airing.data.get('season_number'):
-                info.append('Season {0}'.format(airing.data['season_number']))
+                info.append(T(32155).format(airing.data['season_number']))
             if airing.data.get('episode_number'):
-                info.append('Episode {0}'.format(airing.data['episode_number']))
+                info.append(T(32158).format(airing.data['episode_number']))
 
             self.setProperty('info', u' / '.join(info))
 
         if airing.ended():
             secs = airing.secondsSinceEnd()
-            start = 'Ended {0} ago'.format(util.durationToText(secs))
+            start = T(32144).format(util.durationToText(secs))
         else:
             secs = airing.secondsToStart()
 
             if secs < 1:
-                start = 'Started {0} ago'.format(util.durationToText(secs * -1))
+                start = T(32145).format(util.durationToText(secs * -1))
             else:
-                start = 'Starts in {0}'.format(util.durationToText(secs))
+                start = T(32146).format(util.durationToText(secs))
 
         if airing.conflicted:
             self.setProperty('indicator', 'indicators/conflict_pill_hd.png')
@@ -500,10 +502,10 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
         genData = self.gen.channels[channel.path]
         ID = genData['label']
         self.chanLabelButtons[ID] = True
-        label = '{0} [B]{1}-{2}[/B]'.format(channel.call_sign, channel.major, channel.minor)
+        label = u'{0} [B]{1}-{2}[/B]'.format(channel.call_sign, channel.major, channel.minor)
         genData['title'] = label
         if channel.path in self.tunerInUse:
-            self.getControl(ID).setLabel('[COLOR FFFF2222]{0}[/COLOR]'.format(label))
+            self.getControl(ID).setLabel(u'[COLOR FFFF2222]{0}[/COLOR]'.format(label))
         else:
             self.getControl(ID).setLabel(label)
 
@@ -564,8 +566,8 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
                     duration -= tablo.compat.timedelta_total_seconds(airing.datetimeEnd - self.hhData.cutoff)
 
             if airing.qualifiers:
-                new = 'new' in airing.qualifiers and u'[COLOR FF2F8EC0]NEW:[/COLOR] ' or u''
-                live = 'live' in airing.qualifiers and u'[COLOR FF2F8EC0]LIVE:[/COLOR] ' or u''
+                new = 'new' in airing.qualifiers and u'[COLOR FF2F8EC0]{0}:[/COLOR] '.format(T(32159)) or u''
+                live = 'live' in airing.qualifiers and u'[COLOR FF2F8EC0]{0}:[/COLOR] '.format(T(32160)) or u''
                 label = u'{0}{1}'.format(new or live, airing.title)
             else:
                 label = airing.title
@@ -666,19 +668,19 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
 
     def setDialogButtons(self, airing, arg_dict):
         if airing.airingNow():
-            arg_dict['button1'] = ('watch', 'Watch')
+            arg_dict['button1'] = ('watch', T(32140))
             button = 'button2'
         else:
             button = 'button1'
 
         if airing.conflicted:
-            arg_dict[button] = ('unschedule', "Don't Record {0}".format(util.LOCALIZED_AIRING_TYPES[airing.type.upper()]))
+            arg_dict[button] = ('unschedule', T(32141).format(util.LOCALIZED_AIRING_TYPES[airing.type.upper()]))
             arg_dict['title_indicator'] = 'indicators/conflict_pill_hd.png'
         elif airing.scheduled:
-            arg_dict[button] = ('unschedule', "Don't Record {0}".format(util.LOCALIZED_AIRING_TYPES[airing.type.upper()]))
+            arg_dict[button] = ('unschedule', T(32141).format(util.LOCALIZED_AIRING_TYPES[airing.type.upper()]))
             arg_dict['title_indicator'] = 'indicators/rec_pill_hd.png'
         else:
-            arg_dict[button] = ('record', 'Record {0}'.format(util.LOCALIZED_AIRING_TYPES[airing.type.upper()]))
+            arg_dict[button] = ('record', T(32142).format(util.LOCALIZED_AIRING_TYPES[airing.type.upper()]))
 
     @base.dialogFunction
     def airingClicked(self, airing):
@@ -686,7 +688,7 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
         #     xbmc.sleep(100)
         #     airing = item.dataSource.get('airing')
         try:
-            info = 'Channel {0} {1} on {2} from {3} to {4}'.format(
+            info = T(32143).format(
                 airing.gridAiring.displayChannel(),
                 airing.gridAiring.network,
                 airing.gridAiring.displayDay(),
@@ -694,7 +696,7 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
                 airing.gridAiring.displayTimeEnd()
             )
         except tablo.ConnectionError:
-            xbmcgui.Dialog().ok('Connection Failure', 'Cannot connect to {0}'.format(tablo.API.device.displayName))
+            xbmcgui.Dialog().ok(T(32161), T(32157).format(tablo.API.device.displayName))
             return
 
         kwargs = {
@@ -721,9 +723,9 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
         secs = airing.gridAiring.secondsToStart()
 
         if secs < 1:
-            start = 'Started {0} ago'.format(util.durationToText(secs * -1))
+            start = T(32145).format(util.durationToText(secs * -1))
         else:
-            start = 'Starts in {0}'.format(util.durationToText(secs))
+            start = T(32146).format(util.durationToText(secs))
 
         actiondialog.openDialog(
             airing.title,
@@ -752,16 +754,16 @@ class LiveTVWindow(kodigui.BaseWindow, util.CronReceiver):
 
         if airing.gridAiring.ended():
             secs = airing.gridAiring.secondsSinceEnd()
-            changes['start'] = 'Ended {0} ago'.format(util.durationToText(secs))
+            changes['start'] = T(32144).format(util.durationToText(secs))
         else:
             self.setDialogButtons(airing, changes)
 
             secs = airing.gridAiring.secondsToStart()
 
             if secs < 1:
-                start = 'Started {0} ago'.format(util.durationToText(secs * -1))
+                start = T(32145).format(util.durationToText(secs * -1))
             else:
-                start = 'Starts in {0}'.format(util.durationToText(secs))
+                start = T(32146).format(util.durationToText(secs))
 
             changes['start'] = start
 

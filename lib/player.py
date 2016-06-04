@@ -8,6 +8,7 @@ import urllib
 from lib import util
 from lib.tablo import bif
 from lib.windows import kodigui
+from lib.util import T
 
 
 class TrickModeWindow(kodigui.BaseWindow):
@@ -578,7 +579,7 @@ class LiveTVHandler(PlayerHandler):
             if watch:
                 if watch.error:
                     util.DEBUG_LOG('Player (LiveTV): Watch error: {0}'.format(watch.error))
-                    xbmcgui.Dialog().ok('Failed', 'Failed to play channel:', ' ', str(watch.errorDisplay))
+                    xbmcgui.Dialog().ok(T(32196), T(32197), ' ', str(watch.errorDisplay))
                     self.closeLoadingDialog()
                     return watch.error
                 util.DEBUG_LOG('Player (LiveTV): Watch URL: {0}'.format(watch.url))

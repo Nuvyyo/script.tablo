@@ -3,6 +3,8 @@ import kodigui
 
 from lib import tablo
 from lib import util
+from lib.util import T
+
 
 WM = None
 
@@ -25,24 +27,24 @@ class DeviceWindow(kodigui.BaseWindow):
                 interval = expDT - tablo.api.now()
                 intervalDisp = util.longDurationToText(tablo.api.compat.timedelta_total_seconds(interval))
                 expDisp = expDT.strftime('%B %d, %Y')
-                self.setProperty('subscription.title', 'Trial Subscription')
+                self.setProperty('subscription.title', T(32104))
                 self.setProperty(
                     'subscription.description',
-                    'Your trial expires in {interval}. Subscribe before {expiration}.'.format(interval=intervalDisp, expiration=expDisp)
+                    T(32105).format(interval=intervalDisp, expiration=expDisp)
                 )
             elif tablo.subscription.get('state') == 'subscribed':
-                self.setProperty('subscription.title', 'Active Subscription')
-                self.setProperty('subscription.description', 'Your Tablo has full access to guide data and all features.')
+                self.setProperty('subscription.title', T(32106))
+                self.setProperty('subscription.description', T(32107))
         else:
-            self.setProperty('subscription.title', 'No Subscription')
-            self.setProperty('subscription.description', 'Subscribe now to receive guide data and enable more features.')
+            self.setProperty('subscription.title', T(32108))
+            self.setProperty('subscription.description', T(32109))
 
         self.updateHDInfo()
 
         if not tablo.API.serverInfo:
             tablo.API.getServerInfo()
 
-        self.setProperty('firmware', tablo.API.serverInfo.get('version', '[COLOR FFFF8080]Failed to get device information[/COLOR]'))
+        self.setProperty('firmware', tablo.API.serverInfo.get('version', u'[COLOR FFFF8080]{0}[/COLOR]'.format(T(32110))))
         self.setProperty('ip.address', tablo.API.serverInfo.get('local_address', ''))
         si = tablo.API.serverInfo.get('server_id', '')
         if si:
@@ -72,8 +74,8 @@ class DeviceWindow(kodigui.BaseWindow):
                 break
 
             self.setProperty('drive.{0}'.format(i), drive['name'])
-            self.setProperty('drive.{0}.used'.format(i), '{0} Used'.format(util.simpleSize(drive['usage'])))
-            self.setProperty('drive.{0}.left'.format(i), '{0} Available'.format(util.simpleSize(drive['size'] - drive['usage'])))
+            self.setProperty('drive.{0}.used'.format(i), u'{0} {1}'.format(util.simpleSize(drive['usage']), T(32111)))
+            self.setProperty('drive.{0}.left'.format(i), u'{0} {1}'.format(util.simpleSize(drive['size'] - drive['usage']), T(32112)))
             control = self.getControl(controlID)
             w = int((drive['usage'] / float(drive['size'])) * self.DRIVE_WIDTH)
             control.setWidth(w)

@@ -32,7 +32,7 @@
                 <textcolor>FFFFFFFF</textcolor>
                 <align>left</align>
                 <aligny>center</aligny>
-                <label>Loading</label>
+                <label>$ADDON[script.tablo 32216]</label>
             </control>
             <control type="label">
                 <visible>!IsEmpty(Window.Property(abort))</visible>
@@ -42,7 +42,7 @@
                 <textcolor>FFFFFFFF</textcolor>
                 <align>left</align>
                 <aligny>center</aligny>
-                <label>Canceling</label>
+                <label>$ADDON[script.tablo 32217]</label>
             </control>
             <control type="image">
                 <animation effect="rotate" start="0" end="-360000" center="14,25" time="1000000" reversible="false">WindowOpen</animation>

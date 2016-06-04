@@ -126,7 +126,7 @@
                         <textcolor>FFEBEBEB</textcolor>
                         <align>left</align>
                         <aligny>center</aligny>
-                        <label>[B]Live TV[/B]</label>
+                        <label>[B]$ADDON[script.tablo 32218][/B]</label>
                     </control>
                     <control type="label">
                         <visible>!Control.HasFocus(102)</visible>
@@ -138,7 +138,7 @@
                         <textcolor>C8EBEBEB</textcolor>
                         <align>left</align>
                         <aligny>center</aligny>
-                        <label>Live TV</label>
+                        <label>$ADDON[script.tablo 32218]</label>
                     </control>
                 </control>
 
@@ -174,7 +174,7 @@
                         <textcolor>FFEBEBEB</textcolor>
                         <align>left</align>
                         <aligny>center</aligny>
-                        <label>[B]Recordings[/B]</label>
+                        <label>[B]$ADDON[script.tablo 32175][/B]</label>
                     </control>
                     <control type="label">
                         <visible>!Control.HasFocus(103)</visible>
@@ -186,7 +186,7 @@
                         <textcolor>C8EBEBEB</textcolor>
                         <align>left</align>
                         <aligny>center</aligny>
-                        <label>Recordings</label>
+                        <label>$ADDON[script.tablo 32175]</label>
                     </control>
                 </control>
 
@@ -222,7 +222,7 @@
                         <textcolor>FFEBEBEB</textcolor>
                         <align>left</align>
                         <aligny>center</aligny>
-                        <label>[B]Guide[/B]</label>
+                        <label>[B]$ADDON[script.tablo 32113][/B]</label>
                     </control>
                     <control type="label">
                         <visible>!Control.HasFocus(104)</visible>
@@ -234,7 +234,7 @@
                         <textcolor>C8EBEBEB</textcolor>
                         <align>left</align>
                         <aligny>center</aligny>
-                        <label>Guide</label>
+                        <label>$ADDON[script.tablo 32113]</label>
                     </control>
                 </control>
 
@@ -269,7 +269,7 @@
                         <textcolor>FFEBEBEB</textcolor>
                         <align>left</align>
                         <aligny>center</aligny>
-                        <label>[B]Scheduled[/B]</label>
+                        <label>[B]$ADDON[script.tablo 32195][/B]</label>
                     </control>
                     <control type="label">
                         <visible>!Control.HasFocus(105)</visible>
@@ -281,7 +281,7 @@
                         <textcolor>C8EBEBEB</textcolor>
                         <align>left</align>
                         <aligny>center</aligny>
-                        <label>Scheduled</label>
+                        <label>$ADDON[script.tablo 32195]</label>
                     </control>
                 </control>
             </control>

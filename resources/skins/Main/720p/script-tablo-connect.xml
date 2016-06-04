@@ -27,7 +27,7 @@
                 <align>center</align>
                 <aligny>center</aligny>
                 <textcolor>FFFFFFFF</textcolor>
-                <label>Updating $INFO[Window.Property(updating)]</label>
+                <label>$ADDON[script.tablo 32205] $INFO[Window.Property(updating)]</label>
             </control>
 
             <control type="group" id="100">
@@ -164,7 +164,7 @@
                 <textcolor>FFFFFFFF</textcolor>
                 <align>center</align>
                 <aligny>center</aligny>
-                <label>[B]Search Again[/B]</label>
+                <label>[B]$ADDON[script.tablo 32206][/B]</label>
             </control>
             <control type="label">
                 <visible>!Control.HasFocus(300)</visible>
@@ -176,7 +176,7 @@
                 <textcolor>FFFFFFFF</textcolor>
                 <align>center</align>
                 <aligny>center</aligny>
-                <label>Search Again</label>
+                <label>$ADDON[script.tablo 32206]</label>
             </control>
         </control>
 
@@ -190,7 +190,7 @@
             <align>center</align>
             <aligny>center</aligny>
             <textcolor>FFFFFFFF</textcolor>
-            <label>Connect to Tablo</label>
+            <label>$ADDON[script.tablo 32207]</label>
         </control>
 
         <control type="group">

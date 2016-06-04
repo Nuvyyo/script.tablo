@@ -23,38 +23,38 @@ PROFILE = xbmc.translatePath(ADDON.getAddonInfo('profile')).decode('utf-8')
 T = ADDON.getLocalizedString
 
 LOCALIZED_SHOW_TYPES = {  # TODO: Actually localize these :)
-    'SERIES': 'Series',
-    'MOVIE': 'Movie',
-    'SPORT': 'Sport',
-    'PROGRAM': 'Program',
+    'SERIES': T(32202),
+    'MOVIE': T(32199),
+    'SPORT': T(32203),
+    'PROGRAM': T(32204),
 }
 
 LOCALIZED_AIRING_TYPES = {  # TODO: Actually localize these :)
-    'SERIES': 'Episode',
-    'MOVIE': 'Movie',
-    'SPORT': 'Event',
-    'PROGRAM': 'Airing',
+    'SERIES': T(32136),
+    'MOVIE': T(32199),
+    'SPORT': T(32138),
+    'PROGRAM': T(32201),
 }
 
 LOCALIZED_AIRING_TYPES_PLURAL = {  # TODO: Actually localize these :)
-    'SERIES': 'Episodes',
-    'MOVIE': 'Airings',
-    'SPORT': 'Events',
-    'PROGRAM': 'Airings',
+    'SERIES': T(32137),
+    'MOVIE': T(32200),
+    'SPORT': T(32139),
+    'PROGRAM': T(32200),
 }
 
 LOCALIZED_RECORDING_TYPES = {  # TODO: Actually localize these :)
-    'SERIES': 'Episode',
-    'MOVIE': 'Movie',
-    'SPORT': 'Event',
-    'PROGRAM': 'Recording',
+    'SERIES': T(32136),
+    'MOVIE': T(32199),
+    'SPORT': T(32138),
+    'PROGRAM': T(32198),
 }
 
 LOCALIZED_RECORDING_TYPES_PLURAL = {  # TODO: Actually localize these :)
-    'SERIES': 'Episodes',
-    'MOVIE': 'Airings',
-    'SPORT': 'Events',
-    'PROGRAM': 'Recordings',
+    'SERIES': T(32137),
+    'MOVIE': T(32200),
+    'SPORT': T(32139),
+    'PROGRAM': T(32175),
 }
 
 
@@ -167,7 +167,7 @@ def longDurationToText(seconds):
     Converts seconds to a short user friendly string
     Example: 143 -> 2m 23s
     """
-    years = int(seconds/31536000)
+    years = int(seconds / 31536000)
     if years:
         return '{0} year{1}'.format(years, years > 1 and 's' or '')
 
@@ -179,17 +179,17 @@ def durationToText(seconds):
     Converts seconds to a short user friendly string
     Example: 143 -> 2m 23s
     """
-    days = int(seconds/86400)
+    days = int(seconds / 86400)
     if days:
         return '{0} day{1}'.format(days, days > 1 and 's' or '')
     left = seconds % 86400
-    hours = int(left/3600)
+    hours = int(left / 3600)
     if hours:
         hours = '{0} hr{1} '.format(hours, hours > 1 and 's' or '')
     else:
         hours = ''
     left = left % 3600
-    mins = int(left/60)
+    mins = int(left / 60)
     if mins:
         return hours + '{0} min{1}'.format(mins, mins > 1 and 's' or '')
     elif hours:
@@ -205,17 +205,17 @@ def durationToShortText(seconds):
     Converts seconds to a short user friendly string
     Example: 143 -> 2m 23s
     """
-    days = int(seconds/86400)
+    days = int(seconds / 86400)
     if days:
         return '{0}d'.format(days)
     left = seconds % 86400
-    hours = int(left/3600)
+    hours = int(left / 3600)
     if hours:
         hours = '{0}h'.format(hours)
     else:
         hours = ''
     left = left % 3600
-    mins = int(left/60)
+    mins = int(left / 60)
     if mins:
         return hours + '{0}m'.format(mins)
     elif hours:
@@ -238,7 +238,7 @@ def simpleSize(size):
     if size > 0:
         i = int(math.floor(math.log(size, 1024)))
         p = math.pow(1024, i)
-        s = round(size/p, 2)
+        s = round(size / p, 2)
     if (s > 0):
         return '%s %s' % (s, SIZE_NAMES[i])
     else:
@@ -378,11 +378,14 @@ CRON = None
 
 
 class CronReceiver():
-    def tick(self): pass
+    def tick(self):
+        pass
 
-    def halfHour(self): pass
+    def halfHour(self):
+        pass
 
-    def day(self): pass
+    def day(self):
+        pass
 
 
 class Cron(threading.Thread):

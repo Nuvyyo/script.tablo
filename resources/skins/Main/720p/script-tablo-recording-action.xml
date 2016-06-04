@@ -240,7 +240,7 @@
                             <textcolor>FFFFFFFF</textcolor>
                             <align>center</align>
                             <aligny>center</aligny>
-                            <label>[B]Watch[/B]</label>
+                            <label>[B]$ADDON[script.tablo 32140][/B]</label>
                         </control>
                         <control type="label">
                             <visible>!Control.HasFocus(400) + Control.IsEnabled(400)</visible>
@@ -252,7 +252,7 @@
                             <textcolor>FFFFFFFF</textcolor>
                             <align>center</align>
                             <aligny>center</aligny>
-                            <label>Watch</label>
+                            <label>$ADDON[script.tablo 32140]</label>
                         </control>
                         <control type="label">
                             <visible>!Control.IsEnabled(400)</visible>
@@ -264,7 +264,7 @@
                             <textcolor>80EBEBEB</textcolor>
                             <align>center</align>
                             <aligny>center</aligny>
-                            <label>Watch</label>
+                            <label>$ADDON[script.tablo 32140]</label>
                         </control>
                     </control>
 
@@ -449,7 +449,7 @@
                                 <textcolor>FFFFFFFF</textcolor>
                                 <align>center</align>
                                 <aligny>center</aligny>
-                                <label>[B]Delete..[/B]</label>
+                                <label>[B]$ADDON[script.tablo 32187][/B]</label>
                             </control>
                             <control type="label">
                                 <visible>!Control.HasFocus(403) + Control.IsEnabled(403)</visible>
@@ -459,7 +459,7 @@
                                 <textcolor>FFFFFFFF</textcolor>
                                 <align>center</align>
                                 <aligny>center</aligny>
-                                <label>Delete...</label>
+                                <label>$ADDON[script.tablo 32187]</label>
                             </control>
                             <control type="label">
                                 <visible>!Control.IsEnabled(403)</visible>
@@ -469,7 +469,7 @@
                                 <textcolor>80EBEBEB</textcolor>
                                 <align>center</align>
                                 <aligny>center</aligny>
-                                <label>Delete...</label>
+                                <label>$ADDON[script.tablo 32187]</label>
                             </control>
                             <control type="image">
                                 <visible>!IsEmpty(Window.Property(delete.busy))</visible>

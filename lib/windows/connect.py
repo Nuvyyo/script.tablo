@@ -5,6 +5,7 @@ import xbmcgui
 import kodigui
 from lib import tablo
 from lib import util
+from lib.util import T
 
 
 class ConnectWindow(kodigui.BaseWindow):
@@ -29,7 +30,7 @@ class ConnectWindow(kodigui.BaseWindow):
         else:
             if self.updating:
                 name = tablo.API.device and tablo.API.device.name or 'Tablo'
-                xbmcgui.Dialog().ok('Updating', '{0} is currently updating'.format(name))
+                xbmcgui.Dialog().ok(T(32100), T(32101).format(name))
             self.setProperty('updating', '')
             self.setProperty('tablo.found', '')
             self.setProperty('initialized', '')
@@ -55,7 +56,7 @@ class ConnectWindow(kodigui.BaseWindow):
             if status and status[0] != 'error':
                 disp = status[0].title()
                 if status[0] == 'downloading' and status[1] is not None:
-                    disp = '{0} {1}%'.format(disp, int(status[1]*100))
+                    disp = '{0} {1}%'.format(disp, int(status[1] * 100))
                 self.setProperty('update.status', disp)
                 continue
             else:
@@ -83,7 +84,7 @@ class ConnectWindow(kodigui.BaseWindow):
                 self.exit = False
                 self.doClose()
             else:
-                xbmcgui.Dialog().ok('Connection Failure', 'Cannot connect to {0}'.format(tablo.API.device.displayName))
+                xbmcgui.Dialog().ok(T(32102), T(32103).format(tablo.API.device.displayName))
 
     def start(self):
         self.showDevices()
