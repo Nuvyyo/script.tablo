@@ -342,10 +342,6 @@ def loadingDialog(func):
     return inner
 
 
-def withLaodingDialog(method, *args, **kwargs):
-    return loadingDialog(method)(*args, **kwargs)
-
-
 class TextBox:
     # constants
     WINDOW = 10147
