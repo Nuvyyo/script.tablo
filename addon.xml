@@ -21,6 +21,7 @@
         <license>Apache License 2.0</license>
         <forum>https://community.tablotv.com</forum>
         <website>https://www.tablotv.com</website>
+        <source>https://github.com/Nuvyyo/script.tablo</source>
         <platform>all</platform>
     </extension>
 </addon>
